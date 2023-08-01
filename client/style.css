@@ -1,0 +1,11 @@
+body {
+    background-color: black;
+    color: white;
+}
+
+#loading {
+    background-color: black;
+    text-align: center;
+    vertical-align: middle;
+    color: white;
+}
