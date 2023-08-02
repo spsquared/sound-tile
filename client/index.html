@@ -7,15 +7,32 @@
     <title>Sound Tile</title>
     <link rel="icon" href="./favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
-    <script src="./index.js" defer></script>
+    <script src="./ui.js" defer></script>
+    <script src="./sound.js" defer></script>
+    <script defer>
+        window.addEventListener('load', (e) => {
+            document.getElementById('loading').remove();
+        });
+    </script>
 </head>
 <body>
-    <div id="loading">loading oof</div>
+    <div id="loading">
+        loading oof
+    </div>
     <div id="display">
-        <!-- group tiles with flexbox, drag and drop is hard, add new tile button too -->
+        <!-- group tiles with flexbox, drag and drop is hard -->
     </div>
     <div id="dropdown">
-        <!-- idk export button -->
+        <!-- idk export button and place to drag new tile from, also color settings -->
     </div>
+    <template id="tileTemplate">
+        <div class="tile">
+            <canvas class="tileCanvas"></canvas>
+            <img class="tileImg">
+            <div class="tileControls">
+                <!-- image upload, color, style (orientation), maybe even waveform mode -->
+            </div>
+        </div>
+    </template>
 </body>
 </html>

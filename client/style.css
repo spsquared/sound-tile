@@ -4,8 +4,40 @@ body {
 }
 
 #loading {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
     background-color: black;
     text-align: center;
     vertical-align: middle;
     color: white;
+    z-index: 1000;
+}
+
+#display {
+    display: flex;
+    align-items: stretch;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: calc(100vw - 4px);
+    height: calc(100vh - 4px);
+    border: 2px solid white;
+}
+
+.tileGroup {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    flex-grow: 1;
+}
+.tileGroupVertical {
+    flex-direction: column;
+}
+.tile {
+    flex-grow: 1;
+    border: 2px solid white;
 }
