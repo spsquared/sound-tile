@@ -1,6 +1,22 @@
+// Copyright (C) 2023 Sampleprovider(sp)
+
 const audioContext = new (window.AudioContext ?? window.webkitAudioContext ?? Error)();
 const globalVolume = audioContext.createGain();
 globalVolume.connect(audioContext.destination);
+
+if (navigator.userActivation) {
+    let waitForInteraction = setInterval(() => {
+        if (navigator.userActivation.hasBeenActive) {
+            audioContext.resume();
+            clearInterval(waitForInteraction);
+        }
+    }, 100);
+} else {
+    document.addEventListener('click', function click(e) {
+        document.removeEventListener('click', click);
+        audioContext.resume();
+    });
+}
 
 class Visualizer {
     static #list = new Set();

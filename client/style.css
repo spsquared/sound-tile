@@ -1,6 +1,19 @@
+@font-face {
+    font-family: 'Source Code Pro';
+    font-weight: 100, 200, 300, 400, 500, 600, 700, 800;
+    font-style: normal;
+    src: url(/assets/SourceCodePro.ttf) format('truetype');
+}
+
 body {
+    font-family: 'Source Code Pro', Courier, monospace;
     background-color: black;
     color: white;
+}
+
+canvas, img {
+    image-rendering: pixelated;
+    user-select: none;
 }
 
 #loading {
@@ -15,7 +28,6 @@ body {
     color: white;
     z-index: 1000;
 }
-
 #display {
     display: flex;
     align-items: stretch;
@@ -25,6 +37,11 @@ body {
     width: calc(100vw - 4px);
     height: calc(100vh - 4px);
     border: 2px solid white;
+    overflow: hidden;
+}
+
+.hidden {
+    display: none;
 }
 
 .tileGroup {
@@ -38,6 +55,79 @@ body {
     flex-direction: column;
 }
 .tile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
     flex-grow: 1;
+    padding: 8px 8px;
     border: 2px solid white;
+}
+
+.tileDrag {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 20px;
+    background-color: grey;
+    transition: 200ms linear opacity;
+    opacity: 0;
+    cursor: grab;
+}
+.tileDrag:hover {
+    opacity: 1;
+}
+.tileRemove {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 20px;
+    height: 20px;
+    background-color: tomato;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/delete.svg);
+    cursor: pointer;
+}
+
+.tileDisplay {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.tileCanvas {
+    width: 100%;
+}
+.tileImg {
+    max-width: 100%;
+}
+
+.tileControls {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    transition: 200ms linear opacity;
+    opacity: 0;
+}
+.tileControls:hover {
+    opacity: 1;
+}
+.tileImgUpload {
+    display: none;
+}
+.tileImgUploadLabel {
+    display: inline-block;
+    height: 20px;
+    margin: 4px 4px;
+    padding: 2px 4px;
+    background-color: dodgerblue;
+    font-size: 15px;
+    border-radius: 4px;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
 }

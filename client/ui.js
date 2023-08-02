@@ -1,7 +1,5 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
-// (please credit me if you use this tool)
-
 class TileGroup {
     static root = new TileGroup(null, false);
 
@@ -25,9 +23,25 @@ class TileGroup {
         else this.tile.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
     }
-
-    removeChild(index) {
-        this.children.splice(index, 1)[0].remove();
+    removeChild(child) {
+        if (!this.children.includes(child)) throw Error('TileGroup remove child is not a child of the TileGroup');
+        this.children.splice(this.children.indexOf(child), 1)[0].tile.remove();
+        this.refresh();
+    }
+    removeChildIndex(index) {
+        this.children.splice(index, 1)[0].tile.remove();
+        this.refresh();
+    }
+    refresh() {
+        if (this.children.length == 0 && this.parent !== null) this.destroy();
+    }
+    destroy() {
+        if (this.parent === null) throw Error('TileGroup tree root node cannot be removed');
+        for (const child of this.children) {
+            child.destroy();
+        }
+        this.tile.remove();
+        this.parent.removeChild(this);
     }
 }
 class Tile {
@@ -38,18 +52,35 @@ class Tile {
     tile = null;
     canvas = null;
     ctx = null;
+    img = null;
     // add option to make static image/text
     constructor(parent) {
         if (!(parent instanceof TileGroup)) throw TypeError('Tile parent must be a TileGroup');
         this.parent = parent;
         this.tile = Tile.#template.content.cloneNode(true).children[0];
-        this.canvas = this.tile.children[0];
+        this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.img = this.tile.querySelector('.tileImg');
+        const imageUpload = this.tile.querySelector('.tileImgUpload');
+        imageUpload.addEventListener('change', (ev) => {
+            const fileTypes = [
+                'image/bmp',
+                'image/jpeg',
+                'image/png',
+                'image/svg+xml',
+                'image/webp',
+            ];
+            if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
+                this.img.src = URL.createObjectURL(imageUpload.files[0]);
+                this.img.classList.remove('hidden');
+            }
+        });
         Tile.#list.add(this);
     }
-    remove() {
+
+    destroy() {
+        this.parent.removeChild(this);
         Tile.#list.remove(this);
-        if (this.tile != null) this.tile.remove();
     }
 }
 document.getElementById('display').appendChild(TileGroup.root.tile);

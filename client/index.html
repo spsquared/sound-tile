@@ -5,15 +5,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sound Tile</title>
-    <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
+    <script src="./index.js" defer></script>
     <script src="./ui.js" defer></script>
     <script src="./sound.js" defer></script>
-    <script defer>
-        window.addEventListener('load', (e) => {
-            document.getElementById('loading').remove();
-        });
-    </script>
 </head>
 <body>
     <div id="loading">
@@ -27,9 +23,18 @@
     </div>
     <template id="tileTemplate">
         <div class="tile">
-            <canvas class="tileCanvas"></canvas>
-            <img class="tileImg">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
+            </div>
+            <div class="tileDisplay">
+                <canvas class="tileCanvas"></canvas>
+                <img class="tileImg hidden">
+            </div>
             <div class="tileControls">
+                <label class="tileImgUploadLabel">
+                    Upload Image
+                    <input class="tileImgUpload" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                </label>
                 <!-- image upload, color, style (orientation), maybe even waveform mode -->
             </div>
         </div>
