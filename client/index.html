@@ -30,12 +30,18 @@
                 <canvas class="tileCanvas"></canvas>
                 <img class="tileImg hidden">
             </div>
+            <div class="tileSourceUploadCover">
+                <label class="tileSourceUploadLabel">
+                    Upload Audio Source
+                    <input class="tileSourceUpload" type="file" accept="audio/*">
+                </label>
+            </div>
             <div class="tileControls">
                 <label class="tileImgUploadLabel">
-                    Upload Image
+                    <span class="tileImgUploadLabelText">Upload Image</span>
                     <input class="tileImgUpload" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <!-- image upload, color, style (orientation), maybe even waveform mode -->
+                <!-- image upload, color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
             </div>
         </div>
     </template>

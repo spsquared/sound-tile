@@ -53,6 +53,7 @@ class Tile {
     canvas = null;
     ctx = null;
     img = null;
+    visualizer = null;
     // add option to make static image/text
     constructor(parent) {
         if (!(parent instanceof TileGroup)) throw TypeError('Tile parent must be a TileGroup');
@@ -61,8 +62,16 @@ class Tile {
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
+        const audioUpload = this.tile.querySelector('.tileSourceUpload');
+        audioUpload.addEventListener('change', async (e) => {
+            if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
+                this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.ctx);
+                this.tile.querySelector('.tileSourceUploadCover').remove();
+            }
+        });
         const imageUpload = this.tile.querySelector('.tileImgUpload');
-        imageUpload.addEventListener('change', (ev) => {
+        const imageUploadLabel = this.tile.querySelector('.tileImgUploadLabelText');
+        imageUpload.addEventListener('change', (e) => {
             const fileTypes = [
                 'image/bmp',
                 'image/jpeg',
@@ -73,7 +82,18 @@ class Tile {
             if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
                 this.img.src = URL.createObjectURL(imageUpload.files[0]);
                 this.img.classList.remove('hidden');
+                imageUploadLabel.innerText = 'Change Image';
             }
+        });
+        window.addEventListener('resize', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.canvas.width = Math.round(rect.width);
+            this.canvas.height = Math.round(rect.height);
+        });
+        window.addEventListener('load', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.canvas.width = Math.round(rect.width);
+            this.canvas.height = Math.round(rect.height);
         });
         Tile.#list.add(this);
     }
