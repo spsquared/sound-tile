@@ -27,7 +27,7 @@ class Visualizer {
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     color = 'white';
-    fftSize = 128;
+    fftSize = 256;
     barSpacing = 1;
     constructor(arrbuf, ctx) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
@@ -39,7 +39,7 @@ class Visualizer {
         this.analyzer.fftSize = this.fftSize;
         Visualizer.#list.add(this);
     }
-    start(time) {
+    start(time = 0) {
         this.stop();
         this.playingSource = audioContext.createBufferSource();
         this.playingSource.buffer = this.buffer;
@@ -48,7 +48,10 @@ class Visualizer {
         this.playingSource.start(audioContext.currentTime, time);
     }
     stop() {
-        if (this.playingSource !== null) this.playingSource.stop();
+        if (this.playingSource !== null) {
+            this.playingSource.stop();
+            this.playingSource.disconnect();
+        }
         this.playingSource = null;
     }
     draw() {
@@ -64,7 +67,7 @@ class Visualizer {
             this.ctx.arc(0, 0, r, 0, 4 * Math.PI / 3);
             this.ctx.lineTo(Math.cos(4 * Math.PI / 3) * (r * 0.8), Math.sin(4 * Math.PI / 3) * (r * 0.8));
             this.ctx.arc(0, 0, r * 0.8, 4 * Math.PI / 3, 0, true);
-            this.ctx.lineTo(0, 4);
+            this.ctx.lineTo(r, 0);
             this.ctx.fill();
             this.ctx.resetTransform();
             return;
@@ -83,7 +86,14 @@ class Visualizer {
     destroy() {
         this.stop();
         this.analyzer.disconnect();
-        Visualizer.#list.remove(this);
+        Visualizer.#list.delete(this);
+    }
+
+    static startAll(time = 0) {
+        Visualizer.#list.forEach(visualizer => visualizer.start(time));
+    }
+    static stopAll() {
+        Visualizer.#list.forEach(visualizer => visualizer.stop());
     }
 
     static draw() {

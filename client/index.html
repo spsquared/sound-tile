@@ -15,33 +15,64 @@
     <div id="loading">
         loading oof
     </div>
-    <div id="display">
-        <!-- group tiles with flexbox, drag and drop is hard -->
-    </div>
+    <div id="display"></div>
     <div id="dropdown">
         <!-- idk export button and place to drag new tile from, also color settings -->
+        <!-- text only tile, image only tile, bla -->
     </div>
-    <template id="tileTemplate">
+    <template id="visualizerImageTileTemplate">
         <div class="tile">
             <div class="tileDrag">
                 <div class="tileRemove"></div>
             </div>
             <div class="tileDisplay">
-                <canvas class="tileCanvas"></canvas>
-                <img class="tileImg hidden">
+                <div class="tileCanvasContainer">
+                    <canvas class="tileCanvas"></canvas>
+                </div>
+                <div class="tileImgContainer">
+                    <img class="tileImg hidden">
+                </div>
             </div>
             <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel">
+                <label class="tileSourceUploadLabel uploadButtonLabel">
                     Upload Audio Source
-                    <input class="tileSourceUpload" type="file" accept="audio/*">
+                    <input class="tileSourceUpload uploadButton" type="file" accept="audio/*">
                 </label>
             </div>
             <div class="tileControls">
-                <label class="tileImgUploadLabel">
+                <label class="tileImgUploadLabel uploadButtonLabel">
                     <span class="tileImgUploadLabelText">Upload Image</span>
-                    <input class="tileImgUpload" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <!-- image upload, color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
+                <label class="tileAudioReplaceLabel uploadButtonLabel">
+                    Replace Source
+                    <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
+                </label>
+                <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
+                <!-- color blending and custom color script? (use gradients) -->
+            </div>
+        </div>
+    </template>
+    <template id="imageTileTemplate">
+        <div class="tile">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
+            </div>
+            <div class="tileImgContainer">
+                <img class="tileImg">
+            </div>
+            <div class="tileSourceUploadCover">
+                <label class="tileSourceUploadLabel uploadButtonLabel">
+                    Upload Image
+                    <input class="tileSourceUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                </label>
+            </div>
+            <div class="tileControls">
+                <label class="tileImgUploadLabel uploadButtonLabel">
+                    <span class="tileImgUploadLabelText">Change Image</span>
+                    <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                </label>
+                <!-- idk more options? -->
             </div>
         </div>
     </template>
