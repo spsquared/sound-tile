@@ -27,7 +27,7 @@ class Visualizer {
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     color = 'white';
-    fftSize = 256;
+    fftSize = 512;
     barSpacing = 1;
     constructor(arrbuf, ctx) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
@@ -72,7 +72,7 @@ class Visualizer {
             this.ctx.resetTransform();
             return;
         }
-        let barWidth = (width - this.barSpacing) / (this.analyzer.frequencyBinCount + this.barSpacing);
+        let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
         const data = new Uint8Array(this.analyzer.frequencyBinCount);
         this.analyzer.getByteFrequencyData(data);
         this.ctx.fillStyle = this.color;

@@ -106,6 +106,8 @@ class VisualizerImageTile {
             }
         });
         this.tile.querySelector('.tileRemove').onclick = (e) => this.destroy();
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
         // How to avoid using JS to resize???
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
@@ -113,6 +115,8 @@ class VisualizerImageTile {
             const rect = canvasContainer.getBoundingClientRect();
             this.canvas.width = Math.round(rect.width);
             this.canvas.height = Math.round(rect.height);
+            this.canvas.style.width = Math.round(rect.width) + 'px';
+            this.canvas.style.height = Math.round(rect.height) + 'px';
             const rect2 = imageContainer.getBoundingClientRect();
             if (rect2.width / rect2.height < this.img.width / this.img.height) {
                 // width restriction

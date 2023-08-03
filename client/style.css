@@ -9,13 +9,15 @@ body {
     font-family: 'Source Code Pro', Courier, monospace;
     background-color: black;
     color: white;
+    overflow: hidden;
 }
 
 canvas {
+    image-rendering: crisp-edges;
     user-select: none;
 }
 img {
-    image-rendering: pixelated;
+    image-rendering: crisp-edges;
     user-select: none;
 }
 
