@@ -12,14 +12,59 @@
     <script src="./sound.js" defer></script>
 </head>
 <body>
-    <div id="loading">
-        loading oof
+    <div id="loadingCover">
+        <div id="loadingCoverBar"></div>
+        <noscript id="noscript">JavaScript was disabled! Red Pixel Simulator requires JavaScript to run!<br>Please enable it again and <a href="">reload</a>!</noscript>
+        <style>
+            #loadingCover {
+                position: fixed;
+                top: 0px;
+                left: 0px;
+                width: 100vw;
+                height: 100vh;
+                background-color: black;
+                transition: 200ms linear opacity;
+                z-index: 1001;
+                cursor: wait;
+            }
+            #loadingCoverBar {
+                position: fixed;
+                top: calc(50vh - 0.5vw);
+                left: 35vw;
+                width: 30vw;
+                height: 1vw;
+                background: linear-gradient(dodgerblue 0 0), linear-gradient(dodgerblue 0 0), white;
+                background-size: 60% 100%;
+                background-repeat: no-repeat;
+                box-shadow: 0px 0px 0.5vw rgba(255, 255, 255, 0.5);
+                animation: pageLoadCoverProgress ease 2s infinite;
+            }
+            #noscript {
+                position: fixed;
+                top: 55vh;
+                left: 0vw;
+                width: 100vw;
+                text-align: center;
+            }
+            @keyframes pageLoadCoverProgress {
+                0% {
+                    background-position: -150% 0,-150% 0;
+                }
+                66% {
+                    background-position: 250% 0,-150% 0;
+                }
+                100% {
+                    background-position: 250% 0, 250% 0;
+                }
+            }
+        </style>
     </div>
     <div id="display"></div>
     <div id="dropdown">
         <!-- idk export button and place to drag new tile from, also color settings -->
         <!-- text only tile, image only tile, bla -->
     </div>
+    <div id="draggingContainer"></div>
     <template id="visualizerImageTileTemplate">
         <div class="tile">
             <div class="tileDrag">
@@ -73,6 +118,24 @@
                     <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
                 <!-- idk more options? -->
+            </div>
+        </div>
+    </template>
+    <template id="textTileTemplate">
+        <div class="tile">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
+            </div>
+            <textarea class="tileText">Text Here</textarea>
+            <div class="tileControls">
+                <!-- font size? -->
+            </div>
+        </div>
+    </template>
+    <template id="blankTileTemplate">
+        <div class="tile">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
             </div>
         </div>
     </template>

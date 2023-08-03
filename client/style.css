@@ -10,15 +10,11 @@ body {
     background-color: black;
     color: white;
     overflow: hidden;
+    user-select: none;
 }
 
-canvas {
-    image-rendering: crisp-edges;
-    user-select: none;
-}
 img {
     image-rendering: crisp-edges;
-    user-select: none;
 }
 
 #loading {
@@ -171,4 +167,15 @@ img {
 }
 .tileImgUploadLabel {
     background-color: dodgerblue;
+}
+
+#draggingContainer {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 0px;
+    height: 0px;
+    pointer-events: none;
+    z-index: 999;
 }

@@ -15,9 +15,11 @@ class GroupTile {
     }
 
     addChild(child, index = this.children.length) {
-        if (!(child instanceof GroupTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile)) throw TypeError('GroupTile child must be a VisualizerImageTile, ImageTile, or another GroupTile');
+        if (!(child instanceof GroupTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerImageTile, ImageTile, TextTile, BlankTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
-        if (index == this.children.length) this.tile.appendChild(child.tile);
+        // prevent duplicate children, add the tile to DOM first
+        if (this.children.includes(child)) this.children.splice(this.children.indexOf(child), 1);
+        if (index === this.children.length) this.tile.appendChild(child.tile);
         else this.tile.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
         child.parent = this;
@@ -29,6 +31,7 @@ class GroupTile {
     }
     replaceChildIndex(index, replacement) {
         const removed = this.children.splice(index, 1)[0];
+        removed.parent = null;
         removed.tile.remove();
         this.addChild(replacement, index);
         this.refresh();
@@ -40,23 +43,29 @@ class GroupTile {
     }
     removeChildIndex(index) {
         const removed = this.children.splice(index, 1)[0];
+        removed.parent = null;
         removed.tile.remove();
         this.refresh();
         return removed;
+    }
+    getChildIndex(child) {
+        return this.children.indexOf(child);
     }
     refresh() {
         for (let child of this.children) {
             child.refresh();
         }
         if (this.parent === null) return;
-        if (this.children.length == 0) this.destroy();
-        if (this.children.length == 1) {
+        if (this.children.length === 0) this.destroy();
+        if (this.children.length === 1) {
             this.parent.replaceChild(this, this.children[0]);
+            this.children = [];
             this.destroy();
         }
     }
 
     destroy() {
+        for (const child of this.children) child.destroy();
         if (this.parent) this.parent.removeChild(this);
     }
 }
@@ -71,6 +80,11 @@ class VisualizerImageTile {
     visualizer = null;
     constructor() {
         this.tile = VisualizerImageTile.#template.content.cloneNode(true).children[0];
+        this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
+        this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => this.destroy());
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
@@ -105,7 +119,6 @@ class VisualizerImageTile {
                 this.img.onload = (e) => this.#resize();
             }
         });
-        this.tile.querySelector('.tileRemove').onclick = (e) => this.destroy();
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.webkitImageSmoothingEnabled = false;
         // How to avoid using JS to resize???
@@ -132,8 +145,7 @@ class VisualizerImageTile {
         window.addEventListener('load', this.#resize);
     }
 
-    #resize = () => {}
-
+    #resize = () => { }
     refresh() {
         this.#resize();
     }
@@ -151,6 +163,10 @@ class ImageTile {
     img = null;
     constructor() {
         this.tile = ImageTile.#template.content.cloneNode(true).children[0];
+        this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
+        this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => this.destroy());
         this.img = this.tile.querySelector('.tileImg');
         const imageUpload = this.tile.querySelector('.tileImgUpload');
         const imageUpload2 = this.tile.querySelector('.tileSourceUpload');
@@ -174,7 +190,6 @@ class ImageTile {
                 this.img.onload = (e) => this.#resize();
             }
         });
-        this.tile.querySelector('.tileRemove').onclick = (e) => this.destroy();
         // How to avoid using JS to resize???
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
@@ -193,8 +208,7 @@ class ImageTile {
         window.addEventListener('load', this.#resize);
     }
 
-    #resize = () => {}
-
+    #resize = () => { }
     refresh() {
         this.#resize();
     }
@@ -203,9 +217,137 @@ class ImageTile {
         if (this.parent) this.parent.removeChild(this);
     }
 }
-// text tile
+class TextTile {
+    static #template = document.getElementById('textTileTemplate');
+
+    parent = null;
+    tile = null;
+    text = null;
+    constructor() {
+        this.tile = TextTile.#template.content.cloneNode(true).children[0];
+        this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
+        this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => this.destroy());
+        this.text = this.tile.querySelector('.tileText');
+    }
+
+    refresh() { }
+
+    destroy() {
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
+class BlankTile {
+    static #template = document.getElementById('blankTileTemplate');
+
+    parent = null;
+    tile = null;
+    constructor() {
+        this.tile = BlankTile.#template.content.cloneNode(true).children[0];
+        this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
+        this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => this.destroy());
+    }
+
+    refresh() { }
+
+    destroy() {
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
 
 document.getElementById('display').appendChild(GroupTile.root.tile);
+
+const drag = {
+    container: document.getElementById('draggingContainer'),
+    tile: null,
+    dragX: 0,
+    dragY: 0,
+    hoverTile: null,
+    placeholder: new BlankTile(),
+    dragging: false
+};
+drag.placeholder.tile.style.backgroundColor = 'gray';
+drag.placeholder.tile.querySelector('.tileDrag').style.display = 'none';
+function startDrag(e) {
+    if (drag.dragging || this.parent === null || e.target.matches('.tileRemove')) return;
+    drag.tile = this;
+    const rect = this.tile.querySelector('.tileDrag').getBoundingClientRect();
+    drag.dragX = e.clientX - rect.left;
+    drag.dragY = e.clientY - rect.top;
+    const rect2 = this.tile.getBoundingClientRect();
+    drag.container.style.top = e.clientY - drag.dragY + 'px';
+    drag.container.style.left = e.clientX - drag.dragX + 'px';
+    drag.container.style.width = rect2.width + 'px';
+    drag.container.style.height = rect2.height + 'px';
+    this.parent.removeChild(this);
+    drag.container.appendChild(this.tile);
+    drag.container.style.display = 'flex';
+    document.body.style.cursor = 'grabbing';
+    drag.dragging = true;
+};
+document.addEventListener('mousemove', (e) => {
+    if (drag.dragging) {
+        drag.container.style.top = e.clientY - drag.dragY + 'px';
+        drag.container.style.left = e.clientX - drag.dragX + 'px';
+        if (drag.hoverTile !== null) {
+            // prevent infinite grouping if hovered over the placeholder
+            if (drag.hoverTile !== drag.placeholder) {
+                if (drag.placeholder.parent) drag.placeholder.parent.removeChild(drag.placeholder);
+                const parent = drag.hoverTile.parent;
+                const rect = drag.hoverTile.tile.getBoundingClientRect();
+                let topDist = e.clientY - rect.top;
+                let bottomDist = (rect.top + rect.height) - e.clientY;
+                let leftDist = e.clientX - rect.left;
+                let rightDist = (rect.left + rect.width) - e.clientX;
+                let groupThreshhold = Math.min(rect.width, rect.height);
+                switch (Math.min(topDist, bottomDist, leftDist, rightDist)) {
+                    case topDist:
+                        if (topDist > 0.2 * groupThreshhold) {
+                            const group = new GroupTile(true);
+                        } else {
+                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
+                        }
+                        break;
+                    case bottomDist:
+                        if (bottomDist > 0.2 * groupThreshhold) {
+                            console.log('group bottom');
+                        } else {
+                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
+                        }
+                        break;
+                    case leftDist:
+                        if (leftDist > 0.2 * groupThreshhold) {
+                            console.log('group left');
+                        } else {
+                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
+                        }
+                        break;
+                    case rightDist:
+                        if (rightDist > 0.2 * groupThreshhold) {
+                            console.log('group right');
+                        } else {
+                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
+                        }
+                        break;
+                }
+            }
+        } else if (drag.placeholder.parent !== null) {
+            drag.placeholder.parent.removeChild(drag.placeholder);
+        }
+    }
+});
+document.addEventListener('mouseup', (e) => {
+    if (drag.dragging && drag.placeholder.parent !== null) {
+        drag.placeholder.parent.replaceChild(drag.placeholder, drag.tile);
+        drag.container.style.display = '';
+        document.body.style.cursor = '';
+        drag.tile = null;
+        drag.dragging = false;
+    }
+});
 
 // test code
 // GroupTile.root.addChild(new VisualizerImageTile());

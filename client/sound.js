@@ -27,6 +27,7 @@ class Visualizer {
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     color = 'white';
+    mode = 0;
     fftSize = 512;
     barSpacing = 1;
     constructor(arrbuf, ctx) {
@@ -72,15 +73,29 @@ class Visualizer {
             this.ctx.resetTransform();
             return;
         }
-        let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
-        const data = new Uint8Array(this.analyzer.frequencyBinCount);
-        this.analyzer.getByteFrequencyData(data);
-        this.ctx.fillStyle = this.color;
-        let xStep = barWidth + this.barSpacing;
-        let yScale = (height) / 256;
-        for (let i = 0; i < data.length; i++) {
-            let barHeight = (data[i] + 1) * yScale;
-            this.ctx.fillRect(i * xStep, height - barHeight, barWidth, barHeight);
+        if (this.mode == 0) {
+            let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.fillStyle = this.color;
+            let xStep = barWidth + this.barSpacing;
+            let yScale = (height) / 256;
+            for (let i = 0; i < data.length; i++) {
+                let barHeight = (data[i] + 1) * yScale;
+                this.ctx.fillRect(i * xStep, height - barHeight, barWidth, barHeight);
+            }
+        } else if (this.mode == 1) {
+            this.ctx.fillStyle = 'white';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.font = '16px Arial';
+            this.ctx.fillText('Not Implemented', width / 2, height / 2);
+        } else {
+            this.ctx.fillStyle = 'red';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.font = '16px Arial';
+            this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
         }
     }
     destroy() {
