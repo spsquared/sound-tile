@@ -18,7 +18,7 @@ class GroupTile {
         if (!(child instanceof GroupTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerImageTile, ImageTile, TextTile, BlankTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
-        if (this.children.includes(child)) this.children.splice(this.children.indexOf(child), 1);
+        if (child.parent !== null) child.parent.removeChild(child);
         if (index === this.children.length) this.tile.appendChild(child.tile);
         else this.tile.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
@@ -46,6 +46,7 @@ class GroupTile {
         removed.parent = null;
         removed.tile.remove();
         this.refresh();
+        this.checkObsolescence();
         return removed;
     }
     getChildIndex(child) {
@@ -55,6 +56,8 @@ class GroupTile {
         for (let child of this.children) {
             child.refresh();
         }
+    }
+    checkObsolescence() {
         if (this.parent === null) return;
         if (this.children.length === 0) this.destroy();
         if (this.children.length === 1) {
@@ -307,27 +310,39 @@ document.addEventListener('mousemove', (e) => {
                     case topDist:
                         if (topDist > 0.2 * groupThreshhold) {
                             const group = new GroupTile(true);
+                            parent.replaceChild(drag.hoverTile, group);
+                            group.addChild(drag.placeholder);
+                            group.addChild(drag.hoverTile);
                         } else {
                             parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
                         }
                         break;
                     case bottomDist:
                         if (bottomDist > 0.2 * groupThreshhold) {
-                            console.log('group bottom');
+                            const group = new GroupTile(true);
+                            parent.replaceChild(drag.hoverTile, group);
+                            group.addChild(drag.hoverTile);
+                            group.addChild(drag.placeholder);
                         } else {
                             parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
                         }
                         break;
                     case leftDist:
                         if (leftDist > 0.2 * groupThreshhold) {
-                            console.log('group left');
+                            const group = new GroupTile(false);
+                            parent.replaceChild(drag.hoverTile, group);
+                            group.addChild(drag.placeholder);
+                            group.addChild(drag.hoverTile);
                         } else {
                             parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
                         }
                         break;
                     case rightDist:
                         if (rightDist > 0.2 * groupThreshhold) {
-                            console.log('group right');
+                            const group = new GroupTile(false);
+                            parent.replaceChild(drag.hoverTile, group);
+                            group.addChild(drag.hoverTile);
+                            group.addChild(drag.placeholder);
                         } else {
                             parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
                         }
