@@ -102,6 +102,7 @@ class VisualizerImageTile {
                 this.img.src = URL.createObjectURL(imageUpload.files[0]);
                 this.img.classList.remove('hidden');
                 imageUploadLabel.innerText = 'Change Image';
+                this.img.onload = (e) => this.#resize();
             }
         });
         this.tile.querySelector('.tileRemove').onclick = (e) => this.destroy();
@@ -159,12 +160,14 @@ class ImageTile {
         imageUpload.addEventListener('change', (e) => {
             if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
                 this.img.src = URL.createObjectURL(imageUpload.files[0]);
+                this.img.onload = (e) => this.#resize();
             }
         });
         imageUpload2.addEventListener('change', (e) => {
             if (imageUpload2.files.length > 0 && fileTypes.includes(imageUpload2.files[0].type)) {
                 this.img.src = URL.createObjectURL(imageUpload2.files[0]);
                 this.tile.querySelector('.tileSourceUploadCover').remove();
+                this.img.onload = (e) => this.#resize();
             }
         });
         this.tile.querySelector('.tileRemove').onclick = (e) => this.destroy();
