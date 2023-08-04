@@ -1,5 +1,7 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
+const dropdownButton = document.getElementById('dropdownTab');
+
 const timeSeek = document.getElementById('seeker');
 const playButton = document.getElementById('playButton');
 const timeDisplay = document.getElementById('timeDisplay');
@@ -24,9 +26,12 @@ setInterval(() => {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
     timeDisplay.innerText = `${Math.floor(mediaControls.currentTime / 60)}:${mediaControls.currentTime % 60 < 10 ? '0' : ''}${Math.floor(mediaControls.currentTime) % 60}`;
-    if (mediaControls.currentTime >= mediaControls.duration && mediaControls.playing) {
-        mediaControls.playing = false;
-        playButton.checked = false;
+    if (mediaControls.currentTime >= mediaControls.duration) {
+        if (mediaControls.playing) {
+            mediaControls.playing = false;
+            playButton.checked = false;
+        }
+        mediaControls.currentTime = mediaControls.duration;
     }
 }, 20);
 
@@ -44,6 +49,10 @@ playButton.onclick = (e) => {
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
     if (key == ' ' || key == 'p') {
+        e.preventDefault();
         playButton.click();
+    } else if (key == 'h') {
+        e.preventDefault();
+        dropdownButton.click();
     }
 });
