@@ -2,13 +2,15 @@
 
 const dropdownButton = document.getElementById('dropdownTab');
 
+// volume
 const volumeControl = document.getElementById('volume');
 volumeControl.oninput = (e) => globalVolume.gain.setValueAtTime(parseInt(volumeControl.value) / 100, audioContext.currentTime);
 volumeControl.addEventListener('wheel', (e) => {
-    volumeControl.value = parseInt(volumeControl.value) + Math.round(e.deltaY / 20);
+    volumeControl.value = parseInt(volumeControl.value) - Math.round(e.deltaY / 20);
     volumeControl.oninput();
 }, { passive: true });
 
+// media controls
 const timeSeek = document.getElementById('seeker');
 const playButton = document.getElementById('playButton');
 const timeDisplay = document.getElementById('timeDisplay');
@@ -18,7 +20,6 @@ const mediaControls = {
     currentTime: 0,
     playing: false
 };
-
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
     timeSeek.max = mediaControls.duration;
@@ -41,7 +42,6 @@ setInterval(() => {
         mediaControls.currentTime = mediaControls.duration;
     }
 }, 20);
-
 timeSeek.oninput = (e) => {
     mediaControls.currentTime = parseInt(timeSeek.value);
     mediaControls.startTime = Date.now() - (mediaControls.currentTime * 1000);
@@ -53,6 +53,38 @@ playButton.onclick = (e) => {
     else Visualizer.stopAll();
 };
 
+// tile source
+const tileSourceTemplate = document.getElementById('tileSourceTemplate');
+const tileSourceContainer = document.getElementById('tileSource');
+function createTileSource(tileClass, img, alt) {
+    const source = tileSourceTemplate.content.cloneNode(true).children[0];
+    source.querySelector('.tileSourceImg').src = img;
+    source.querySelector('.tileSourceImg').alt = alt;
+    source.querySelector('.tileSourcePopup').innerText = alt;
+    source.addEventListener('mousedown', (e) => {
+        if (drag.dragging || e.button != 0) return;
+        const tile = new tileClass();
+        drag.tile = tile;
+        const rect = source.getBoundingClientRect();
+        drag.dragX = e.clientX - rect.left;
+        drag.dragY = 5;
+        drag.container.style.top = e.clientY - drag.dragY + 'px';
+        drag.container.style.left = e.clientX - drag.dragX + 'px';
+        drag.container.style.width = rect.width + 'px';
+        drag.container.style.height = rect.height + 'px';
+        drag.container.appendChild(tile.tile);
+        drag.container.style.display = 'flex';
+        document.body.style.cursor = 'grabbing';
+        drag.dragging = true;
+    });
+    tileSourceContainer.appendChild(source);
+};
+createTileSource(TextTile, './assets/text-tile.png', 'New text tile');
+createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
+createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
+createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
+
+// keys and stuff
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
     if (e.target.matches('input[type=range]')) e.target.blur();
@@ -64,3 +96,5 @@ document.addEventListener('keypress', (e) => {
         dropdownButton.click();
     }
 });
+
+// display welcome screen on first visit

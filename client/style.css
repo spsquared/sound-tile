@@ -13,6 +13,11 @@ body {
     user-select: none;
 }
 
+img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
 #display {
     display: flex;
     align-items: stretch;
@@ -76,6 +81,7 @@ body {
     margin: 0px 0px;
 }
 #volume::-webkit-slider-runnable-track {
+    /* help is borken */
     width: 10px;
     border: 2px solid white;
     background: gray #477fd8;
@@ -87,7 +93,8 @@ body {
     border: none;
     background-color: gray;
 }
-   
+
+/* add way to make left side of slider different color */
 #seeker {
     grid-row: 1;
     grid-column: 2 / 6;
@@ -105,9 +112,13 @@ body {
 }
 #seeker::-webkit-slider-thumb {
     appearance: none;
+    position: relative;
     width: 20px;
     height: 56px;
     background-color: lightgray;
+}
+#seeker::-webkit-slider-runnable-track {
+    overflow: hidden;
 }
 #seeker:active {
     cursor: grabbing;
@@ -162,8 +173,66 @@ body {
 #tileSource {
     flex-grow: 1;
     display: flex;
+    position: relative;
     flex-wrap: nowrap;
     flex-direction: row;
+    padding-left: 8px;
+    overflow: scroll;
+}
+#tileSource::-webkit-scrollbar {
+    height: 8px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: #333;
+}
+#tileSource::-webkit-scrollbar-thumb {
+    background-color: white;
+    border-radius: 4px;
+}
+
+.tileSource {
+    position: relative;
+    width: 140px;
+    min-width: 140px;
+    height: 108px;
+    border: 2px solid white;
+    border-radius: 8px;
+    margin-right: 8px;
+    overflow: clip;
+    cursor: grab;
+}
+.tileSourceImgContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: clip;
+}
+.tileSourceImg {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+}
+.tileSourcePopup {
+    display: block;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 132px;
+    padding: 0px 4px;
+    border-top: 2px solid white;
+    font-size: 14px;
+    line-height: 16px;
+    text-align: center;
+    background-color: black;
+    transition: 100ms linear opacity;
+    opacity: 0;
+    pointer-events: none;
+}
+.tileSource:hover .tileSourcePopup {
+    opacity: 1;
 }
 
 .hidden {
