@@ -2,6 +2,13 @@
 
 const dropdownButton = document.getElementById('dropdownTab');
 
+const volumeControl = document.getElementById('volume');
+volumeControl.oninput = (e) => globalVolume.gain.setValueAtTime(parseInt(volumeControl.value) / 100, audioContext.currentTime);
+volumeControl.addEventListener('wheel', (e) => {
+    volumeControl.value = parseInt(volumeControl.value) + Math.round(e.deltaY / 20);
+    volumeControl.oninput();
+}, { passive: true });
+
 const timeSeek = document.getElementById('seeker');
 const playButton = document.getElementById('playButton');
 const timeDisplay = document.getElementById('timeDisplay');
@@ -48,6 +55,7 @@ playButton.onclick = (e) => {
 
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
+    if (e.target.matches('input[type=range]')) e.target.blur();
     if (key == ' ' || key == 'p') {
         e.preventDefault();
         playButton.click();
