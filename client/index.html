@@ -87,6 +87,37 @@
         <label id="dropdownTab" for="dropdownTabCheckbox"></label>
     </div>
     <div id="draggingContainer"></div>
+    <template id="visualizerTileTemplate">
+        <div class="tile">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
+            </div>
+            <div class="tileCanvasContainer">
+                <canvas class="tileCanvas"></canvas>
+            </div>
+            <div class="tileSourceUploadCover">
+                <label class="tileSourceUploadLabel uploadButtonLabel">
+                    Upload Audio Source
+                    <input class="tileSourceUpload uploadButton" type="file" accept="audio/*">
+                </label>
+            </div>
+            <div class="tileControls">
+                <label class="tileAudioReplaceLabel uploadButtonLabel">
+                    Replace Source
+                    <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
+                </label>
+                <select class="tileVisualizerModeSelect selectBox">
+                    <option value="0">Frequency (1x H.)</option>
+                    <option value="1">Frequency (2x H.)</option>
+                    <option value="2">Waveform (H.)</option>
+                </select>
+                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
+                <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
+                <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
+                <!-- color blending and custom color script? (use gradients) -->
+            </div>
+        </div>
+    </template>
     <template id="visualizerImageTileTemplate">
         <div class="tile">
             <div class="tileDrag">

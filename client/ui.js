@@ -81,6 +81,7 @@ function createTileSource(tileClass, img, alt) {
 };
 createTileSource(TextTile, './assets/text-tile.png', 'New text tile');
 createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
+createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer tile');
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 

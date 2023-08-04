@@ -8,6 +8,30 @@ function setDefaultTileActions() {
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this) this.destroy() });
 };
+function setVisualizerControls() {
+    const audioUpload = this.tile.querySelector('.tileSourceUpload');
+    audioUpload.addEventListener('change', async (e) => {
+        if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
+            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.ctx);
+            this.tile.querySelector('.tileSourceUploadCover').remove();
+        }
+    });
+    const audioReplace = this.tile.querySelector('.tileAudioReplace');
+    audioReplace.addEventListener('change', async (e) => {
+        if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
+            this.visualizer.destroy();
+            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.ctx);
+            this.visualizer.mode = parseInt(visualizerMode.value);
+            this.visualizer.color = colorSelect.value;
+        }
+    });
+    const colorSelect = this.tile.querySelector('.tileVisualizerColorSelect');
+    colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+    const visualizerMode = this.tile.querySelector('.tileVisualizerModeSelect');
+    visualizerMode.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
+    });
+};
 class GroupTile {
     static root = new GroupTile(false);
 
@@ -23,7 +47,7 @@ class GroupTile {
     }
 
     addChild(child, index = this.children.length) {
-        if (!(child instanceof GroupTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerImageTile, ImageTile, TextTile, BlankTile, or another GroupTile');
+        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, ImageTile, TextTile, BlankTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
         if (child.parent !== null) child.parent.removeChild(child);
@@ -80,6 +104,46 @@ class GroupTile {
         if (this.parent) this.parent.removeChild(this);
     }
 }
+class VisualizerTile {
+    static #template = document.getElementById('visualizerTileTemplate');
+
+    parent = null;
+    tile = null;
+    canvas = null;
+    ctx = null;
+    visualizer = null;
+    constructor() {
+        this.tile = VisualizerTile.#template.content.cloneNode(true).children[0];
+        setDefaultTileActions.call(this);
+        this.canvas = this.tile.querySelector('.tileCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        // visualizer controls
+        setVisualizerControls.call(this);
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
+        // How to avoid using JS to resize???
+        const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
+        this.#resize = () => {
+            const rect = canvasContainer.getBoundingClientRect();
+            this.canvas.width = Math.round(rect.width);
+            this.canvas.height = Math.round(rect.height);
+            this.canvas.style.width = Math.round(rect.width) + 'px';
+            this.canvas.style.height = Math.round(rect.height) + 'px';
+        };
+        window.addEventListener('resize', this.#resize);
+        window.addEventListener('load', this.#resize);
+    }
+
+    #resize = () => { }
+    refresh() {
+        this.#resize();
+    }
+
+    destroy() {
+        if (this.visualizer) this.visualizer.destroy();
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
 class VisualizerImageTile {
     static #template = document.getElementById('visualizerImageTileTemplate');
 
@@ -96,24 +160,7 @@ class VisualizerImageTile {
         this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
         // visualizer controls
-        const audioUpload = this.tile.querySelector('.tileSourceUpload');
-        audioUpload.addEventListener('change', async (e) => {
-            if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
-                this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.ctx);
-                this.tile.querySelector('.tileSourceUploadCover').remove();
-            }
-        });
-        const audioReplace = this.tile.querySelector('.tileAudioReplace');
-        audioReplace.addEventListener('change', async (e) => {
-            if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
-                this.visualizer.destroy();
-                this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.ctx);
-                this.visualizer.mode = parseInt(visualizerMode.value);
-                this.visualizer.color = colorSelect.value;
-            }
-        });
-        const colorSelect = this.tile.querySelector('.tileVisualizerColorSelect');
-        colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+        setVisualizerControls.call(this);
         // image controls
         const imageUpload = this.tile.querySelector('.tileImgUpload');
         const imageUploadLabel = this.tile.querySelector('.tileImgUploadLabelText');
@@ -131,10 +178,6 @@ class VisualizerImageTile {
                 imageUploadLabel.innerText = 'Change Image';
                 this.img.onload = (e) => this.#resize();
             }
-        });
-        const visualizerMode = this.tile.querySelector('.tileVisualizerModeSelect');
-        visualizerMode.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
         });
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.webkitImageSmoothingEnabled = false;
@@ -375,7 +418,7 @@ GroupTile.root.addChild(new ImageTile());
 GroupTile.root.addChild(new ImageTile());
 let subgroup = new GroupTile(1);
 subgroup.addChild(new VisualizerImageTile())
-subgroup.addChild(new VisualizerImageTile())
+subgroup.addChild(new VisualizerTile())
 subgroup.addChild(new VisualizerImageTile());
 let subgroup2 = new GroupTile();
 subgroup2.addChild(new ImageTile);

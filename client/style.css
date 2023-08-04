@@ -30,6 +30,8 @@ img {
     overflow: hidden;
 }
 
+/* dropdown and controls */
+
 #dropdown {
     display: flex;
     position: absolute;
@@ -177,7 +179,8 @@ img {
     flex-wrap: nowrap;
     flex-direction: row;
     padding-left: 8px;
-    overflow: scroll;
+    overflow-x: scroll;
+    overflow-y: hidden;
 }
 #tileSource::-webkit-scrollbar {
     height: 8px;
@@ -235,6 +238,8 @@ img {
     opacity: 1;
 }
 
+/* shared styles */
+
 .hidden {
     display: none;
 }
@@ -285,6 +290,8 @@ img {
 .colorBox::-webkit-color-swatch {
     border: 2px solid white;
 }
+
+/* tile things */
 
 .tileGroup {
     display: flex;
