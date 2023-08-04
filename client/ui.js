@@ -2,6 +2,7 @@
 
 const timeSeek = document.getElementById('seeker');
 const playButton = document.getElementById('playButton');
+const timeDisplay = document.getElementById('timeDisplay');
 const mediaControls = {
     startTime: 0,
     duration: 0,
@@ -22,6 +23,7 @@ setInterval(() => {
     } else {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
+    timeDisplay.innerText = `${Math.floor(mediaControls.currentTime / 60)}:${mediaControls.currentTime % 60 < 10 ? '0' : ''}${Math.floor(mediaControls.currentTime) % 60}`;
     if (mediaControls.currentTime >= mediaControls.duration && mediaControls.playing) {
         mediaControls.playing = false;
         playButton.checked = false;
@@ -38,3 +40,10 @@ playButton.onclick = (e) => {
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     else Visualizer.stopAll();
 };
+
+document.addEventListener('keypress', (e) => {
+    const key = e.key.toLowerCase();
+    if (key == ' ' || key == 'p') {
+        playButton.click();
+    }
+});

@@ -94,7 +94,7 @@ body {
 #playButtonLabel {
     grid-row: 2;
     grid-column: 1;
-    background-color: #070;
+    background-color: #A00;
     color: white;
     border-right: 4px solid white;
     background-position: center;
@@ -108,12 +108,13 @@ body {
     display: none;
 }
 #playButton:checked + #playButtonLabel {
-    background-color: #A00;
+    background-color: #070;
     background-image: url(./assets/pause.svg);
 }
 #timeDisplay {
     grid-row: 2;
     grid-column: 2;
+    min-width: 50px;
     padding: 4px 8px;
     border-right: 4px solid white;
     text-align: center;
