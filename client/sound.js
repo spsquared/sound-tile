@@ -30,10 +30,14 @@ class Visualizer {
     mode = 0;
     fftSize = 512;
     barSpacing = 1;
+    ready = new Promise((res, rej) => { });
     constructor(arrbuf, ctx) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
         if (!(ctx instanceof CanvasRenderingContext2D)) throw new TypeError('Visualizer ctx must be an CanvasRenderingContext2D');
-        audioContext.decodeAudioData(arrbuf, buf => this.buffer = buf);
+        this.ready = audioContext.decodeAudioData(arrbuf, buf => {
+            this.buffer = buf;
+            Visualizer.#onUpdate();
+        });
         this.canvas = ctx.canvas;
         this.ctx = ctx;
         this.analyzer.connect(globalVolume);
@@ -85,6 +89,17 @@ class Visualizer {
                 this.ctx.fillRect(i * xStep, height - barHeight, barWidth, barHeight);
             }
         } else if (this.mode == 1) {
+            let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.fillStyle = this.color;
+            let xStep = barWidth + this.barSpacing;
+            let yScale = (height) / 256;
+            for (let i = 0; i < data.length; i++) {
+                let barHeight = (data[i] + 1) * yScale;
+                this.ctx.fillRect(i * xStep, (height - barHeight) / 2, barWidth, barHeight);
+            }
+        } else if (this.mode == 2) {
             this.ctx.fillStyle = 'white';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
@@ -102,6 +117,7 @@ class Visualizer {
         this.stop();
         this.analyzer.disconnect();
         Visualizer.#list.delete(this);
+        Visualizer.#onUpdate();
     }
 
     static startAll(time = 0) {
@@ -109,6 +125,18 @@ class Visualizer {
     }
     static stopAll() {
         Visualizer.#list.forEach(visualizer => visualizer.stop());
+    }
+
+    static get duration() {
+        let duration = 0;
+        Visualizer.#list.forEach(visualizer => { if (visualizer.buffer.duration > duration) duration = visualizer.buffer.duration });
+        return duration;
+    }
+
+    static #onUpdate = () => {};
+    static set onUpdate(cb) {
+        if (typeof cb !== 'function') throw new TypeError('"cb" is not a function');
+        Visualizer.#onUpdate = () => cb();
     }
 
     static draw() {

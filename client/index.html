@@ -4,12 +4,23 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="Sound Tile">
+    <meta name="description" content="Tile your music with Sound Tile's visualizers!">
+    <meta name="url" content="https://soundtile.spsquared.repl.co/">
+    <meta name="image" content="https://soundtile.spsquared.repl.co/assets/logo.png">
+    <meta property="og:title" content="Sound Tile">
+    <meta property="og:description" content="Tile your music with Sound Tile's visualizers!">
+    <meta property="og:url" content="https://soundtile.spsquared.repl.co/">
+    <meta property="og:image" content="https://soundtile.spsquared.repl.co/assets/logo.png">
+    <meta property="og:image:width" content="256">
+    <meta property="og:image:height" content="256">
     <title>Sound Tile</title>
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
     <script src="./index.js" defer></script>
-    <script src="./ui.js" defer></script>
+    <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
+    <script src="./ui.js" defer></script>
 </head>
 <body>
     <div id="loadingCover">
@@ -24,7 +35,7 @@
                 height: 100vh;
                 background-color: black;
                 transition: 200ms linear opacity;
-                z-index: 1001;
+                z-index: 1000;
                 cursor: wait;
             }
             #loadingCoverBar {
@@ -60,9 +71,19 @@
         </style>
     </div>
     <div id="display"></div>
+    <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
-        <!-- idk export button and place to drag new tile from, also color settings -->
-        <!-- text only tile, image only tile, bla -->
+        <!-- logo, media controls, export button, color settings, drag in stuff -->
+        <img id="logo" src="./assets/logo.png">
+        <div id="mediaControls">
+            <input id="seeker" type="range" min="0" max="0" step="0.1">
+            <input id="playButton" type="checkbox">
+            <label id="playButtonLabel" for="playButton"></label>
+            <div id="timeDisplay"><div>0:00</div></div>
+            <div id="exportButton"></div>
+        </div>
+        <div id="tileSource"></div>
+        <label id="dropdownTab" for="dropdownTabCheckbox"></label>
     </div>
     <div id="draggingContainer"></div>
     <template id="visualizerImageTileTemplate">
@@ -93,6 +114,13 @@
                     Replace Source
                     <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
                 </label>
+                <select class="tileVisualizerModeSelect selectBox">
+                    <option value="0">Frequency (1x H.)</option>
+                    <option value="1">Frequency (2x H.)</option>
+                    <option value="2">Waveform (H.)</option>
+                </select>
+                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
+                <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
                 <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
                 <!-- color blending and custom color script? (use gradients) -->
             </div>
@@ -117,6 +145,7 @@
                     <span class="tileImgUploadLabelText">Change Image</span>
                     <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
+                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
                 <!-- idk more options? -->
             </div>
         </div>
@@ -128,6 +157,7 @@
             </div>
             <textarea class="tileText">Text Here</textarea>
             <div class="tileControls">
+                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
                 <!-- font size? -->
             </div>
         </div>
@@ -136,6 +166,9 @@
         <div class="tile">
             <div class="tileDrag">
                 <div class="tileRemove"></div>
+            </div>
+            <div class="tileControls">
+                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
             </div>
         </div>
     </template>

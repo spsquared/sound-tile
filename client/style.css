@@ -13,22 +13,6 @@ body {
     user-select: none;
 }
 
-img {
-    image-rendering: crisp-edges;
-}
-
-#loading {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 100vw;
-    height: 100vh;
-    background-color: black;
-    text-align: center;
-    vertical-align: middle;
-    color: white;
-    z-index: 1000;
-}
 #display {
     display: flex;
     align-items: stretch;
@@ -41,6 +25,124 @@ img {
     overflow: hidden;
 }
 
+#dropdown {
+    display: flex;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 120px;
+    line-height: 0px;
+    background-color: black;
+    border-bottom: 4px solid white;
+    transition: 200ms ease transform;
+    --tabImage: url(./assets/arrow-up.svg);
+    z-index: 998;
+}
+#dropdownTab {
+    position: absolute;
+    bottom: -40px;
+    left: 0px;
+    width: 32px;
+    height: 32px;
+    background-color: black;
+    border: 4px solid white;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: var(--tabImage);
+    cursor: pointer;
+}
+#dropdownTabCheckbox {
+    opacity: 0;
+}
+#dropdownTabCheckbox:checked~#dropdown {
+    transform: translateY(-100%);
+    --tabImage: url(./assets/arrow-down.svg);
+}
+
+#mediaControls {
+    display: grid;
+    grid-template-columns: min-content min-content min-content 1fr;
+    grid-template-rows: 50% 50%;
+    border-left: 4px solid white;
+    border-right: 4px solid white;
+}
+#seeker {
+    grid-row: 1;
+    grid-column: 1 / 5;
+    appearance: none;
+    min-width: 180px;
+    margin: 0px 0px;
+    background-color: #333;
+    border-bottom: 4px solid white;
+    transition: 500ms ease min-width;
+    cursor: grab;
+}
+#seeker:hover {
+    min-width: 540px;
+}
+#seeker::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 56px;
+    background-color: lightgray;
+}
+#seeker:active {
+    cursor: grabbing;
+}
+#playButtonLabel {
+    grid-row: 2;
+    grid-column: 1;
+    background-color: #070;
+    color: white;
+    border-right: 4px solid white;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 50% 50%;
+    background-image: url(./assets/play.svg);
+    aspect-ratio: 1;
+    cursor: pointer;
+}
+#playButton {
+    display: none;
+}
+#playButton:checked + #playButtonLabel {
+    background-color: #A00;
+    background-image: url(./assets/pause.svg);
+}
+#timeDisplay {
+    grid-row: 2;
+    grid-column: 2;
+    padding: 4px 8px;
+    border-right: 4px solid white;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 100%;
+}
+#exportButton {
+    grid-row: 2;
+    grid-column: 3;
+    margin-right: -4px;
+    background-color: dodgerblue;
+    color: white;
+    border-right: 4px solid white;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/save.svg);
+    aspect-ratio: 1;
+    /* cursor: pointer; */
+    cursor: not-allowed;
+}
+
+#tileSource {
+    flex-grow: 1;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+}
+
 .hidden {
     display: none;
 }
@@ -50,15 +152,46 @@ img {
 }
 .uploadButtonLabel {
     display: inline-block;
-    height: 20px;
-    margin: 4px 4px;
+    height: 14px;
+    margin: 4px 2px;
     padding: 2px 4px;
     background-color: gray;
-    font-size: 15px;
+    font-size: 12px;
     border-radius: 4px;
     text-align: center;
     align-content: center;
     cursor: pointer;
+}
+
+.selectBox {
+    display: inline-block;
+    height: 18px;
+    margin: 4px 2px;
+    padding: 0px 4px;
+    border: none;
+    color: white;
+    background-color: gray;
+    font-family: 'Source Code Pro', Courier, monospace;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.colorBox {
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    top: 4px;
+    height: 26px;
+    margin: -4px 2px;
+    margin-bottom: -8px;
+    padding: 0px 0px;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.colorBox::-webkit-color-swatch {
+    border: 2px solid white;
 }
 
 .tileGroup {
@@ -176,6 +309,7 @@ img {
     left: 0px;
     width: 0px;
     height: 0px;
+    opacity: 0.5;
     pointer-events: none;
     z-index: 999;
 }
