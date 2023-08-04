@@ -3,15 +3,20 @@
 const dropdownButton = document.getElementById('dropdownTab');
 
 // volume
-const volumeControl = document.getElementById('volume');
-volumeControl.oninput = (e) => globalVolume.gain.setValueAtTime(parseInt(volumeControl.value) / 100, audioContext.currentTime);
-volumeControl.addEventListener('wheel', (e) => {
-    volumeControl.value = parseInt(volumeControl.value) - Math.round(e.deltaY / 20);
-    volumeControl.oninput();
+const volumeControlInput = document.getElementById('volume');
+const volumeControlThumb = document.getElementById('volumeThumb');
+volumeControlInput.oninput = (e) => {
+    globalVolume.gain.setValueAtTime(parseInt(volumeControlInput.value) / 100, audioContext.currentTime);
+    volumeControlThumb.style.setProperty('--volume', parseInt(volumeControlInput.value) / 100);
+};
+volumeControlInput.addEventListener('wheel', (e) => {
+    volumeControlInput.value = parseInt(volumeControlInput.value) - Math.round(e.deltaY / 20);
+    volumeControlInput.oninput();
 }, { passive: true });
 
 // media controls
-const timeSeek = document.getElementById('seeker');
+const timeSeekInput = document.getElementById('seeker');
+const timeSeekThumb = document.getElementById('seekerThumb');
 const playButton = document.getElementById('playButton');
 const timeDisplay = document.getElementById('timeDisplay');
 const mediaControls = {
@@ -22,14 +27,15 @@ const mediaControls = {
 };
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
-    timeSeek.max = mediaControls.duration;
+    timeSeekInput.max = mediaControls.duration;
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
 };
 setInterval(() => {
     let now = Date.now();
     if (mediaControls.playing) {
         mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
-        timeSeek.value = mediaControls.currentTime;
+        timeSeekInput.value = mediaControls.currentTime;
+        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     } else {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
@@ -40,10 +46,12 @@ setInterval(() => {
             playButton.checked = false;
         }
         mediaControls.currentTime = mediaControls.duration;
+        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     }
 }, 20);
-timeSeek.oninput = (e) => {
-    mediaControls.currentTime = parseInt(timeSeek.value);
+timeSeekInput.oninput = (e) => {
+    mediaControls.currentTime = parseInt(timeSeekInput.value);
+    timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     mediaControls.startTime = Date.now() - (mediaControls.currentTime * 1000);
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
 };

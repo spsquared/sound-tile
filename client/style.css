@@ -75,52 +75,105 @@ img {
     border-left: 4px solid white;
     border-right: 4px solid white;
 }
-#volume {
-    appearance: slider-vertical;
+
+#volumeBody {
     grid-row:  1 / 3;
     grid-column: 1;
+    position: relative;
     width: 50px;
     margin: 0px 0px;
+    overflow: clip;
 }
-#volume::-webkit-slider-runnable-track {
-    /* help is borken */
+#volumeTrack {
+    position: absolute;
+    top: 0px;
+    left: 18px;
     width: 10px;
-    border: 2px solid white;
-    background: gray #477fd8;
+    height: 120px;
+    border-left: 2px solid white;
+    border-right: 2px solid white;
+    background-color: #333;
+    pointer-events: none;
 }
-#volume::-webkit-slider-thumb {
-    appearance: none;
-    width: 20px;
-    height: 20px;
+#volumeThumb {
+    position: absolute;
+    bottom: calc((100% - 15px) * var(--volume));
+    left: 10px;
+    width: 30px;
+    height: 15px;
     border: none;
     background-color: gray;
+    pointer-events: none;
+    --volume: 0;
 }
-
-/* add way to make left side of slider different color */
-#seeker {
+#volumeThumb::before {
+    content: '';
+    position: absolute;
+    top: 15px;;
+    left: 10px;
+    width: 10px;
+    height: 100vh;
+    background-color: #477fd8;
+    pointer-events: none;
+}
+#volume {
+    appearance: slider-vertical;
+    top: 0px;
+    left: 0px;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    margin: 0px 0px;
+    border: none;
+    opacity: 0;
+    cursor: grab;
+}
+#seekerBody {
     grid-row: 1;
     grid-column: 2 / 6;
-    appearance: none;
+    position: relative;
     min-width: 180px;
     margin: 0px 0px;
     background-color: #333;
     border-left: 4px solid white;
     border-bottom: 4px solid white;
     transition: 500ms ease min-width;
-    cursor: grab;
+    overflow: clip;
 }
-#seeker:hover {
-    min-width: 540px;
-}
-#seeker::-webkit-slider-thumb {
-    appearance: none;
-    position: relative;
+#seekerThumb {
+    position: absolute;
+    top: 0px;
+    left: calc((100% - 20px) * var(--progress));
     width: 20px;
     height: 56px;
     background-color: lightgray;
+    pointer-events: none;
+    --progress: 0;
 }
-#seeker::-webkit-slider-runnable-track {
-    overflow: hidden;
+#seekerThumb::before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: 20px;
+    width: 100vw;
+    height: 56px;
+    background-color: #555;
+    pointer-events: none;
+}
+#seeker {
+    appearance: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    margin: 0px 0px;
+    border: none;
+    opacity: 0;
+    cursor: grab;
+}
+#seekerBody:hover {
+    min-width: 540px;
 }
 #seeker:active {
     cursor: grabbing;

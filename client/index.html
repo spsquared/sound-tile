@@ -76,8 +76,15 @@
         <!-- logo, media controls, export button, color settings, volume, drag in stuff -->
         <img id="logo" src="./assets/logo.png">
         <div id="mediaControls">
-            <input id="volume" type="range" min="0" max="100" step="1" value="100">
-            <input id="seeker" type="range" min="0" max="0" step="0.1">
+            <div id="volumeBody">
+                <input id="volume" type="range" min="0" max="100" step="1" value="100">
+                <div id="volumeTrack"></div>
+                <div id="volumeThumb"></div>
+            </div>
+            <div id="seekerBody">
+                <input id="seeker" type="range" min="0" max="0" step="0.1">
+                <div id="seekerThumb"></div>
+            </div>
             <input id="playButton" type="checkbox">
             <label id="playButtonLabel" for="playButton"></label>
             <div id="timeDisplay"><div>0:00</div></div>
