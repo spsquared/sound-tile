@@ -104,7 +104,7 @@ img {
     border: none;
     background-color: gray;
     pointer-events: none;
-    --volume: 0;
+    --volume: 1;
 }
 #volumeThumb::before {
     content: '';
