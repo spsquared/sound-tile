@@ -17,6 +17,7 @@
     <title>Sound Tile</title>
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
+    <script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js" defer></script>
     <script src="./index.js" defer></script>
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
@@ -75,7 +76,9 @@
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png">
         <div id="fileControls">
-
+            <label id="uploadButtonLabel" for="uploadButton"></label>
+            <input id="uploadButton" type="file" accept=".soundtile">
+            <div id="downloadButton"></div>
         </div>
         <div id="mediaControls">
             <div id="volumeBody">
@@ -105,15 +108,15 @@
                 <canvas class="tileCanvas"></canvas>
             </div>
             <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel uploadButtonLabel">
+                <label class="tileSourceUploadLabel buttonLabel">
                     Upload Audio Source
-                    <input class="tileSourceUpload uploadButton" type="file" accept="audio/*">
+                    <input class="tileSourceUpload button" type="file" accept="audio/*">
                 </label>
             </div>
             <div class="tileControls">
                 <span class="tileVisualizerControls"></span>
-                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
-                <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
+                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
             </div>
         </div>
     </template>
@@ -127,23 +130,29 @@
                     <canvas class="tileCanvas"></canvas>
                 </div>
                 <div class="tileImgContainer">
-                    <img class="tileImg hidden">
+                    <img class="tileImg">
                 </div>
             </div>
+            <div class="tileImgUploadCoverSmall">
+                <label class="tileImgUploadLabel buttonLabel">
+                    Upload Image
+                    <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                </label>
+            </div>
             <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel uploadButtonLabel">
+                <label class="tileSourceUploadLabel buttonLabel">
                     Upload Audio Source
-                    <input class="tileSourceUpload uploadButton" type="file" accept="audio/*">
+                    <input class="tileSourceUpload button" type="file" accept="audio/*">
                 </label>
             </div>
             <div class="tileControls">
-                <label class="tileImgUploadLabel uploadButtonLabel">
-                    <span class="tileImgUploadLabelText">Upload Image</span>
-                    <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                <label class="tileImgReplaceLabel buttonLabel">
+                    <span class="tileImgReplaceLabelText">Upload Image</span>
+                    <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
                 <span class="tileVisualizerControls"></span>
-                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
-                <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
+                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
             </div>
         </div>
     </template>
@@ -155,18 +164,18 @@
             <div class="tileImgContainer">
                 <img class="tileImg">
             </div>
-            <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel uploadButtonLabel">
+            <div class="tileImgUploadCover">
+                <label class="tileImgUploadLabel buttonLabel">
                     Upload Image
-                    <input class="tileSourceUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
             </div>
             <div class="tileControls">
-                <label class="tileImgUploadLabel uploadButtonLabel">
-                    <span class="tileImgUploadLabelText">Change Image</span>
-                    <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                <label class="tileImgReplaceLabel buttonLabel">
+                    <span class="tileImgReplaceLabelText">Change Image</span>
+                    <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
+                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 <!-- idk more options? -->
             </div>
         </div>
@@ -176,10 +185,20 @@
             <div class="tileDrag">
                 <div class="tileRemove"></div>
             </div>
+            <div class="tileCanvasContainer">
+                <canvas class="tileCanvas"></canvas>
+            </div>
             <textarea class="tileText">Text Here</textarea>
             <div class="tileControls">
-                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
-                <!-- font size? -->
+                <label class="tileTextEditLabel buttonLabel">
+                    Edit
+                    <input class="tileTextEdit button" type="button">
+                </label>
+                <label>
+                    Size:
+                    <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                </label>
+                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
             </div>
         </div>
     </template>
@@ -189,15 +208,15 @@
                 <div class="tileRemove"></div>
             </div>
             <div class="tileControls">
-                <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
+                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
             </div>
         </div>
     </template>
     <template id="visualizerOptionsTemplate">
         <span>
-            <label class="tileAudioReplaceLabel uploadButtonLabel">
+            <label class="tileAudioReplaceLabel buttonLabel">
                 Replace Source
-                <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
+                <input class="tileAudioReplace button" type="file" accept="audio/*">
             </label>
             <select class="tileVisualizerMode selectBox">
                 <option value="0">Freq. (1x H.)</option>
@@ -213,6 +232,7 @@
                     <option value="1024">1024</option>
                     <option value="2048">2048</option>
                     <option value="4096">4096</option>
+                    <option value="8192">8192</option>
                 </select>
             </label>
             <span class="tileVisualizerFrequencyOptions">

@@ -1,8 +1,8 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
-function setDefaultTileActions() {
-    const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColorSelect');
+function setDefaultTileControls() {
+    const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
     this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
     this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
@@ -26,11 +26,16 @@ function setVisualizerControls() {
             this.visualizer.destroy();
             this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.ctx);
             this.visualizer.mode = parseInt(visualizerMode.value);
+            this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
+            this.visualizer.barWidthPercent = parseInt(visualizerFrequencyWidth.value) / 100;
+            this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
+            this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
+            this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
             this.visualizer.color = colorSelect.value;
         }
     });
-    // visualizer settings
-    const colorSelect = this.tile.querySelector('.tileVisualizerColorSelect');
+    // visualizer options
+    const colorSelect = this.tile.querySelector('.tileVisualizerColor');
     colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
@@ -38,14 +43,14 @@ function setVisualizerControls() {
     visualizerMode.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
         if (parseInt(visualizerMode.value) < 2) {
-            visualizerFrequencyOptions.style.display = '';
-            visualizerWaveformOptions.style.display = 'none';
+            visualizerFrequencyOptions.classList.remove('hidden');
+            visualizerWaveformOptions.classList.add('hidden');
         } else {
-            visualizerFrequencyOptions.style.display = 'none';
-            visualizerWaveformOptions.style.display = '';
+            visualizerFrequencyOptions.classList.add('hidden');
+            visualizerWaveformOptions.classList.remove('hidden');
         }
     });
-    visualizerWaveformOptions.style.display = 'none';
+    visualizerWaveformOptions.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     visualizerFFTSize.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
@@ -69,12 +74,33 @@ function setVisualizerControls() {
         if (this.visualizer !== null) this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
     });
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
+    // more visualizer options
     visualizerFlip.addEventListener('click', (e) => {
         if (visualizerFlip.checked) this.canvas.classList.add('flipped');
         else this.canvas.classList.remove('flipped');
     });
-    
 };
+function applyDefaultTileControls(tile, data) {
+    tile.tile.querySelector('.tileBackgroundColor').value = data.backgroundColor;
+    tile.tile.style.backgroundColor = data.backgroundColor;
+};
+function applyVisualizerControls(tile, data) {
+    tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
+    tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
+    if (data.visualizer.mode < 2) {
+        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');;
+    } else {
+        tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');;
+    }
+    tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
+    tile.tile.querySelector('.tileVisualizerFrequencyWidth').value = data.visualizer.barWidthPercent * 100;
+    tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
+    tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
+    tile.tile.querySelector('.tileVisualizerWaveformLineWidth').value = data.visualizer.lineWidth;
+    if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
+    if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.ctx);
+};
+
 class GroupTile {
     static root = new GroupTile(false);
 
@@ -157,7 +183,7 @@ class VisualizerTile {
     visualizer = null;
     constructor() {
         this.tile = VisualizerTile.#template.content.cloneNode(true).children[0];
-        setDefaultTileActions.call(this);
+        setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
         // visualizer controls
@@ -182,6 +208,23 @@ class VisualizerTile {
         this.#resize();
     }
 
+    getData() {
+        return {
+            type: 'v',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            flipped: this.canvas.classList.contains('flipped'),
+            visualizer: this.visualizer !== null ? this.visualizer.getData() : null
+        };
+    }
+    static fromData(data) {
+        const tile = new VisualizerTile();
+        applyDefaultTileControls(tile, data);
+        if (data.visualizer !== null) {
+            applyVisualizerControls(tile, data);
+            tile.tile.querySelector('.tileSourceUploadCover').remove();
+        }
+        return tile;
+    };
     destroy() {
         if (this.visualizer) this.visualizer.destroy();
         if (this.parent) this.parent.removeChild(this);
@@ -198,7 +241,7 @@ class VisualizerImageTile {
     visualizer = null;
     constructor() {
         this.tile = VisualizerImageTile.#template.content.cloneNode(true).children[0];
-        setDefaultTileActions.call(this);
+        setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
@@ -206,7 +249,8 @@ class VisualizerImageTile {
         setVisualizerControls.call(this);
         // image controls
         const imageUpload = this.tile.querySelector('.tileImgUpload');
-        const imageUploadLabel = this.tile.querySelector('.tileImgUploadLabelText');
+        const imageReplace = this.tile.querySelector('.tileImgReplace');
+        const imageReplaceLabel = this.tile.querySelector('.tileImgReplaceLabelText');
         const fileTypes = [
             'image/bmp',
             'image/jpeg',
@@ -214,12 +258,31 @@ class VisualizerImageTile {
             'image/svg+xml',
             'image/webp',
         ];
+        imageReplace.addEventListener('change', (e) => {
+            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
+            }
+        });
         imageUpload.addEventListener('change', (e) => {
             if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
-                this.img.src = URL.createObjectURL(imageUpload.files[0]);
-                this.img.classList.remove('hidden');
-                imageUploadLabel.innerText = 'Change Image';
-                this.img.onload = (e) => this.#resize();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.img.src = reader.result;
+                    this.img.onload = (e) => this.#resize();
+                    imageReplaceLabel.innerText = 'Change Image';
+                    this.tile.querySelector('.tileImgUploadCoverSmall').remove();
+                };
+                reader.readAsDataURL(imageUpload.files[0]);
+            }
+        });
+        imageReplace.addEventListener('change', (e) => {
+            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.img.src = reader.result;
+                    this.img.onload = (e) => this.#resize();
+                    imageReplaceLabel.innerText = 'Change Image';
+                };
+                reader.readAsDataURL(imageReplace.files[0]);
             }
         });
         this.ctx.imageSmoothingEnabled = false;
@@ -253,6 +316,28 @@ class VisualizerImageTile {
         this.#resize();
     }
 
+    getData() {
+        return {
+            type: 'vi',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            flipped: this.canvas.classList.contains('flipped'),
+            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            image: this.img.src
+        };
+    }
+    static fromData(data) {
+        const tile = new VisualizerImageTile();
+        applyDefaultTileControls(tile, data);
+        if (data.visualizer !== null) {
+            applyVisualizerControls(tile, data);
+            tile.tile.querySelector('.tileSourceUploadCover').remove();
+        }
+        if (data.image !== '') {
+            tile.img.src = data.image;
+            tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
+        }
+        return tile;
+    };
     destroy() {
         if (this.visualizer) this.visualizer.destroy();
         if (this.parent) this.parent.removeChild(this);
@@ -266,10 +351,10 @@ class ImageTile {
     img = null;
     constructor() {
         this.tile = ImageTile.#template.content.cloneNode(true).children[0];
-        setDefaultTileActions.call(this);
+        setDefaultTileControls.call(this);
         this.img = this.tile.querySelector('.tileImg');
         const imageUpload = this.tile.querySelector('.tileImgUpload');
-        const imageUpload2 = this.tile.querySelector('.tileSourceUpload');
+        const imageReplace = this.tile.querySelector('.tileImgReplace');
         const fileTypes = [
             'image/bmp',
             'image/jpeg',
@@ -279,15 +364,23 @@ class ImageTile {
         ];
         imageUpload.addEventListener('change', (e) => {
             if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
-                this.img.src = URL.createObjectURL(imageUpload.files[0]);
-                this.img.onload = (e) => this.#resize();
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.img.src = reader.result;
+                    this.img.onload = (e) => this.#resize();
+                    this.tile.querySelector('.tileImgUploadCover').remove();
+                };
+                reader.readAsDataURL(imageUpload.files[0]);
             }
         });
-        imageUpload2.addEventListener('change', (e) => {
-            if (imageUpload2.files.length > 0 && fileTypes.includes(imageUpload2.files[0].type)) {
-                this.img.src = URL.createObjectURL(imageUpload2.files[0]);
-                this.tile.querySelector('.tileSourceUploadCover').remove();
-                this.img.onload = (e) => this.#resize();
+        imageReplace.addEventListener('change', (e) => {
+            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.img.src = reader.result;
+                    this.img.onload = (e) => this.#resize();
+                };
+                reader.readAsDataURL(imageReplace.files[0]);
             }
         });
         // How to avoid using JS to resize???
@@ -313,6 +406,22 @@ class ImageTile {
         this.#resize();
     }
 
+    getData() {
+        return {
+            type: 'i',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            image: this.img.src
+        };
+    }
+    static fromData(data) {
+        const tile = new ImageTile();
+        applyDefaultTileControls(tile, data);
+        if (data.image !== '') {
+            tile.img.src = data.image;
+            tile.tile.querySelector('.tileImgUploadCover').remove();
+        }
+        return tile;
+    };
     destroy() {
         if (this.parent) this.parent.removeChild(this);
     }
@@ -325,12 +434,27 @@ class TextTile {
     text = null;
     constructor() {
         this.tile = TextTile.#template.content.cloneNode(true).children[0];
-        setDefaultTileActions.call(this);
+        setDefaultTileControls.call(this);
         this.text = this.tile.querySelector('.tileText');
     }
 
     refresh() { }
 
+    getData() {
+        return {
+            type: 't',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            text: this.text.value
+        };
+    }
+    static fromData(data) {
+        const tile = new TextTile();
+        applyDefaultTileControls(tile, data);
+        if (data.text !== undefined) {
+            tile.text.value = data.text;
+        }
+        return tile;
+    };
     destroy() {
         if (this.parent) this.parent.removeChild(this);
     }
@@ -342,11 +466,22 @@ class BlankTile {
     tile = null;
     constructor() {
         this.tile = BlankTile.#template.content.cloneNode(true).children[0];
-        setDefaultTileActions.call(this);
+        setDefaultTileControls.call(this);
     }
 
     refresh() { }
 
+    getData() {
+        return {
+            type: 'b',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value
+        };
+    }
+    static fromData(data) {
+        const tile = new BlankTile();
+        applyDefaultTileControls(tile, data);
+        return tile;
+    };
     destroy() {
         if (this.parent) this.parent.removeChild(this);
     }

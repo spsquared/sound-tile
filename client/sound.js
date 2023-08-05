@@ -21,6 +21,7 @@ if (navigator.userActivation) {
 class Visualizer {
     static #list = new Set();
 
+    rawBuffer = null;
     buffer = null;
     canvas = null;
     ctx = null;
@@ -32,12 +33,14 @@ class Visualizer {
     barCrop = 1;
     scale = 1;
     lineWidth = 2;
-    ready = new Promise((res, rej) => { });
+    ready = false;
     constructor(arrbuf, ctx) {
-        if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
+        if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(ctx instanceof CanvasRenderingContext2D)) throw new TypeError('Visualizer ctx must be an CanvasRenderingContext2D');
-        this.ready = audioContext.decodeAudioData(arrbuf, buf => {
+        this.rawBuffer = new Uint8Array(new Uint8Array(arrbuf)).buffer;
+        audioContext.decodeAudioData(arrbuf, buf => {
             this.buffer = buf;
+            this.ready = true;
             Visualizer.#onUpdate();
         });
         this.canvas = ctx.canvas;
@@ -126,6 +129,34 @@ class Visualizer {
             this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
         }
     }
+
+    set fftSize(size) {
+        this.analyzer.fftSize = size;
+    }
+
+    getData() {
+        return {
+            buffer: this.rawBuffer,
+            mode: this.mode,
+            fftSize: this.analyzer.fftSize,
+            color: this.color,
+            barWidthPercent: this.barWidthPercent,
+            barCrop: this.barCrop,
+            scale: this.scale,
+            lineWidth: this.lineWidth
+        };
+    }
+    static fromData(data, ctx) {
+        const visualizer = new Visualizer(data.buffer, ctx);
+        visualizer.mode = data.mode;
+        visualizer.fftSize = data.fftSize;
+        visualizer.color = data.color;
+        visualizer.barWidthPercent = data.barWidthPercent;
+        visualizer.barCrop = data.barCrop;
+        visualizer.scale = data.scale;
+        visualizer.lineWidth = data.lineWidth;
+        return visualizer;
+    }
     destroy() {
         this.stop();
         this.analyzer.disconnect();
@@ -133,19 +164,18 @@ class Visualizer {
         Visualizer.#onUpdate();
     }
 
+    static draw() {
+        Visualizer.#list.forEach(visualizer => visualizer.draw());
+    }
     static startAll(time = 0) {
         Visualizer.#list.forEach(visualizer => visualizer.start(time));
     }
     static stopAll() {
         Visualizer.#list.forEach(visualizer => visualizer.stop());
     }
-
-    set fftSize(size) {
-        this.analyzer.fftSize = size;
-    }
     static get duration() {
         let duration = 0;
-        Visualizer.#list.forEach(visualizer => { if (visualizer.buffer.duration > duration) duration = visualizer.buffer.duration });
+        Visualizer.#list.forEach(visualizer => { if (visualizer.ready && visualizer.buffer.duration > duration) duration = visualizer.buffer.duration });
         return duration;
     }
 
@@ -153,10 +183,6 @@ class Visualizer {
     static set onUpdate(cb) {
         if (typeof cb !== 'function') throw new TypeError('"cb" is not a function');
         Visualizer.#onUpdate = () => cb();
-    }
-
-    static draw() {
-        Visualizer.#list.forEach(visualizer => visualizer.draw());
     }
 }
 

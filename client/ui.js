@@ -1,6 +1,76 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
-const dropdownButton = document.getElementById('dropdownTab');
+// upload/download
+const uploadButton = document.getElementById('uploadButton');
+uploadButton.oninput = (e) => {
+    if (uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const tree = msgpack.decode(new Uint8Array(reader.result));
+            // jank
+            for (let child of GroupTile.root.children) {
+                child.tile.remove();
+                if (child.visualizer) child.visualizer.destroy();
+                if (child.children) for (let child2 of child.children) {
+                    child2.destroy();
+                }
+            }
+            GroupTile.root.children = [];
+            function bfs(treenode) {
+                if (treenode.children !== undefined) {
+                    let node = new GroupTile(treenode.orientation);
+                    for (let child of treenode.children) {
+                        node.addChild(bfs(child));
+                    }
+                    return node;
+                } else {
+                    switch (treenode.type) {
+                        case 'v':
+                            return VisualizerTile.fromData(treenode);
+                        case 'vi':
+                            return VisualizerImageTile.fromData(treenode);
+                        case 'i':
+                            return ImageTile.fromData(treenode);
+                        case 't':
+                            return TextTile.fromData(treenode);
+                        case 'b':
+                            return BlankTile.fromData(treenode);
+                        default:
+                            const tile = new TextTile();
+                            tile.text.value = 'Unknown Tile';
+                            return tile;
+                    }
+                }
+            };
+            GroupTile.root.addChild(bfs(tree.root));
+            GroupTile.root.refresh();
+        };
+        reader.readAsArrayBuffer(uploadButton.files[0]);
+    }
+};
+document.getElementById('downloadButton').onclick = (e) => {
+    const tree = {
+        version: 0,
+        root: bfs(GroupTile.root)
+    };
+    function bfs(node) {
+        if (node.children !== undefined) {
+            let treenode = {
+                orientation: node.orientation,
+                children: []
+            };
+            for (let child of node.children) {
+                treenode.children.push(bfs(child));
+            }
+            return treenode;
+        } else return node.getData();
+    };
+    const download = document.createElement('a');
+    let current = new Date();
+    download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
+    download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
+    download.click();
+};
 
 // volume
 const volumeControlInput = document.getElementById('volume');
@@ -97,6 +167,7 @@ createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // keys and stuff
+const dropdownButton = document.getElementById('dropdownTab');
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
     if (e.target.matches('input') && !e.target.matches('input[type=text]') && !e.target.matches('input[type=number]')) e.target.blur();

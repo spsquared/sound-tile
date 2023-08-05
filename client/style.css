@@ -30,7 +30,7 @@ img {
     overflow: hidden;
 }
 
-/* dropdown and controls */
+/* dropdown */
 
 #dropdown {
     display: flex;
@@ -67,6 +67,40 @@ img {
     transform: translateY(-100%);
     --tabImage: url(./assets/arrow-down.svg);
 }
+
+/* controls */
+
+#fileControls {
+    display: grid;
+    grid-template-rows: 50% 50%;
+    grid-auto-flow: column;
+    border-left: 4px solid white;
+}
+#uploadButtonLabel, #downloadButton {
+    background-color: gray;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    transition: 100ms linear background-color;
+    aspect-ratio: 1;
+    cursor: pointer;
+}
+#uploadButtonLabel:hover, #downloadButton:hover {
+    background-color: #999;
+}
+#uploadButtonLabel {
+    border-bottom: 2px solid white;
+    background-image: url(./assets/upload.svg);
+}
+#uploadButton {
+    display: none;
+}
+#downloadButton {
+    border-top: 2px solid white;
+    background-image: url(./assets/download.svg);
+}
+
+/* controls 2 - electric boogaloo */
 
 #mediaControls {
     display: grid;
@@ -185,7 +219,6 @@ img {
     grid-row: 2;
     grid-column: 2;
     background-color: #A00;
-    color: white;
     border-left: 4px solid white;
     border-right: 4px solid white;
     background-position: center;
@@ -217,7 +250,6 @@ img {
     grid-column: 4;
     margin-right: -4px;
     background-color: dodgerblue;
-    color: white;
     border-right: 4px solid white;
     background-position: center;
     background-repeat: no-repeat;
@@ -227,6 +259,8 @@ img {
     /* cursor: pointer; */
     cursor: not-allowed;
 }
+
+/* tile source */
 
 #tileSource {
     flex-grow: 1;
@@ -303,10 +337,10 @@ img {
     transform: scaleX(-100%);
 }
 
-.uploadButton {
+.button {
     display: none;
 }
-.uploadButtonLabel {
+.buttonLabel {
     display: inline-block;
     height: 14px;
     margin: 4px 2px;
@@ -364,7 +398,7 @@ img {
     border: 2px solid white;
 }
 
-/* tile things */
+/* tile styles */
 
 .tileGroup {
     display: flex;
@@ -396,7 +430,7 @@ img {
     transition: 200ms linear opacity;
     opacity: 0;
     cursor: grab;
-    z-index: 2;
+    z-index: 4;
 }
 .tileDrag:hover {
     opacity: 1;
@@ -415,7 +449,7 @@ img {
     cursor: pointer;
 }
 
-.tileSourceUploadCover {
+.tileSourceUploadCover, .tileImgUploadCover {
     display: flex;
     position: absolute;
     top: 0px;
@@ -425,12 +459,24 @@ img {
     background-color: black;
     justify-content: center;
     align-items: center;
+    z-index: 3;
+}
+.tileImgUploadCoverSmall {
+    display: flex;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    height: 50%;
+    background-color: black;
+    justify-content: center;
+    align-items: center;
     z-index: 1;
 }
-.tileSourceUpload {
+.tileSourceUpload, .tileImgUpload {
     display: none;
 }
-.tileSourceUploadLabel {
+.tileSourceUploadLabel, .tileImgUploadLabel {
     height: 24px;
     padding: 6px 8px;
     font-size: 18px;
@@ -457,23 +503,25 @@ img {
     position: absolute;
     bottom: 0px;
     left: 0px;
-    width: 100%;
+    width: calc(100% - 8px);
     padding: 0px 4px;
     background-color: black;
     border-top: 2px solid white;
     transition: 200ms linear opacity;
     opacity: 0;
-    z-index: 0;
+    z-index: 2;
 }
 .tileControls:hover {
     opacity: 1;
 }
-.tileImgUpload {
+.tileImgUpload, .tileImgReplace {
     display: none;
 }
-.tileImgUploadLabel {
+.tileImgReplaceLabel, .tileAudioReplaceLabel {
     background-color: dodgerblue;
 }
+
+/* drag */
 
 #draggingContainer {
     display: none;
