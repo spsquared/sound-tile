@@ -162,9 +162,11 @@ class GroupTile {
         if (this.parent === null) return;
         if (this.children.length === 0) this.destroy();
         if (this.children.length === 1) {
-            this.parent.replaceChild(this, this.children[0]);
+            let parent = this.parent
+            parent.replaceChild(this, this.children[0]);
             this.children = [];
             this.destroy();
+            parent.checkObsolescence();
         }
     }
 

@@ -130,6 +130,10 @@ timeSeekInput.oninput = (e) => {
 };
 playButton.onclick = (e) => {
     mediaControls.playing = playButton.checked;
+    if (mediaControls.currentTime >= mediaControls.duration) {
+        mediaControls.currentTime = 0;
+        mediaControls.startTime = Date.now();
+    }
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     else Visualizer.stopAll();
 };
