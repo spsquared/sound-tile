@@ -29,6 +29,9 @@ class Visualizer {
     color = 'white';
     mode = 0;
     barWidthPercent = 0.80;
+    barCrop = 1;
+    scale = 1;
+    lineWidth = 2;
     ready = new Promise((res, rej) => { });
     constructor(arrbuf, ctx) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
@@ -77,35 +80,44 @@ class Visualizer {
             return;
         }
         if (this.mode == 0) {
-            let barSpace = (width / this.analyzer.frequencyBinCount);
+            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
+            let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteFrequencyData(data);
             this.ctx.fillStyle = this.color;
-            let yScale = (height) / 256;
-            for (let i = 0; i < data.length; i++) {
+            let yScale = height / 256;
+            for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
             }
         } else if (this.mode == 1) {
-            let barSpace = (width / this.analyzer.frequencyBinCount);
+            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
+            let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteFrequencyData(data);
             this.ctx.fillStyle = this.color;
-            let yScale = (height) / 256;
-            for (let i = 0; i < data.length; i++) {
+            let yScale = (height / 256) * this.scale;
+            for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
             }
         } else if (this.mode == 2) {
-            this.ctx.fillStyle = 'white';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.font = '16px Arial';
-            this.ctx.fillText('Not Implemented', width / 2, height / 2);
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getByteTimeDomainData(data);
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            let xStep = width / this.analyzer.frequencyBinCount;
+            let yScale = (height) / 256;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, data[0] * yScale);
+            for (let i = 1; i < data.length; i++) {
+                this.ctx.lineTo(i * xStep, data[i] * yScale);
+            }
+            this.ctx.stroke();
         } else {
             this.ctx.fillStyle = 'red';
             this.ctx.textAlign = 'center';

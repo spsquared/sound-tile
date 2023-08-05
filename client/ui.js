@@ -99,7 +99,7 @@ createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 // keys and stuff
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
-    if (e.target.matches('input') && !e.target.matches('input[type=text]')) e.target.blur();
+    if (e.target.matches('input') && !e.target.matches('input[type=text]') && !e.target.matches('input[type=number]')) e.target.blur();
     if (key == ' ' || key == 'p') {
         e.preventDefault();
         playButton.click();

@@ -46,19 +46,34 @@ function setVisualizerControls() {
         }
     });
     visualizerWaveformOptions.style.display = 'none';
-    const visualizerFrequencyFFTSize = this.tile.querySelector('.tileVisualizerFrequencyFFTSize');
-    visualizerFrequencyFFTSize.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFrequencyFFTSize.value);
+    const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
+    visualizerFFTSize.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
     });
+    // frequency mode options
     const visualizerFrequencyWidth = this.tile.querySelector('.tileVisualizerFrequencyWidth');
     visualizerFrequencyWidth.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(visualizerFrequencyWidth.value) / 100;
+    });
+    const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
+    visualizerFrequencyCrop.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
+    });
+    // waveform mode options
+    const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
+    visualizerWaveformScale.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
+    });
+    const visualizerWaveformLineWidth = this.tile.querySelector('.tileVisualizerWaveformLineWidth');
+    visualizerWaveformLineWidth.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
     });
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
     visualizerFlip.addEventListener('click', (e) => {
         if (visualizerFlip.checked) this.canvas.classList.add('flipped');
         else this.canvas.classList.remove('flipped');
     });
+    
 };
 class GroupTile {
     static root = new GroupTile(false);
