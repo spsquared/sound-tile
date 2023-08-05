@@ -88,9 +88,10 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
     if (data.visualizer.mode < 2) {
-        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');;
+        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
     } else {
-        tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');;
+        tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
+        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     }
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerFrequencyWidth').value = data.visualizer.barWidthPercent * 100;

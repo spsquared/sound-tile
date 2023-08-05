@@ -114,11 +114,12 @@ class Visualizer {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             let xStep = width / this.analyzer.frequencyBinCount;
+            let yOffset = height * (this.scale - 1) * 0.5;
             let yScale = ((height) / 256) * this.scale;
             this.ctx.beginPath();
-            this.ctx.moveTo(0, data[0] * yScale);
+            this.ctx.moveTo(0, data[0] * yScale - yOffset);
             for (let i = 1; i < data.length; i++) {
-                this.ctx.lineTo(i * xStep, data[i] * yScale);
+                this.ctx.lineTo(i * xStep, data[i] * yScale - yOffset);
             }
             this.ctx.stroke();
         } else {
