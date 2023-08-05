@@ -1,5 +1,6 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
+const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileActions() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColorSelect');
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
@@ -9,6 +10,9 @@ function setDefaultTileActions() {
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this) this.destroy() });
 };
 function setVisualizerControls() {
+    // add options from template here
+    this.tile.querySelector('.tileVisualizerControls').appendChild(visualizerOptionsTemplate.content.cloneNode(true).children[0]);
+    // audio controls
     const audioUpload = this.tile.querySelector('.tileSourceUpload');
     audioUpload.addEventListener('change', async (e) => {
         if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
@@ -25,11 +29,35 @@ function setVisualizerControls() {
             this.visualizer.color = colorSelect.value;
         }
     });
+    // visualizer settings
     const colorSelect = this.tile.querySelector('.tileVisualizerColorSelect');
     colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
-    const visualizerMode = this.tile.querySelector('.tileVisualizerModeSelect');
+    const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
+    const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
+    const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     visualizerMode.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
+        if (parseInt(visualizerMode.value) < 2) {
+            visualizerFrequencyOptions.style.display = '';
+            visualizerWaveformOptions.style.display = 'none';
+        } else {
+            visualizerFrequencyOptions.style.display = 'none';
+            visualizerWaveformOptions.style.display = '';
+        }
+    });
+    visualizerWaveformOptions.style.display = 'none';
+    const visualizerFrequencyFFTSize = this.tile.querySelector('.tileVisualizerFrequencyFFTSize');
+    visualizerFrequencyFFTSize.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFrequencyFFTSize.value);
+    });
+    const visualizerFrequencyWidth = this.tile.querySelector('.tileVisualizerFrequencyWidth');
+    visualizerFrequencyWidth.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(visualizerFrequencyWidth.value) / 100;
+    });
+    const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
+    visualizerFlip.addEventListener('click', (e) => {
+        if (visualizerFlip.checked) this.canvas.classList.add('flipped');
+        else this.canvas.classList.remove('flipped');
     });
 };
 class GroupTile {
@@ -414,14 +442,16 @@ document.addEventListener('mouseup', (e) => {
 });
 
 // test code
-GroupTile.root.addChild(new ImageTile());
-GroupTile.root.addChild(new ImageTile());
-let subgroup = new GroupTile(1);
-subgroup.addChild(new VisualizerImageTile())
-subgroup.addChild(new VisualizerTile())
-subgroup.addChild(new VisualizerImageTile());
-let subgroup2 = new GroupTile();
-subgroup2.addChild(new ImageTile);
-subgroup2.addChild(new ImageTile);
-subgroup.addChild(subgroup2, 1);
-GroupTile.root.addChild(subgroup, 0);
+window.addEventListener('load', (e) => {
+    GroupTile.root.addChild(new ImageTile());
+    GroupTile.root.addChild(new ImageTile());
+    let subgroup = new GroupTile(1);
+    subgroup.addChild(new VisualizerImageTile())
+    subgroup.addChild(new VisualizerTile())
+    subgroup.addChild(new VisualizerImageTile());
+    let subgroup2 = new GroupTile();
+    subgroup2.addChild(new ImageTile);
+    subgroup2.addChild(new ImageTile);
+    subgroup.addChild(subgroup2, 1);
+    GroupTile.root.addChild(subgroup, 0);
+});

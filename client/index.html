@@ -109,19 +109,9 @@
                 </label>
             </div>
             <div class="tileControls">
-                <label class="tileAudioReplaceLabel uploadButtonLabel">
-                    Replace Source
-                    <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
-                </label>
-                <select class="tileVisualizerModeSelect selectBox">
-                    <option value="0">Frequency (1x H.)</option>
-                    <option value="1">Frequency (2x H.)</option>
-                    <option value="2">Waveform (H.)</option>
-                </select>
+                <span class="tileVisualizerControls"></span>
                 <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
                 <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
-                <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
-                <!-- color blending and custom color script? (use gradients) -->
             </div>
         </div>
     </template>
@@ -149,19 +139,9 @@
                     <span class="tileImgUploadLabelText">Upload Image</span>
                     <input class="tileImgUpload uploadButton" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <label class="tileAudioReplaceLabel uploadButtonLabel">
-                    Replace Source
-                    <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
-                </label>
-                <select class="tileVisualizerModeSelect selectBox">
-                    <option value="0">Frequency (1x H.)</option>
-                    <option value="1">Frequency (2x H.)</option>
-                    <option value="2">Waveform (H.)</option>
-                </select>
+                <span class="tileVisualizerControls"></span>
                 <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
                 <input type="color" class="tileVisualizerColorSelect colorBox" value="#ffffff">
-                <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
-                <!-- color blending and custom color script? (use gradients) -->
             </div>
         </div>
     </template>
@@ -210,6 +190,43 @@
                 <input type="color" class="tileBackgroundColorSelect colorBox" value="#000000">
             </div>
         </div>
+    </template>
+    <template id="visualizerOptionsTemplate">
+        <span>
+            <label class="tileAudioReplaceLabel uploadButtonLabel">
+                Replace Source
+                <input class="tileAudioReplace uploadButton" type="file" accept="audio/*">
+            </label>
+            <select class="tileVisualizerMode selectBox">
+                <option value="0">Freq. (1x H.)</option>
+                <option value="1">Freq. (2x H.)</option>
+                <option value="2">Wave (H.)</option>
+            </select>
+            <span class="tileVisualizerFrequencyOptions">
+                <label>
+                    FFT:
+                    <select class="tileVisualizerFrequencyFFTSize selectBox">
+                        <option value="128">128</option>
+                        <option value="256">256</option>
+                        <option value="512" selected>512</option>
+                        <option value="1024">1024</option>
+                        <option value="2048">2048</option>
+                        <option value="4096">4096</option>
+                    </select>
+                </label>
+                <label>
+                    Width:
+                    <input class="tileVisualizerFrequencyWidth" type="number" min="25" max="100" step="5" value="80">
+                </label>
+            </span>
+            <span class="tileVisualizerWaveformOptions"></span>
+            <label>
+                Flip:
+                <input class="tileVisualizerFlip" type="checkbox">
+            </label>
+            <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
+            <!-- color blending and custom color script? (use gradients) -->
+        </span>
     </template>
     <template id="tileSourceTemplate">
         <div class="tileSource">

@@ -8,11 +8,14 @@ const volumeControlThumb = document.getElementById('volumeThumb');
 volumeControlInput.oninput = (e) => {
     globalVolume.gain.setValueAtTime(parseInt(volumeControlInput.value) / 100, audioContext.currentTime);
     volumeControlThumb.style.setProperty('--volume', parseInt(volumeControlInput.value) / 100);
+    window.localStorage.setItem('volume', volumeControlInput.value);
 };
 volumeControlInput.addEventListener('wheel', (e) => {
     volumeControlInput.value = parseInt(volumeControlInput.value) - Math.round(e.deltaY / 20);
     volumeControlInput.oninput();
 }, { passive: true });
+volumeControlInput.value = window.localStorage.getItem('volume') ?? 100;
+volumeControlInput.oninput();
 
 // media controls
 const timeSeekInput = document.getElementById('seeker');
@@ -96,7 +99,7 @@ createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 // keys and stuff
 document.addEventListener('keypress', (e) => {
     const key = e.key.toLowerCase();
-    if (e.target.matches('input[type=range]')) e.target.blur();
+    if (e.target.matches('input') && !e.target.matches('input[type=text]')) e.target.blur();
     if (key == ' ' || key == 'p') {
         e.preventDefault();
         playButton.click();

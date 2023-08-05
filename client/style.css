@@ -128,6 +128,9 @@ img {
     opacity: 0;
     cursor: grab;
 }
+#volume:active {
+    cursor: grabbing;
+}
 #seekerBody {
     grid-row: 1;
     grid-column: 2 / 6;
@@ -295,6 +298,9 @@ img {
 
 .hidden {
     display: none;
+}
+.flipped {
+    transform: scaleX(-100%);
 }
 
 .uploadButton {

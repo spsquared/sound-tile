@@ -28,8 +28,7 @@ class Visualizer {
     analyzer = audioContext.createAnalyser();
     color = 'white';
     mode = 0;
-    fftSize = 512;
-    barSpacing = 1;
+    barWidthPercent = 0.80;
     ready = new Promise((res, rej) => { });
     constructor(arrbuf, ctx) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer buf must be an ArrayBuffer');
@@ -41,7 +40,7 @@ class Visualizer {
         this.canvas = ctx.canvas;
         this.ctx = ctx;
         this.analyzer.connect(globalVolume);
-        this.analyzer.fftSize = this.fftSize;
+        this.analyzer.fftSize = 512;
         Visualizer.#list.add(this);
     }
     start(time = 0) {
@@ -78,26 +77,28 @@ class Visualizer {
             return;
         }
         if (this.mode == 0) {
-            let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
+            let barSpace = (width / this.analyzer.frequencyBinCount);
+            let barWidth = barSpace * this.barWidthPercent;
+            let barShift = (barSpace - barWidth) / 2;
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteFrequencyData(data);
             this.ctx.fillStyle = this.color;
-            let xStep = barWidth + this.barSpacing;
             let yScale = (height) / 256;
             for (let i = 0; i < data.length; i++) {
                 let barHeight = (data[i] + 1) * yScale;
-                this.ctx.fillRect(i * xStep, height - barHeight, barWidth, barHeight);
+                this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
             }
         } else if (this.mode == 1) {
-            let barWidth = ((width + this.barSpacing) / this.analyzer.frequencyBinCount) - this.barSpacing;
+            let barSpace = (width / this.analyzer.frequencyBinCount);
+            let barWidth = barSpace * this.barWidthPercent;
+            let barShift = (barSpace - barWidth) / 2;
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteFrequencyData(data);
             this.ctx.fillStyle = this.color;
-            let xStep = barWidth + this.barSpacing;
             let yScale = (height) / 256;
             for (let i = 0; i < data.length; i++) {
                 let barHeight = (data[i] + 1) * yScale;
-                this.ctx.fillRect(i * xStep, (height - barHeight) / 2, barWidth, barHeight);
+                this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
             }
         } else if (this.mode == 2) {
             this.ctx.fillStyle = 'white';
@@ -127,6 +128,9 @@ class Visualizer {
         Visualizer.#list.forEach(visualizer => visualizer.stop());
     }
 
+    set fftSize(size) {
+        this.analyzer.fftSize = size;
+    }
     static get duration() {
         let duration = 0;
         Visualizer.#list.forEach(visualizer => { if (visualizer.buffer.duration > duration) duration = visualizer.buffer.duration });
