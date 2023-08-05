@@ -103,7 +103,7 @@ class Visualizer {
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteFrequencyData(data);
             this.ctx.fillStyle = this.color;
-            let yScale = (height / 256) * this.scale;
+            let yScale = height / 256;
             for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
@@ -114,7 +114,7 @@ class Visualizer {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             let xStep = width / this.analyzer.frequencyBinCount;
-            let yScale = (height) / 256;
+            let yScale = ((height) / 256) * this.scale;
             this.ctx.beginPath();
             this.ctx.moveTo(0, data[0] * yScale);
             for (let i = 1; i < data.length; i++) {
