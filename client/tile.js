@@ -1,5 +1,7 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
+const display = document.getElementById('display');
+
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
@@ -158,12 +160,13 @@ class GroupTile {
         for (let child of this.children) {
             child.refresh();
         }
+        if (this.parent !== null) this.parent.checkObsolescence();
     }
     checkObsolescence() {
         if (this.parent === null) return;
         if (this.children.length === 0) this.destroy();
         if (this.children.length === 1) {
-            let parent = this.parent
+            let parent = this.parent;
             parent.replaceChild(this, this.children[0]);
             this.children = [];
             this.destroy();
@@ -542,7 +545,7 @@ class BlankTile {
     }
 }
 
-document.getElementById('display').appendChild(GroupTile.root.tile);
+display.appendChild(GroupTile.root.tile);
 
 const drag = {
     container: document.getElementById('draggingContainer'),

@@ -9,13 +9,11 @@ uploadButton.oninput = (e) => {
             const tree = msgpack.decode(new Uint8Array(reader.result));
             // jank
             for (let child of GroupTile.root.children) {
-                child.tile.remove();
-                if (child.visualizer) child.visualizer.destroy();
-                if (child.children) for (let child2 of child.children) {
-                    child2.destroy();
-                }
+                child.destroy();
             }
-            GroupTile.root.children = [];
+            GroupTile.root.tile.remove();
+            GroupTile.root = new GroupTile(false);
+            display.appendChild(GroupTile.root.tile);
             function bfs(treenode) {
                 if (treenode.children !== undefined) {
                     let node = new GroupTile(treenode.orientation);
