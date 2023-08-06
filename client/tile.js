@@ -433,7 +433,7 @@ class TextTile {
     tile = null;
     canvas = null;
     ctx = null;
-    text = '';
+    text = 'Text Here';
     constructor() {
         this.tile = TextTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
@@ -447,8 +447,27 @@ class TextTile {
         const textEditor = this.tile.querySelector('.tileText');
         this.tile.querySelector('.tileTextEditDoneButton').addEventListener('click', (e) => {
             this.text = textEditor.value;
+            draw();
             editContainer.classList.add('hidden');
         });
+        const fontSize = this.tile.querySelector('.tileTextSize');
+        const textAlign = this.tile.querySelector('.tileTextAlign');
+        const textColor = this.tile.querySelector('.tileTextColor');
+        let draw = () => {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.font = `${fontSize.value}px Source Code Pro`;
+            this.ctx.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillStyle = textColor.value;
+            let x = this.canvas.width * parseFloat(textAlign.value);
+            let text = this.text.split('\n');
+            for (let i = 0; i < text.length; i++) {
+                this.ctx.fillText(text[i], x, (this.canvas.height / 2) - (((text.length / 2) - i - 0.5) * parseInt(fontSize.value)));
+            }
+        };
+        fontSize.addEventListener('input', (e) => draw());
+        textAlign.addEventListener('input', (e) => draw());
+        textColor.addEventListener('input', (e) => draw());
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const editContainer = this.tile.querySelector('.tileTextEditContainer');
         this.#resize = () => {
@@ -460,6 +479,7 @@ class TextTile {
             this.canvas.height = Math.round(rect2.height);
             this.canvas.style.width = Math.round(rect2.width) + 'px';
             this.canvas.style.height = Math.round(rect2.height) + 'px';
+            draw();
         };
         window.addEventListener('resize', this.#resize);
         window.addEventListener('load', this.#resize);
