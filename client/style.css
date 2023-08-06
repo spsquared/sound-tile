@@ -331,7 +331,7 @@ img {
 /* shared styles */
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 .flipped {
     transform: scaleX(-100%);
@@ -396,6 +396,10 @@ img {
 }
 .colorBox::-webkit-color-swatch {
     border: 2px solid white;
+}
+
+.checkBox {
+    margin: 0px 0px;
 }
 
 /* tile styles */
@@ -495,8 +499,25 @@ img {
     width: 100%;
     height: 100%;
 }
-.tileCanvas, .tileImg {
+.tileCanvas, .tileImg, .tileTextEditContainer {
     position: fixed;
+}
+
+.tileTextEditContainer {
+    display: grid;
+    grid-template-rows: 1fr 40px;
+    grid-auto-flow: column;
+    z-index: 5;
+}
+.tileText {
+    resize: none;
+}
+.tileTextEditDoneButton {
+    background-color: dodgerblue;
+    border: none;
+    font-family: 'Source Code Pro', Courier, monospace;
+    font-size: 24px;
+    cursor: pointer;
 }
 
 .tileControls {
@@ -517,7 +538,7 @@ img {
 .tileImgUpload, .tileImgReplace {
     display: none;
 }
-.tileImgReplaceLabel, .tileAudioReplaceLabel {
+.tileImgReplaceLabel, .tileAudioReplaceLabel, .tileTextEditLabel {
     background-color: dodgerblue;
 }
 

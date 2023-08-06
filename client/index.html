@@ -75,6 +75,7 @@
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png">
+        <!-- actual buttons are too finicky -->
         <div id="fileControls">
             <label id="uploadButtonLabel" for="uploadButton"></label>
             <input id="uploadButton" type="file" accept=".soundtile">
@@ -188,8 +189,10 @@
             <div class="tileCanvasContainer">
                 <canvas class="tileCanvas"></canvas>
             </div>
+            <!-- make full-featured text editor? -->
             <div class="tileTextEditContainer hidden">
                 <textarea class="tileText">Text Here</textarea>
+                <button class="tileTextEditDoneButton">Done</button>
             </div>
             <div class="tileControls">
                 <label class="tileTextEditLabel buttonLabel">
@@ -199,6 +202,14 @@
                 <label>
                     Size:
                     <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                </label>
+                <label>
+                    Align:
+                    <select class="tileTextAlign selectBox">
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                    </select>
                 </label>
                 <input type="color" class="tileBackgroundColor colorBox" value="#000000">
             </div>
@@ -259,7 +270,7 @@
             </span>
             <label>
                 Flip:
-                <input class="tileVisualizerFlip" type="checkbox">
+                <input class="tileVisualizerFlip checkBox" type="checkbox">
             </label>
             <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
             <!-- color blending and custom color script? (use gradients) -->

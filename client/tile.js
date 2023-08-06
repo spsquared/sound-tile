@@ -193,7 +193,6 @@ class VisualizerTile {
         setVisualizerControls.call(this);
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.webkitImageSmoothingEnabled = false;
-        // How to avoid using JS to resize???
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
@@ -290,7 +289,6 @@ class VisualizerImageTile {
         });
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.webkitImageSmoothingEnabled = false;
-        // How to avoid using JS to resize???
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
@@ -386,7 +384,6 @@ class ImageTile {
                 reader.readAsDataURL(imageReplace.files[0]);
             }
         });
-        // How to avoid using JS to resize???
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = imageContainer.getBoundingClientRect();
@@ -434,14 +431,44 @@ class TextTile {
 
     parent = null;
     tile = null;
-    text = null;
+    canvas = null;
+    ctx = null;
+    text = '';
     constructor() {
         this.tile = TextTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
-        this.text = this.tile.querySelector('.tileText');
+        this.canvas = this.tile.querySelector('.tileCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
+        this.tile.querySelector('.tileTextEdit').addEventListener('click', (e) => {
+            editContainer.classList.remove('hidden');
+        });
+        const textEditor = this.tile.querySelector('.tileText');
+        this.tile.querySelector('.tileTextEditDoneButton').addEventListener('click', (e) => {
+            this.text = textEditor.value;
+            editContainer.classList.add('hidden');
+        });
+        const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
+        const editContainer = this.tile.querySelector('.tileTextEditContainer');
+        this.#resize = () => {
+            const rect = this.tile.getBoundingClientRect();
+            editContainer.style.width = Math.round(rect.width) + 'px';
+            editContainer.style.height = Math.round(rect.height) + 'px';
+            const rect2 = canvasContainer.getBoundingClientRect();
+            this.canvas.width = Math.round(rect2.width);
+            this.canvas.height = Math.round(rect2.height);
+            this.canvas.style.width = Math.round(rect2.width) + 'px';
+            this.canvas.style.height = Math.round(rect2.height) + 'px';
+        };
+        window.addEventListener('resize', this.#resize);
+        window.addEventListener('load', this.#resize);
     }
 
-    refresh() { }
+    #resize = () => { }
+    refresh() {
+        this.#resize();
+    }
 
     getData() {
         return {
@@ -538,7 +565,7 @@ document.addEventListener('mousemove', (e) => {
                 let groupThreshhold = Math.min(rect.width, rect.height);
                 switch (Math.min(topDist, bottomDist, leftDist, rightDist)) {
                     case topDist:
-                        if (topDist > 0.2 * groupThreshhold) {
+                        if (topDist > 0.2 * groupThreshhold || !parent.orientation) {
                             const group = new GroupTile(true);
                             parent.replaceChild(drag.hoverTile, group);
                             group.addChild(drag.placeholder);
@@ -548,7 +575,7 @@ document.addEventListener('mousemove', (e) => {
                         }
                         break;
                     case bottomDist:
-                        if (bottomDist > 0.2 * groupThreshhold) {
+                        if (bottomDist > 0.2 * groupThreshhold || !parent.orientation) {
                             const group = new GroupTile(true);
                             parent.replaceChild(drag.hoverTile, group);
                             group.addChild(drag.hoverTile);
@@ -558,7 +585,7 @@ document.addEventListener('mousemove', (e) => {
                         }
                         break;
                     case leftDist:
-                        if (leftDist > 0.2 * groupThreshhold) {
+                        if (leftDist > 0.2 * groupThreshhold || parent.orientation) {
                             const group = new GroupTile(false);
                             parent.replaceChild(drag.hoverTile, group);
                             group.addChild(drag.placeholder);
@@ -568,7 +595,7 @@ document.addEventListener('mousemove', (e) => {
                         }
                         break;
                     case rightDist:
-                        if (rightDist > 0.2 * groupThreshhold) {
+                        if (rightDist > 0.2 * groupThreshhold || parent.orientation) {
                             const group = new GroupTile(false);
                             parent.replaceChild(drag.hoverTile, group);
                             group.addChild(drag.hoverTile);
