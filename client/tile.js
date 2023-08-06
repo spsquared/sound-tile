@@ -494,15 +494,20 @@ class TextTile {
         return {
             type: 't',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            text: this.text.value
+            text: this.text,
+            fontSize: this.tile.querySelector('.tileTextSize').value,
+            textAlign: this.tile.querySelector('.tileTextAlign').value,
+            color: this.tile.querySelector('.tileTextColor').value
         };
     }
     static fromData(data) {
         const tile = new TextTile();
         applyDefaultTileControls(tile, data);
-        if (data.text !== undefined) {
-            tile.text.value = data.text;
-        }
+        tile.text = data.text;
+        tile.tile.querySelector('.tileText').value = data.text;
+        tile.tile.querySelector('.tileTextSize').value = data.fontSize;
+        tile.tile.querySelector('.tileTextAlign').value = data.textAlign;
+        tile.tile.querySelector('.tileTextColor').value = data.color;
         return tile;
     };
     destroy() {
