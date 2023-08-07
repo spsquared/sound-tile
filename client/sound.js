@@ -185,6 +185,10 @@ class Visualizer {
         if (typeof cb !== 'function') throw new TypeError('"cb" is not a function');
         Visualizer.#onUpdate = () => cb();
     }
+    
+    static destroyAll() {
+        Visualizer.#list.forEach(visualizer => visualizer.destroy());
+    }
 }
 
 async function startDraw() {

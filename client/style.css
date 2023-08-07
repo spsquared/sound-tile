@@ -68,6 +68,10 @@ img {
     --tabImage: url(./assets/arrow-down.svg);
 }
 
+#logo {
+    image-rendering: pixelated;
+}
+
 /* controls */
 
 #fileControls {

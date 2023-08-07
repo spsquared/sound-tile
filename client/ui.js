@@ -11,14 +11,15 @@ uploadButton.oninput = (e) => {
             for (let child of GroupTile.root.children) {
                 child.destroy();
             }
+            Visualizer.destroyAll();
             GroupTile.root.tile.remove();
             GroupTile.root = new GroupTile(false);
             display.appendChild(GroupTile.root.tile);
-            function bfs(treenode) {
+            function dfs(treenode) {
                 if (treenode.children !== undefined) {
                     let node = new GroupTile(treenode.orientation);
                     for (let child of treenode.children) {
-                        node.addChild(bfs(child));
+                        node.addChild(dfs(child));
                     }
                     return node;
                 } else {
@@ -40,7 +41,7 @@ uploadButton.oninput = (e) => {
                     }
                 }
             };
-            GroupTile.root.addChild(bfs(tree.root));
+            GroupTile.root.addChild(dfs(tree.root));
             setTimeout(() => GroupTile.root.refresh(), 0);
         };
         reader.readAsArrayBuffer(uploadButton.files[0]);
@@ -49,16 +50,16 @@ uploadButton.oninput = (e) => {
 document.getElementById('downloadButton').onclick = (e) => {
     const tree = {
         version: 0,
-        root: bfs(GroupTile.root)
+        root: dfs(GroupTile.root)
     };
-    function bfs(node) {
+    function dfs(node) {
         if (node.children !== undefined) {
             let treenode = {
                 orientation: node.orientation,
                 children: []
             };
             for (let child of node.children) {
-                treenode.children.push(bfs(child));
+                treenode.children.push(dfs(child));
             }
             return treenode;
         } else return node.getData();
