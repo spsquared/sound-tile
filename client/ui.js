@@ -28,6 +28,8 @@ uploadButton.oninput = (e) => {
                             return VisualizerTile.fromData(treenode);
                         case 'vi':
                             return VisualizerImageTile.fromData(treenode);
+                        case 'vt':
+                            return VisualizerTextTile.fromData(treenode);
                         case 'i':
                             return ImageTile.fromData(treenode);
                         case 't':
@@ -36,7 +38,8 @@ uploadButton.oninput = (e) => {
                             return BlankTile.fromData(treenode);
                         default:
                             const tile = new TextTile();
-                            tile.text.value = 'Unknown Tile';
+                            tile.text = 'Unknown Tile';
+                            tile.refresh();
                             return tile;
                     }
                 }
@@ -167,6 +170,7 @@ createTileSource(TextTile, './assets/text-tile.png', 'New text tile');
 createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
 createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer tile');
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
+createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // keys and stuff

@@ -119,7 +119,7 @@ class GroupTile {
     }
 
     addChild(child, index = this.children.length) {
-        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, ImageTile, TextTile, BlankTile, or another GroupTile');
+        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
         if (child.parent !== null) child.parent.removeChild(child);
@@ -192,17 +192,17 @@ class VisualizerTile {
         setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
-        // visualizer controls
-        setVisualizerControls.call(this);
         this.ctx.imageSmoothingEnabled = false;
         this.ctx.webkitImageSmoothingEnabled = false;
+        // visualizer controls
+        setVisualizerControls.call(this);
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             this.canvas.width = Math.round(rect.width);
             this.canvas.height = Math.round(rect.height);
-            this.canvas.style.width = Math.round(rect.width) + 'px';
-            this.canvas.style.height = Math.round(rect.height) + 'px';
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = rect.height + 'px';
         };
         window.addEventListener('resize', this.#resize);
         window.addEventListener('load', this.#resize);
@@ -250,6 +250,8 @@ class VisualizerImageTile {
         this.canvas = this.tile.querySelector('.tileCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
         // visualizer controls
         setVisualizerControls.call(this);
         // image controls
@@ -263,10 +265,6 @@ class VisualizerImageTile {
             'image/svg+xml',
             'image/webp',
         ];
-        imageReplace.addEventListener('change', (e) => {
-            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
-            }
-        });
         imageUpload.addEventListener('change', (e) => {
             if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
                 const reader = new FileReader();
@@ -290,25 +288,23 @@ class VisualizerImageTile {
                 reader.readAsDataURL(imageReplace.files[0]);
             }
         });
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.webkitImageSmoothingEnabled = false;
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             this.canvas.width = Math.round(rect.width);
             this.canvas.height = Math.round(rect.height);
-            this.canvas.style.width = Math.round(rect.width) + 'px';
-            this.canvas.style.height = Math.round(rect.height) + 'px';
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = rect.height + 'px';
             const rect2 = imageContainer.getBoundingClientRect();
             if (rect2.width / rect2.height < this.img.width / this.img.height) {
                 // width restriction
-                this.img.style.width = Math.round(rect2.width) + 'px';
+                this.img.style.width = rect2.width + 'px';
                 this.img.style.height = 'unset';
             } else {
                 // height restriction
                 this.img.style.width = 'unset';
-                this.img.style.height = Math.round(rect2.height) + 'px';
+                this.img.style.height = rect2.height + 'px';
             }
         };
         window.addEventListener('resize', this.#resize);
@@ -340,6 +336,118 @@ class VisualizerImageTile {
             tile.img.src = data.image;
             tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
         }
+        return tile;
+    };
+    destroy() {
+        if (this.visualizer) this.visualizer.destroy();
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
+class VisualizerTextTile {
+    static #template = document.getElementById('visualizerTextTileTemplate');
+
+    parent = null;
+    tile = null;
+    canvas = null;
+    ctx = null;
+    canvas2 = null;
+    ctx2 = null;
+    text = 'Text Here';
+    visualizer = null;
+    constructor() {
+        this.tile = VisualizerTextTile.#template.content.cloneNode(true).children[0];
+        setDefaultTileControls.call(this);
+        this.canvas = this.tile.querySelector('.tileCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.canvas2 = this.tile.querySelector('.tileCanvas2');
+        this.ctx2 = this.canvas2.getContext('2d');
+        this.ctx.imageSmoothingEnabled = false;
+        this.ctx.webkitImageSmoothingEnabled = false;
+        this.ctx2.imageSmoothingEnabled = false;
+        this.ctx2.webkitImageSmoothingEnabled = false;
+        // visualizer controls
+        setVisualizerControls.call(this);
+        // text controls
+        this.tile.querySelector('.tileTextEdit').addEventListener('click', (e) => {
+            editContainer.classList.remove('hidden');
+        });
+        const textEditor = this.tile.querySelector('.tileText');
+        this.tile.querySelector('.tileTextEditDoneButton').addEventListener('click', (e) => {
+            this.text = textEditor.value;
+            draw();
+            editContainer.classList.add('hidden');
+        });
+        const fontSize = this.tile.querySelector('.tileTextSize');
+        const textAlign = this.tile.querySelector('.tileTextAlign');
+        const textColor = this.tile.querySelector('.tileTextColor');
+        let draw = () => {
+            this.ctx2.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx2.font = `${fontSize.value}px Source Code Pro`;
+            this.ctx2.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
+            this.ctx2.textBaseline = 'middle';
+            this.ctx2.fillStyle = textColor.value;
+            let x = this.canvas.width * parseFloat(textAlign.value);
+            let text = this.text.split('\n');
+            for (let i = 0; i < text.length; i++) {
+                this.ctx2.fillText(text[i], x, (i + 0.5) * parseInt(fontSize.value));
+            }
+        };
+        fontSize.addEventListener('input', (e) => this.refresh());
+        textAlign.addEventListener('input', (e) => draw());
+        textColor.addEventListener('input', (e) => draw());
+        const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
+        const editContainer = this.tile.querySelector('.tileTextEditContainer');
+        this.#resize = () => {
+            let textHeight = this.text.split('\n').length * parseInt(fontSize.value) + 2;
+            const rect = canvasContainer.getBoundingClientRect();
+            this.canvas.width = Math.round(rect.width);
+            this.canvas.height = Math.round(rect.height - textHeight - 4);
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
+            this.canvas.style.transform = `translateY(-${textHeight / 2}px)`;
+            this.canvas2.width = Math.round(rect.width);
+            this.canvas2.height = Math.round(textHeight);
+            this.canvas2.style.width = rect.width + 'px';
+            this.canvas2.style.height = textHeight + 'px';
+            this.canvas2.style.transform = `translateY(${(rect.height / 2) - (textHeight / 2)}px)`;
+            const rect2 = this.tile.getBoundingClientRect();
+            editContainer.style.width = rect2.width + 'px';
+            editContainer.style.height = rect2.height + 'px';
+            draw();
+        };
+        window.addEventListener('resize', this.#resize);
+        window.addEventListener('load', this.#resize);
+    }
+
+    #resize = () => { }
+    refresh() {
+        this.#resize();
+    }
+
+    getData() {
+        return {
+            type: 'vt',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            flipped: this.canvas.classList.contains('flipped'),
+            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            text: this.text,
+            fontSize: this.tile.querySelector('.tileTextSize').value,
+            textAlign: this.tile.querySelector('.tileTextAlign').value,
+            textColor: this.tile.querySelector('.tileTextColor').value
+        };
+    }
+    static fromData(data) {
+        const tile = new VisualizerTextTile();
+        applyDefaultTileControls(tile, data);
+        if (data.visualizer !== null) {
+            applyVisualizerControls(tile, data);
+            tile.tile.querySelector('.tileSourceUploadCover').remove();
+        }
+        tile.text = data.text;
+        tile.tile.querySelector('.tileText').value = data.text;
+        tile.tile.querySelector('.tileTextSize').value = data.fontSize;
+        tile.tile.querySelector('.tileTextAlign').value = data.textAlign;
+        tile.tile.querySelector('.tileTextColor').value = data.textColor;
         return tile;
     };
     destroy() {
@@ -392,12 +500,12 @@ class ImageTile {
             const rect = imageContainer.getBoundingClientRect();
             if (rect.width / rect.height < this.img.width / this.img.height) {
                 // width restriction
-                this.img.style.width = Math.round(rect.width) + 'px';
+                this.img.style.width = rect.width + 'px';
                 this.img.style.height = 'unset';
             } else {
                 // height restriction
                 this.img.style.width = 'unset';
-                this.img.style.height = Math.round(rect.height) + 'px';
+                this.img.style.height = rect.height + 'px';
             }
         };
         window.addEventListener('resize', this.#resize);
@@ -475,13 +583,13 @@ class TextTile {
         const editContainer = this.tile.querySelector('.tileTextEditContainer');
         this.#resize = () => {
             const rect = this.tile.getBoundingClientRect();
-            editContainer.style.width = Math.round(rect.width) + 'px';
-            editContainer.style.height = Math.round(rect.height) + 'px';
+            editContainer.style.width = rect.width + 'px';
+            editContainer.style.height = rect.height + 'px';
             const rect2 = canvasContainer.getBoundingClientRect();
             this.canvas.width = Math.round(rect2.width);
             this.canvas.height = Math.round(rect2.height);
-            this.canvas.style.width = Math.round(rect2.width) + 'px';
-            this.canvas.style.height = Math.round(rect2.height) + 'px';
+            this.canvas.style.width = rect2.width + 'px';
+            this.canvas.style.height = rect2.height + 'px';
             draw();
         };
         window.addEventListener('resize', this.#resize);
@@ -656,9 +764,9 @@ window.addEventListener('load', (e) => {
     let subgroup = new GroupTile(1);
     subgroup.addChild(new VisualizerImageTile())
     subgroup.addChild(new VisualizerTile())
-    subgroup.addChild(new VisualizerImageTile());
+    subgroup.addChild(new VisualizerTextTile());
     let subgroup2 = new GroupTile();
-    subgroup2.addChild(new ImageTile);
+    subgroup2.addChild(new BlankTile);
     subgroup2.addChild(new ImageTile);
     subgroup.addChild(subgroup2, 1);
     GroupTile.root.addChild(subgroup, 0);

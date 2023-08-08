@@ -116,8 +116,14 @@
             </div>
             <div class="tileControls">
                 <span class="tileVisualizerControls"></span>
-                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
+                <label>
+                    V:
+                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                </label>
             </div>
         </div>
     </template>
@@ -152,8 +158,67 @@
                     <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
                 <span class="tileVisualizerControls"></span>
-                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
+                <label>
+                    V:
+                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                </label>
+            </div>
+        </div>
+    </template>
+    <template id="visualizerTextTileTemplate">
+        <div class="tile">
+            <div class="tileDrag">
+                <div class="tileRemove"></div>
+            </div>
+            <div class="tileCanvasContainer">
+                <canvas class="tileCanvas"></canvas>
+            </div>
+            <canvas class="tileCanvas2"></canvas>
+            <!-- make full-featured text editor? -->
+            <div class="tileTextEditContainer hidden">
+                <textarea class="tileText">Text Here</textarea>
+                <button class="tileTextEditDoneButton">Done</button>
+            </div>
+            <div class="tileSourceUploadCover">
+                <label class="tileSourceUploadLabel buttonLabel">
+                    Upload Audio Source
+                    <input class="tileSourceUpload button" type="file" accept="audio/*">
+                </label>
+            </div>
+            <div class="tileControls">
+                <label class="tileTextEditLabel buttonLabel">
+                    Edit
+                    <input class="tileTextEdit button" type="button">
+                </label>
+                <span class="tileVisualizerControls"></span>
+                <label>
+                    Size:
+                    <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                </label>
+                <label>
+                    Align:
+                    <select class="tileTextAlign selectBox">
+                        <option value="0">Left</option>
+                        <option value="0.5" selected>Center</option>
+                        <option value="1">Right</option>
+                    </select>
+                </label>
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
+                <label>
+                    V:
+                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                </label>
+                <label>
+                    T:
+                    <input type="color" class="tileTextColor colorBox" value="#ffffff">
+                </label>
             </div>
         </div>
     </template>
@@ -176,8 +241,10 @@
                     <span class="tileImgReplaceLabelText">Change Image</span>
                     <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                <!-- idk more options? -->
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
             </div>
         </div>
     </template>
@@ -211,7 +278,10 @@
                         <option value="1">Right</option>
                     </select>
                 </label>
-                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
                 <input type="color" class="tileTextColor colorBox" value="#ffffff">
             </div>
         </div>
@@ -222,7 +292,10 @@
                 <div class="tileRemove"></div>
             </div>
             <div class="tileControls">
-                <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                <label>
+                    Bg:
+                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                </label>
             </div>
         </div>
     </template>
@@ -273,8 +346,6 @@
                 Flip:
                 <input class="tileVisualizerFlip checkBox" type="checkbox">
             </label>
-            <!-- color, style (orientation), max frequency, min frequency, decibel scaling, all the analyzer settings, maybe even waveform mode -->
-            <!-- color blending and custom color script? (use gradients) -->
         </span>
     </template>
     <template id="tileSourceTemplate">
