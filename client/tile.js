@@ -34,8 +34,20 @@ function setVisualizerControls() {
             this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
             this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
             this.visualizer.color = colorSelect.value;
+            this.visualizer.volume = parseInt(volumeInput.value) / 100;
         }
     });
+    // volume controls
+    const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
+    const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
+    volumeInput.oninput = (e) => {
+        if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
+        volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 100);
+    };
+    volumeInput.addEventListener('wheel', (e) => {
+        volumeInput.value = parseInt(volumeInput.value) - Math.round(e.deltaY / 20);
+        volumeInput.oninput();
+    }, { passive: true });
     // visualizer options
     const colorSelect = this.tile.querySelector('.tileVisualizerColor');
     colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
@@ -100,6 +112,8 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerWaveformLineWidth').value = data.visualizer.lineWidth;
+    tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
+    tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
     if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.ctx);
 };
@@ -205,7 +219,6 @@ class VisualizerTile {
             this.canvas.style.height = rect.height + 'px';
         };
         window.addEventListener('resize', this.#resize);
-        window.addEventListener('load', this.#resize);
     }
 
     #resize = () => { }
@@ -308,7 +321,6 @@ class VisualizerImageTile {
             }
         };
         window.addEventListener('resize', this.#resize);
-        window.addEventListener('load', this.#resize);
     }
 
     #resize = () => { }
@@ -416,7 +428,6 @@ class VisualizerTextTile {
             draw();
         };
         window.addEventListener('resize', this.#resize);
-        window.addEventListener('load', this.#resize);
     }
 
     #resize = () => { }
@@ -509,7 +520,6 @@ class ImageTile {
             }
         };
         window.addEventListener('resize', this.#resize);
-        window.addEventListener('load', this.#resize);
     }
 
     #resize = () => { }
@@ -593,7 +603,6 @@ class TextTile {
             draw();
         };
         window.addEventListener('resize', this.#resize);
-        window.addEventListener('load', this.#resize);
     }
 
     #resize = () => { }

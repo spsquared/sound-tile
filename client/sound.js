@@ -27,6 +27,7 @@ class Visualizer {
     ctx = null;
     playingSource = null;
     analyzer = audioContext.createAnalyser();
+    gain = audioContext.createGain();
     color = 'white';
     mode = 0;
     barWidthPercent = 0.80;
@@ -45,8 +46,9 @@ class Visualizer {
         });
         this.canvas = ctx.canvas;
         this.ctx = ctx;
-        this.analyzer.connect(globalVolume);
+        this.analyzer.connect(this.gain);
         this.analyzer.fftSize = 512;
+        this.gain.connect(globalVolume);
         Visualizer.#list.add(this);
     }
     start(time = 0) {
@@ -134,6 +136,9 @@ class Visualizer {
     set fftSize(size) {
         this.analyzer.fftSize = size;
     }
+    set volume(v) {
+        this.gain.gain.setValueAtTime(v, audioContext.currentTime);
+    }
 
     getData() {
         return {
@@ -144,7 +149,8 @@ class Visualizer {
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             scale: this.scale,
-            lineWidth: this.lineWidth
+            lineWidth: this.lineWidth,
+            volume: this.gain.gain.value
         };
     }
     static fromData(data, ctx) {
@@ -156,6 +162,7 @@ class Visualizer {
         visualizer.barCrop = data.barCrop;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
+        visualizer.volume = data.volume ?? 1;
         return visualizer;
     }
     destroy() {

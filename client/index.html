@@ -191,7 +191,7 @@
             </div>
             <div class="tileControls">
                 <label class="tileTextEditLabel buttonLabel">
-                    Edit
+                    Edit Text
                     <input class="tileTextEdit button" type="button">
                 </label>
                 <span class="tileVisualizerControls"></span>
@@ -305,6 +305,13 @@
                 Replace Source
                 <input class="tileAudioReplace button" type="file" accept="audio/*">
             </label>
+            <span>
+                <div class="tileVisualizerVolumeBody">
+                    <input class="tileVisualizerVolumeInput" type="range" min="0" max="100" step="1" value="100">
+                    <div class="tileVisualizerVolumeTrack"></div>
+                    <div class="tileVisualizerVolumeThumb"></div>
+                </div>
+            </span>
             <select class="tileVisualizerMode selectBox">
                 <option value="0">Freq. (1x H.)</option>
                 <option value="1">Freq. (2x H.)</option>
