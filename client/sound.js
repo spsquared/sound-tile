@@ -46,16 +46,16 @@ class Visualizer {
         });
         this.canvas = ctx.canvas;
         this.ctx = ctx;
-        this.analyzer.connect(this.gain);
+        this.analyzer.connect(globalVolume);
         this.analyzer.fftSize = 512;
-        this.gain.connect(globalVolume);
+        this.gain.connect(this.analyzer);
         Visualizer.#list.add(this);
     }
     start(time = 0) {
         this.stop();
         this.playingSource = audioContext.createBufferSource();
         this.playingSource.buffer = this.buffer;
-        this.playingSource.connect(this.analyzer);
+        this.playingSource.connect(this.gain);
         this.playingSource.onended = this.playingSource.disconnect;
         this.playingSource.start(audioContext.currentTime, time);
     }
