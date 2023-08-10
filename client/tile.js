@@ -10,6 +10,10 @@ function setDefaultTileControls() {
     this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this) this.destroy() });
+    const flexGrowInput = this.tile.querySelector('.tileFlex');
+    flexGrowInput.oninput = (e) => {
+        this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
+    };
 };
 function setVisualizerControls() {
     // add options from template here
@@ -114,6 +118,8 @@ function setVisualizerControls() {
 function applyDefaultTileControls(tile, data) {
     tile.tile.querySelector('.tileBackgroundColor').value = data.backgroundColor;
     tile.tile.style.backgroundColor = data.backgroundColor;
+    tile.tile.querySelector('.tileFlex').value = data.flex ?? 1;
+    tile.tile.style.flexGrow = data.flex ?? 1;
 };
 function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
@@ -250,7 +256,8 @@ class VisualizerTile {
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             flipped: this.canvas.classList.contains('flipped'),
             flipped2: this.canvas.classList.contains('flipped2'),
-            visualizer: this.visualizer !== null ? this.visualizer.getData() : null
+            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
@@ -353,7 +360,8 @@ class VisualizerImageTile {
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             flipped2: this.canvas.classList.contains('flipped2'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
-            image: this.img.src
+            image: this.img.src,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
@@ -464,7 +472,8 @@ class VisualizerTextTile {
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,
             textAlign: this.tile.querySelector('.tileTextAlign').value,
-            textColor: this.tile.querySelector('.tileTextColor').value
+            textColor: this.tile.querySelector('.tileTextColor').value,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
@@ -551,7 +560,8 @@ class ImageTile {
         return {
             type: 'i',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            image: this.img.src
+            image: this.img.src,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
@@ -637,7 +647,8 @@ class TextTile {
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,
             textAlign: this.tile.querySelector('.tileTextAlign').value,
-            color: this.tile.querySelector('.tileTextColor').value
+            color: this.tile.querySelector('.tileTextColor').value,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
@@ -669,7 +680,8 @@ class BlankTile {
     getData() {
         return {
             type: 'b',
-            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            flex: this.tile.querySelector('.tileFlex').value
         };
     }
     static fromData(data) {
