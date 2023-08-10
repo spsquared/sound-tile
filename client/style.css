@@ -343,6 +343,9 @@ img {
 .flippedY {
     transform: scaleY(-100%);
 }
+.flippedX.flippedY {
+    transform: scale(-100%, -100%);
+}
 
 .button {
     display: none;
