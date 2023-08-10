@@ -34,10 +34,10 @@ function setVisualizerControls() {
             this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.ctx);
             this.visualizer.mode = parseInt(visualizerMode.value);
             this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
-            this.visualizer.barWidthPercent = parseInt(visualizerFrequencyWidth.value) / 100;
+            this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
             this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
             this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
-            this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
+            this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
             this.visualizer.color = colorSelect.value;
             this.visualizer.volume = parseInt(volumeInput.value) / 100;
             audioReplace.value = '';
