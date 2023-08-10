@@ -121,14 +121,14 @@ setInterval(() => {
     }
     timeDisplay.innerText = `${Math.floor(mediaControls.currentTime / 60)}:${mediaControls.currentTime % 60 < 10 ? '0' : ''}${Math.floor(mediaControls.currentTime) % 60}`;
     if (mediaControls.currentTime >= mediaControls.duration) {
-        if (mediaControls.duration == 0) {
+        if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
             playButton.checked = false;
         } else {
+            mediaControls.currentTime = 0;
+            mediaControls.startTime = now;
             Visualizer.startAll(0);
         }
-        mediaControls.currentTime = 0;
-        mediaControls.startTime = now;
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     }
 }, 20);
