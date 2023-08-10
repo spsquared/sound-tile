@@ -107,7 +107,7 @@ function setVisualizerControls() {
     });
     const visualizerFlip2 = this.tile.querySelector('.tileVisualizerFlip2');
     visualizerFlip2.addEventListener('click', (e) => {
-        if (visualizerFlip.checked) this.canvas.classList.add('flippedY');
+        if (visualizerFlip2.checked) this.canvas.classList.add('flippedY');
         else this.canvas.classList.remove('flippedY');
     });
 };
