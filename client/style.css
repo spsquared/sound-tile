@@ -337,8 +337,11 @@ img {
 .hidden {
     display: none !important;
 }
-.flipped {
+.flippedX {
     transform: scaleX(-100%);
+}
+.flippedY {
+    transform: scaleY(-100%);
 }
 
 .button {

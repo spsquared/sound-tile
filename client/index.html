@@ -208,6 +208,10 @@
                     </select>
                 </label>
                 <label>
+                    Flex:
+                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                </label>
+                <label>
                     Bg:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
@@ -313,9 +317,10 @@
                 </div>
             </span>
             <select class="tileVisualizerMode selectBox">
-                <option value="0">Freq. (1x H.)</option>
-                <option value="1">Freq. (2x H.)</option>
-                <option value="2">Wave (H.)</option>
+                <option value="0">Freq. (1x H. B)</option>
+                <option value="1">Freq. (2x H. B)</option>
+                <option value="2">Freq. (1x H. L)</option>
+                <option value="3">Wave (H. L)</option>
             </select>
             <label>
                 FFT:
@@ -329,11 +334,19 @@
                     <option value="8192">8192</option>
                 </select>
             </label>
-            <span class="tileVisualizerFrequencyOptions">
+            <span class="tileVisualizerBarOptions">
                 <label>
                     Width:
-                    <input class="tileVisualizerFrequencyWidth numberBox" type="number" min="25" max="100" step="5" value="80">
+                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="100" step="5" value="80">
                 </label>
+            </span>
+            <span class="tileVisualizerLineOptions">
+                <label>
+                    Line W:
+                    <input class="tileVisualizerLineWidth numberBox" type="number" min="1" max="8" step="1" value="2">
+                </label>
+            </span>
+            <span class="tileVisualizerFrequencyOptions">
                 <label>
                     Crop:
                     <input class="tileVisualizerFrequencyFrequencyCrop numberBox" type="number" min="25" max="100" step="12.5" value="100">
@@ -344,14 +357,14 @@
                     Scale:
                     <input class="tileVisualizerWaveformScale numberBox" type="number" min="1" max="10" step="0.1" value="1">
                 </label>
-                <label>
-                    Line W:
-                    <input class="tileVisualizerWaveformLineWidth numberBox" type="number" min="1" max="8" step="1" value="2">
-                </label>
             </span>
             <label>
-                Flip:
+                Flip X:
                 <input class="tileVisualizerFlip checkBox" type="checkbox">
+            </label>
+            <label>
+                Flip Y:
+                <input class="tileVisualizerFlip2 checkBox" type="checkbox">
             </label>
         </span>
     </template>

@@ -48,6 +48,7 @@ uploadButton.oninput = (e) => {
             setTimeout(() => GroupTile.root.refresh(), 0);
         };
         reader.readAsArrayBuffer(uploadButton.files[0]);
+        uploadButton.value = '';
     }
 };
 document.getElementById('downloadButton').onclick = (e) => {

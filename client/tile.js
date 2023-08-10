@@ -35,6 +35,7 @@ function setVisualizerControls() {
             this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
             this.visualizer.color = colorSelect.value;
             this.visualizer.volume = parseInt(volumeInput.value) / 100;
+            audioReplace.value = '';
         }
     });
     // volume controls
@@ -52,16 +53,25 @@ function setVisualizerControls() {
     const colorSelect = this.tile.querySelector('.tileVisualizerColor');
     colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
+    const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
+    const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     visualizerMode.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
-        if (parseInt(visualizerMode.value) < 2) {
+        if (parseInt(visualizerMode.value) < 3) {
             visualizerFrequencyOptions.classList.remove('hidden');
             visualizerWaveformOptions.classList.add('hidden');
         } else {
             visualizerFrequencyOptions.classList.add('hidden');
             visualizerWaveformOptions.classList.remove('hidden');
+        }
+        if (parseInt(visualizerMode.value) < 2) {
+            visualizerBarOptions.classList.remove('hidden');
+            visualizerLineOptions.classList.add('hidden');
+        } else {
+            visualizerBarOptions.classList.add('hidden');
+            visualizerLineOptions.classList.remove('hidden');
         }
     });
     visualizerWaveformOptions.classList.add('hidden');
@@ -69,11 +79,17 @@ function setVisualizerControls() {
     visualizerFFTSize.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
     });
-    // frequency mode options
-    const visualizerFrequencyWidth = this.tile.querySelector('.tileVisualizerFrequencyWidth');
-    visualizerFrequencyWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(visualizerFrequencyWidth.value) / 100;
+    // bar options
+    const visualizerWidth = this.tile.querySelector('.tileVisualizerBarWidth');
+    visualizerWidth.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
     });
+    // line options
+    const visualizerLineWidth = this.tile.querySelector('.tileVisualizerLineWidth');
+    visualizerLineWidth.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
+    });
+    // frequency mode options
     const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
     visualizerFrequencyCrop.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
@@ -83,15 +99,16 @@ function setVisualizerControls() {
     visualizerWaveformScale.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
     });
-    const visualizerWaveformLineWidth = this.tile.querySelector('.tileVisualizerWaveformLineWidth');
-    visualizerWaveformLineWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.lineWidth = parseInt(visualizerWaveformLineWidth.value);
-    });
-    const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
     // more visualizer options
+    const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
     visualizerFlip.addEventListener('click', (e) => {
-        if (visualizerFlip.checked) this.canvas.classList.add('flipped');
-        else this.canvas.classList.remove('flipped');
+        if (visualizerFlip.checked) this.canvas.classList.add('flippedX');
+        else this.canvas.classList.remove('flippedX');
+    });
+    const visualizerFlip2 = this.tile.querySelector('.tileVisualizerFlip2');
+    visualizerFlip2.addEventListener('click', (e) => {
+        if (visualizerFlip.checked) this.canvas.classList.add('flippedY');
+        else this.canvas.classList.remove('flippedY');
     });
 };
 function applyDefaultTileControls(tile, data) {
@@ -108,13 +125,14 @@ function applyVisualizerControls(tile, data) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     }
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
-    tile.tile.querySelector('.tileVisualizerFrequencyWidth').value = data.visualizer.barWidthPercent * 100;
+    tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
-    tile.tile.querySelector('.tileVisualizerWaveformLineWidth').value = data.visualizer.lineWidth;
+    tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
+    if (data.flipped2) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.ctx);
 };
 
@@ -231,6 +249,7 @@ class VisualizerTile {
             type: 'v',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             flipped: this.canvas.classList.contains('flipped'),
+            flipped2: this.canvas.classList.contains('flipped2'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null
         };
     }
@@ -332,7 +351,7 @@ class VisualizerImageTile {
         return {
             type: 'vi',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flipped'),
+            flipped2: this.canvas.classList.contains('flipped2'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             image: this.img.src
         };
@@ -440,6 +459,7 @@ class VisualizerTextTile {
             type: 'vt',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             flipped: this.canvas.classList.contains('flipped'),
+            flipped2: this.canvas.classList.contains('flipped2'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,

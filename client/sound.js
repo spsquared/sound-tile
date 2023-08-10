@@ -85,26 +85,26 @@ class Visualizer {
             return;
         }
         if (this.mode == 0) {
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.fillStyle = this.color;
             let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
             let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.fillStyle = this.color;
             let yScale = height / 256;
             for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
             }
         } else if (this.mode == 1) {
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.fillStyle = this.color;
             let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
             let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.fillStyle = this.color;
             let yScale = height / 256;
             for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
@@ -112,12 +112,27 @@ class Visualizer {
             }
         } else if (this.mode == 2) {
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            let xStep = width / croppedFreq;
+            let yScale = (height - (this.lineWidth / 2)) / 255;
+            let yOffset = this.lineWidth / 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, height - (data[0] * yScale));
+            for (let i = 0; i < croppedFreq; i++) {
+                this.ctx.lineTo(i * xStep, height - (data[i] * yScale + yOffset));
+            }
+            this.ctx.stroke();
+        } else if (this.mode == 3) {
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteTimeDomainData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             let xStep = width / this.analyzer.frequencyBinCount;
             let yOffset = height * (this.scale - 1) * 0.5;
-            let yScale = ((height) / 256) * this.scale;
+            let yScale = ((height) / 255) * this.scale;
             this.ctx.beginPath();
             this.ctx.moveTo(0, data[0] * yScale - yOffset);
             for (let i = 1; i < data.length; i++) {
