@@ -18,6 +18,7 @@ uploadButton.oninput = (e) => {
             function dfs(treenode) {
                 if (treenode.children !== undefined) {
                     let node = new GroupTile(treenode.orientation);
+                    node.tile.style.flexGrow = treenode.flexGrow ?? 1;
                     for (let child of treenode.children) {
                         node.addChild(dfs(child));
                     }
@@ -60,6 +61,7 @@ document.getElementById('downloadButton').onclick = (e) => {
         if (node.children !== undefined) {
             let treenode = {
                 orientation: node.orientation,
+                flexGrow: node.tile.style.flexGrow,
                 children: []
             };
             for (let child of node.children) {
@@ -95,11 +97,13 @@ const timeSeekInput = document.getElementById('seeker');
 const timeSeekThumb = document.getElementById('seekerThumb');
 const playButton = document.getElementById('playButton');
 const timeDisplay = document.getElementById('timeDisplay');
+const loopToggle = document.getElementById('loopToggle');
 const mediaControls = {
     startTime: 0,
     duration: 0,
     currentTime: 0,
-    playing: false
+    playing: false,
+    loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false
 };
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
@@ -143,6 +147,11 @@ playButton.onclick = (e) => {
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     else Visualizer.stopAll();
 };
+loopToggle.onclick = (e) => {
+    mediaControls.loop = loopToggle.checked;
+    window.localStorage.setItem('loop', mediaControls.loop);
+};
+loopToggle.checked = mediaControls.loop;
 
 // tile source
 const tileSourceTemplate = document.getElementById('tileSourceTemplate');
@@ -189,6 +198,7 @@ document.addEventListener('keypress', (e) => {
     } else if (key == 'h') {
         e.preventDefault();
         dropdownButton.click();
+        if (e.shiftKey) dropdownButton.classList.toggle('hidden');
     }
 });
 

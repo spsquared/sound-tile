@@ -30,6 +30,128 @@ img {
     overflow: hidden;
 }
 
+/* shared styles */
+
+.hidden {
+    display: none !important;
+}
+.flippedX {
+    transform: scaleX(-100%);
+}
+.flippedY {
+    transform: scaleY(-100%);
+}
+.flippedX.flippedY {
+    transform: scale(-100%, -100%);
+}
+
+.button {
+    display: none;
+}
+.buttonLabel {
+    display: inline-block;
+    height: 14px;
+    margin: 4px 2px;
+    padding: 2px 4px;
+    background-color: gray;
+    font-size: 12px;
+    border-radius: 4px;
+    text-align: center;
+    align-content: center;
+    cursor: pointer;
+}
+
+.selectBox {
+    display: inline-block;
+    height: 18px;
+    margin: 4px 0px;
+    padding: 0px 4px;
+    border: none;
+    color: white;
+    background-color: grey;
+    font-family: 'Source Code Pro', Courier, monospace;
+    font-size: 12px;
+    border-radius: 4px;
+}
+.numberBox {
+    display: inline-block;
+    height: 18px;
+    margin: 4px 0px;
+    padding: 0px 4px;
+    border: none;
+    color: white;
+    background-color: gray;
+    font-family: 'Source Code Pro', Courier, monospace;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.colorBox {
+    appearance: none;
+    display: inline-block;
+    position: relative;
+    top: 4px;
+    height: 26px;
+    margin: 0px 2px;
+    padding: 0px 0px;
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.colorBox::-webkit-color-swatch {
+    border: 2px solid white;
+}
+
+.checkBox {
+    margin: 0px 0px;
+}
+.toggle {
+    display: inline-block;
+    position: relative;
+    bottom: 4px;
+    width: 32px;
+    height: 20px;
+}
+.toggleInput {
+    opacity: 0px;
+    width: 0px;
+    height: 0px;
+}
+.toggleSlider {
+    position: absolute;
+    top: 2px;
+    left: 0px;
+    width: 30px;
+    height: 12px;
+    background-color: #EE0000;
+    border: 1px solid white;
+    transition: 0.1s linear;
+    cursor: pointer;
+}
+.toggleSlider::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    background-color: darkgrey;
+    transition: 0.1s linear;
+    transform: translateX(-2px);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    background-image: url(./assets/loop.svg);
+}
+.toggleInput:checked + .toggleSlider {
+    background-color: #00AA00;
+}
+.toggleInput:checked + .toggleSlider::before {
+    transform: translateX(12px);
+}
+
 /* dropdown */
 
 #dropdown {
@@ -239,12 +361,19 @@ img {
     background-color: #070;
     background-image: url(./assets/pause.svg);
 }
-#timeDisplay {
+#time {
     grid-row: 2;
     grid-column: 3;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: 1fr 1fr;
     min-width: 50px;
-    padding: 4px 8px;
     border-right: 4px solid white;
+    text-align: center;
+    align-items: center;
+}
+#timeDisplay {
+    padding: 4px 8px;
     text-align: center;
     vertical-align: middle;
     line-height: 100%;
@@ -330,83 +459,6 @@ img {
 }
 .tileSource:hover .tileSourcePopup {
     opacity: 1;
-}
-
-/* shared styles */
-
-.hidden {
-    display: none !important;
-}
-.flippedX {
-    transform: scaleX(-100%);
-}
-.flippedY {
-    transform: scaleY(-100%);
-}
-.flippedX.flippedY {
-    transform: scale(-100%, -100%);
-}
-
-.button {
-    display: none;
-}
-.buttonLabel {
-    display: inline-block;
-    height: 14px;
-    margin: 4px 2px;
-    padding: 2px 4px;
-    background-color: gray;
-    font-size: 12px;
-    border-radius: 4px;
-    text-align: center;
-    align-content: center;
-    cursor: pointer;
-}
-
-.selectBox {
-    display: inline-block;
-    height: 18px;
-    margin: 4px 0px;
-    padding: 0px 4px;
-    border: none;
-    color: white;
-    background-color: grey;
-    font-family: 'Source Code Pro', Courier, monospace;
-    font-size: 12px;
-    border-radius: 4px;
-}
-.numberBox {
-    display: inline-block;
-    height: 18px;
-    margin: 4px 0px;
-    padding: 0px 4px;
-    border: none;
-    color: white;
-    background-color: gray;
-    font-family: 'Source Code Pro', Courier, monospace;
-    font-size: 12px;
-    border-radius: 4px;
-}
-
-.colorBox {
-    appearance: none;
-    display: inline-block;
-    position: relative;
-    top: 4px;
-    height: 26px;
-    margin: 0px 2px;
-    padding: 0px 0px;
-    background-color: transparent;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.colorBox::-webkit-color-swatch {
-    border: 2px solid white;
-}
-
-.checkBox {
-    margin: 0px 0px;
 }
 
 /* tile styles */

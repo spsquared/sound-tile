@@ -93,7 +93,15 @@
             </div>
             <input id="playButton" type="checkbox">
             <label id="playButtonLabel" for="playButton"></label>
-            <div id="timeDisplay"><div>0:00</div></div>
+            <div id="time">
+                <div id="timeDisplay"></div>
+                <div>
+                    <label class="toggle">
+                        <input type="checkbox" id="loopToggle" class="toggleInput" checked>
+                        <span class="toggleSlider"></span>
+                    </label>
+                </div>
+            </div>
             <div id="exportButton"></div>
         </div>
         <div id="tileSource"></div>
