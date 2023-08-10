@@ -13,6 +13,7 @@ function setDefaultTileControls() {
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.oninput = (e) => {
         this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
+        this.refresh();
     };
 };
 function setVisualizerControls() {
@@ -63,14 +64,14 @@ function setVisualizerControls() {
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     visualizerMode.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
-        if (parseInt(visualizerMode.value) < 3) {
+        if (parseInt(visualizerMode.value) < 4) {
             visualizerFrequencyOptions.classList.remove('hidden');
             visualizerWaveformOptions.classList.add('hidden');
         } else {
             visualizerFrequencyOptions.classList.add('hidden');
             visualizerWaveformOptions.classList.remove('hidden');
         }
-        if (parseInt(visualizerMode.value) < 2) {
+        if (parseInt(visualizerMode.value) < 3) {
             visualizerBarOptions.classList.remove('hidden');
             visualizerLineOptions.classList.add('hidden');
         } else {

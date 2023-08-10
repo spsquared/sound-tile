@@ -378,8 +378,7 @@ img {
 .numberBox {
     display: inline-block;
     height: 18px;
-    margin: 4px 2px;
-    margin-left: -4px;
+    margin: 4px 0px;
     padding: 0px 4px;
     border: none;
     color: white;

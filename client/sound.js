@@ -116,7 +116,7 @@ class Visualizer {
             this.analyzer.getByteFrequencyData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            let xStep = width / croppedFreq;
+            let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
@@ -127,10 +127,30 @@ class Visualizer {
             this.ctx.stroke();
         } else if (this.mode == 3) {
             const data = new Uint8Array(this.analyzer.frequencyBinCount);
+            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
+            this.analyzer.getByteFrequencyData(data);
+            this.ctx.strokeStyle = this.color;
+            this.ctx.fillStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            let xStep = width / (croppedFreq - 1);
+            let yScale = (height - (this.lineWidth / 2)) / 255;
+            let yOffset = this.lineWidth / 2;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, height - yOffset);
+            this.ctx.lineTo(0, height - (data[0] * yScale));
+            for (let i = 0; i < croppedFreq; i++) {
+                this.ctx.lineTo(i * xStep, height - (data[i] * yScale + yOffset));
+            }
+            this.ctx.lineTo((croppedFreq - 1) * xStep, height - yOffset);
+            this.ctx.lineTo(0, height - yOffset);
+            this.ctx.stroke();
+            this.ctx.fill();
+        } else if (this.mode == 4) {
+            const data = new Uint8Array(this.analyzer.frequencyBinCount);
             this.analyzer.getByteTimeDomainData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            let xStep = width / this.analyzer.frequencyBinCount;
+            let xStep = width / (this.analyzer.frequencyBinCount - 1);
             let yOffset = height * (this.scale - 1) * 0.5;
             let yScale = ((height) / 255) * this.scale;
             this.ctx.beginPath();
