@@ -109,9 +109,14 @@ Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
     timeSeekInput.max = mediaControls.duration;
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
+    if (mediaControls.currentTime >= mediaControls.duration) {
+        mediaControls.currentTime = mediaControls.duration;
+        mediaControls.startTime = performance.now();
+    }
+    timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
 };
 setInterval(() => {
-    let now = Date.now();
+    let now = performance.now();
     if (mediaControls.playing) {
         mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
         timeSeekInput.value = mediaControls.currentTime;
@@ -124,25 +129,25 @@ setInterval(() => {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
             playButton.checked = false;
-        } else {
+        } else if (mediaControls.playing) {
             mediaControls.currentTime = 0;
             mediaControls.startTime = now;
             Visualizer.startAll(0);
+            timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         }
-        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     }
 }, 20);
 timeSeekInput.oninput = (e) => {
     mediaControls.currentTime = parseInt(timeSeekInput.value);
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
-    mediaControls.startTime = Date.now() - (mediaControls.currentTime * 1000);
+    mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
 };
 playButton.onclick = (e) => {
     mediaControls.playing = playButton.checked;
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;
-        mediaControls.startTime = Date.now();
+        mediaControls.startTime = performance.now();
     }
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     else Visualizer.stopAll();
