@@ -83,6 +83,7 @@ const volumeControlThumb = document.getElementById('volumeThumb');
 volumeControlInput.oninput = (e) => {
     globalVolume.gain.setValueAtTime(parseInt(volumeControlInput.value) / 100, audioContext.currentTime);
     volumeControlThumb.style.setProperty('--volume', parseInt(volumeControlInput.value) / 100);
+    volumeControlInput.title = volumeControlInput.value + '%';
     window.localStorage.setItem('volume', volumeControlInput.value);
 };
 volumeControlInput.addEventListener('wheel', (e) => {
@@ -115,16 +116,11 @@ Visualizer.onUpdate = () => {
     }
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
 };
+function getTime(s) {
+    return `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.floor(s) % 60}`;
+};
 setInterval(() => {
     let now = performance.now();
-    if (mediaControls.playing) {
-        mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
-        timeSeekInput.value = mediaControls.currentTime;
-        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
-    } else {
-        mediaControls.startTime = now - (mediaControls.currentTime * 1000);
-    }
-    timeDisplay.innerText = `${Math.floor(mediaControls.currentTime / 60)}:${mediaControls.currentTime % 60 < 10 ? '0' : ''}${Math.floor(mediaControls.currentTime) % 60}`;
     if (mediaControls.currentTime >= mediaControls.duration) {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
@@ -134,12 +130,23 @@ setInterval(() => {
             mediaControls.startTime = now;
             Visualizer.startAll(0);
             timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+            timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
         }
     }
+    if (mediaControls.playing) {
+        mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
+        timeSeekInput.value = mediaControls.currentTime;
+        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+        timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
+    } else {
+        mediaControls.startTime = now - (mediaControls.currentTime * 1000);
+    }
+    timeDisplay.innerText = getTime(mediaControls.currentTime);
 }, 20);
 timeSeekInput.oninput = (e) => {
     mediaControls.currentTime = parseInt(timeSeekInput.value);
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+    timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
     mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
 };

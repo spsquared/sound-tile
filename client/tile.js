@@ -13,7 +13,7 @@ function setDefaultTileControls() {
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.oninput = (e) => {
         this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
-        this.refresh();
+        if (this.parent !== null) this.parent.refresh();
     };
 };
 function setVisualizerControls() {
@@ -49,6 +49,7 @@ function setVisualizerControls() {
     volumeInput.oninput = (e) => {
         if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
         volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 100);
+        volumeInput.title = volumeInput.value + '%';
     };
     volumeInput.addEventListener('wheel', (e) => {
         volumeInput.value = parseInt(volumeInput.value) - Math.round(e.deltaY / 20);
@@ -255,8 +256,8 @@ class VisualizerTile {
         return {
             type: 'v',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flipped'),
-            flipped2: this.canvas.classList.contains('flipped2'),
+            flipped: this.canvas.classList.contains('flippedX'),
+            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             flex: this.tile.querySelector('.tileFlex').value
         };
@@ -359,7 +360,8 @@ class VisualizerImageTile {
         return {
             type: 'vi',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped2: this.canvas.classList.contains('flipped2'),
+            flipped: this.canvas.classList.contains('flippedX'),
+            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             image: this.img.src,
             flex: this.tile.querySelector('.tileFlex').value
@@ -467,8 +469,8 @@ class VisualizerTextTile {
         return {
             type: 'vt',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flipped'),
-            flipped2: this.canvas.classList.contains('flipped2'),
+            flipped: this.canvas.classList.contains('flippedX'),
+            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,
