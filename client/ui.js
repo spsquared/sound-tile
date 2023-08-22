@@ -104,7 +104,14 @@ const mediaControls = {
     duration: 0,
     currentTime: 0,
     playing: false,
-    loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false
+    loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false,
+    setTime: (t) => {
+        mediaControls.currentTime = parseFloat(t);
+        timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+        timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
+        mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
+        if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
+    }
 };
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
@@ -126,11 +133,7 @@ setInterval(() => {
             mediaControls.playing = false;
             playButton.checked = false;
         } else if (mediaControls.playing) {
-            mediaControls.currentTime = 0;
-            mediaControls.startTime = now;
-            Visualizer.startAll(0);
-            timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
-            timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
+            mediaControls.setTime(0);
         }
     }
     if (mediaControls.playing) {
@@ -144,11 +147,7 @@ setInterval(() => {
     timeDisplay.innerText = getTime(mediaControls.currentTime);
 }, 20);
 timeSeekInput.oninput = (e) => {
-    mediaControls.currentTime = parseInt(timeSeekInput.value);
-    timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
-    timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
-    mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
-    if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
+    mediaControls.setTime(timeSeekInput.value);
 };
 playButton.onclick = (e) => {
     mediaControls.playing = playButton.checked;
@@ -203,7 +202,7 @@ createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
 document.addEventListener('keypress', (e) => {
-    if (e.target.matches('input[type=text]') || e.target.matches('input[type=number]') || e.target.matches('textarea')) return;
+    if (e.target.matches('input[type=text]') || (e.target.matches('input[type=number]') && (!isNaN(parseInt(e.key)) || e.key == '.')) || e.target.matches('textarea')) return;
     if (e.target.matches('input')) e.target.blur();
     const key = e.key.toLowerCase();
     if (key == ' ' || key == 'p') {
@@ -213,6 +212,18 @@ document.addEventListener('keypress', (e) => {
         e.preventDefault();
         dropdownButton.click();
         if (e.shiftKey) dropdownButton.classList.toggle('hidden');
+    }
+});
+document.addEventListener('keydown', (e) => {
+    if (e.target.matches('input[type=text]') || e.target.matches('input[type=number]')|| e.target.matches('textarea')) return;
+    if (e.target.matches('input')) e.target.blur();
+    const key = e.key.toLowerCase();
+    if (key == 'arrowleft') {
+        e.preventDefault();
+        mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
+    } else if (key == 'arrowright') {
+        e.preventDefault();
+        mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
     }
 });
 

@@ -72,7 +72,7 @@ function setVisualizerControls() {
             visualizerFrequencyOptions.classList.add('hidden');
             visualizerWaveformOptions.classList.remove('hidden');
         }
-        if (parseInt(visualizerMode.value) < 3) {
+        if (parseInt(visualizerMode.value) < 2) {
             visualizerBarOptions.classList.remove('hidden');
             visualizerLineOptions.classList.add('hidden');
         } else {
@@ -81,6 +81,7 @@ function setVisualizerControls() {
         }
     });
     visualizerWaveformOptions.classList.add('hidden');
+    visualizerLineOptions.classList.add('hidden');
     const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
     visualizerSmoothing.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
@@ -130,11 +131,17 @@ function applyDefaultTileControls(tile, data) {
 function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    if (data.visualizer.mode < 2) {
+    if (data.visualizer.mode < 4) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
+    }
+    if (data.visualizer.mode < 2) {
+        tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
+    } else {
+        tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
+        tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
     }
     tile.tile.querySelector('.tileVisualizerFrequencySmoothing').value = data.visualizer.smoothing ?? 0.8;
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
