@@ -21,6 +21,7 @@
     <script src="./index.js" defer></script>
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
+    <script src="export.js" defer></script>
     <script src="./ui.js" defer></script>
 </head>
 <body>
@@ -108,6 +109,10 @@
         <label id="dropdownTab" for="dropdownTabCheckbox"></label>
     </div>
     <div id="draggingContainer"></div>
+    <div id="exportContainer">
+        <canvas id="renderCanvas"></canvas>
+        <!-- use render canvas as preview canvas since it will be rendered as if it were visible anyways -->
+    </div>
     <template id="visualizerTileTemplate">
         <div class="tile">
             <div class="tileDrag">
@@ -339,7 +344,7 @@
             </label>
             <span>
                 <div class="tileVisualizerVolumeBody">
-                    <input class="tileVisualizerVolumeInput" type="range" min="0" max="100" step="1" value="100" title="100%">
+                    <input class="tileVisualizerVolumeInput" type="range" min="0" max="120" step="1" value="100" title="100%">
                     <div class="tileVisualizerVolumeTrack"></div>
                     <div class="tileVisualizerVolumeThumb"></div>
                 </div>

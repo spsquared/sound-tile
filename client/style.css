@@ -166,7 +166,7 @@ img {
     border-bottom: 4px solid white;
     transition: 200ms ease transform;
     --tabImage: url(./assets/arrow-up.svg);
-    z-index: 998;
+    z-index: 997;
 }
 #dropdownTab {
     position: absolute;
@@ -659,7 +659,6 @@ img {
 }
 
 /* drag */
-
 #draggingContainer {
     display: none;
     position: absolute;
@@ -669,5 +668,17 @@ img {
     height: 0px;
     opacity: 0.5;
     pointer-events: none;
+    z-index: 998;
+}
+
+/* export */
+#exportContainer {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: #00000040;
     z-index: 999;
 }

@@ -212,9 +212,11 @@ class Visualizer {
     }
     static startAll(time = 0) {
         Visualizer.#list.forEach(visualizer => visualizer.start(time));
+        audioContext.resume();
     }
     static stopAll() {
         Visualizer.#list.forEach(visualizer => visualizer.stop());
+        audioContext.suspend();
     }
     static get duration() {
         let duration = 0;

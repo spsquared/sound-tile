@@ -198,6 +198,8 @@ createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
+// tree editor
+
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
 document.addEventListener('keypress', (e) => {
