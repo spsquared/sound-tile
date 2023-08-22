@@ -168,6 +168,9 @@ class Visualizer {
         }
     }
 
+    set smoothingTimeConstant(c) {
+        this.analyzer.smoothingTimeConstant = c;
+    }
     set fftSize(size) {
         this.analyzer.fftSize = size;
     }
@@ -179,6 +182,7 @@ class Visualizer {
         return {
             buffer: this.rawBuffer,
             mode: this.mode,
+            smoothing: this.analyzer.smoothingTimeConstant,
             fftSize: this.analyzer.fftSize,
             color: this.color,
             barWidthPercent: this.barWidthPercent,
@@ -191,6 +195,7 @@ class Visualizer {
     static fromData(data, ctx) {
         const visualizer = new Visualizer(data.buffer, ctx);
         visualizer.mode = data.mode;
+        visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
         visualizer.fftSize = data.fftSize;
         visualizer.color = data.color;
         visualizer.barWidthPercent = data.barWidthPercent;

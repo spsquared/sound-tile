@@ -81,6 +81,10 @@ function setVisualizerControls() {
         }
     });
     visualizerWaveformOptions.classList.add('hidden');
+    const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
+    visualizerSmoothing.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
+    });
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     visualizerFFTSize.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
@@ -132,6 +136,7 @@ function applyVisualizerControls(tile, data) {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     }
+    tile.tile.querySelector('.tileVisualizerFrequencySmoothing').value = data.visualizer.smoothing ?? 0.8;
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
