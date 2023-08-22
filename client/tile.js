@@ -48,7 +48,7 @@ function setVisualizerControls() {
     const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
     volumeInput.oninput = (e) => {
         if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
-        volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 100);
+        volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 120);
         volumeInput.title = volumeInput.value + '%';
     };
     volumeInput.addEventListener('wheel', (e) => {
