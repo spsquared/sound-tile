@@ -8,6 +8,6 @@ window.addEventListener('load', (e) => {
 });
 
 const display = document.getElementById('display');
-let allowModification = false;
+let allowModification = true;
 
 // welcome to Sound Tile, isdfsdffds how to use

@@ -18,10 +18,11 @@
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
     <script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js" defer></script>
+    <script type="module" src="./module-loader.js" defer></script>
     <script src="./index.js" defer></script>
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
-    <script src="export.js" defer></script>
+    <script src="./export.js" defer></script>
     <script src="./ui.js" defer></script>
 </head>
 <body>
@@ -137,7 +138,7 @@
                         <option value="avc1.7A0062;3200;yes">Ridiculous</option>
                     </optgroup>
                     <optgroup label="HEVC (H.265)" class="exportMP4Only">
-
+                        <option value="" disabled>Licensing moment</option>
                     </optgroup>
                     <optgroup label="MPEG-4" class="exportMP4Only">
 

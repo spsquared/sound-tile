@@ -3,14 +3,14 @@
 function detachDisplay(width, height) {
     display.style.width = (parseInt(width) - 4) + 'px';
     display.style.height = (parseInt(height) - 4) + 'px';
-    allowDrag = false;
+    allowModification = false;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = true);
     GroupTile.root.refresh();
 };
 function reAttachDisplay() {
     display.style.width = '';
     display.style.height = '';
-    allowDrag = true;
+    allowModification = true;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = false);
     GroupTile.root.refresh();
 };
@@ -126,6 +126,8 @@ async function exportVideo(codec, width, height, framerate, bitrate, hardwareEnc
         });
         canvasTrack.stop();
         audioTrack.stop();
+        encoder.flush();
+        encoder.close();
         return 'oof';
     } catch (err) {
         // not the correct way to do this
