@@ -112,6 +112,59 @@
     <div id="exportContainer">
         <canvas id="renderCanvas"></canvas>
         <!-- use render canvas as preview canvas since it will be rendered as if it were visible anyways -->
+        <div id="exportWindow">
+            <div id="exportClose"></div>
+            <div id="exportOptions">
+                <!-- make grid? -->
+                <label for="exportFormat">Format</label>
+                    <option value="video/mp4"></option>
+                    <option value="video/mpeg"></option>
+                <select id="exportFormat">
+                </select>
+                <!-- I have no idea how codecs should be done -->
+                <label for="exportCodec">Codec</label>
+                <select id="exportCodec">
+                    <optgroup label="VP9">
+                        <option value="vp9.00.31.08;12;720p">Compression-optimized</option>
+                        <option value="vp9.00.41.08;30;1080p">Balanced</option>
+                        <option value="vp9.01.52.08;180;2160p (4k)">Quality-optimized</option>
+                        <option value="vp9.03.62.10;480;yes">Ridiculous</option>
+                    </optgroup>
+                    <optgroup label="AVC (H.264)">
+                        <option value="avc1.580031;14;720p">H.264 Compression-optimized</option>
+                        <option value="avc1.640042;62.5;1080p" selected>H.264 Balanced</option>
+                        <option value="avc1.7A0052;960;2160p (4k)">H.264 Quality-optimized</option>
+                        <option value="avc1.7A0062;3200;yes">Ridiculous</option>
+                    </optgroup>
+                    <optgroup label="HEVC (H.265)" class="exportMP4Only">
+
+                    </optgroup>
+                    <optgroup label="MPEG-4" class="exportMP4Only">
+
+                    </optgroup>
+                </select>
+                <label for="exportResolution">Resolution</label>
+                <select id="exportResolution">
+                    <option value="640;480">SD (480p 4:3)</option>
+                    <option value="1280;720">HD (720p 16:9)</option>
+                    <option value="1920;1080" selected>FHD (1080p 16:9)</option>
+                    <option value="2560;1440">QHD (1440p 16:9)</option>
+                    <option value="3840;2160">UHD (2160p 16:9)</option>
+                    <option value="7680;4320">FUHD (4320p 16:9)</option>
+                </select>
+                <label for="exportFramerate">Framerate</label>
+                <select id="exportFramerate">
+                    <option value="15">15</option>
+                    <option value="24" selected>24</option>
+                    <option value="30">30</option>
+                    <option value="50">50</option>
+                    <option value="60">60</option>
+                    <option value="120">120</option>
+                </select>
+                <label for="exportBitrate">Bitrate</label>
+                <input type="number" id="exportBitrate" min="1" max="62.5" value="4.5">
+            </div>
+        </div>
     </div>
     <template id="visualizerTileTemplate">
         <div class="tile">

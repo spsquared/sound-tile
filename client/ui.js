@@ -3,7 +3,7 @@
 // upload/download
 const uploadButton = document.getElementById('uploadButton');
 uploadButton.oninput = (e) => {
-    if (uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+    if (allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         const reader = new FileReader();
         reader.onload = (e) => {
             const tree = msgpack.decode(new Uint8Array(reader.result));
@@ -106,6 +106,7 @@ const mediaControls = {
     playing: false,
     loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false,
     setTime: (t) => {
+        if (!allowModification) return;
         mediaControls.currentTime = parseFloat(t);
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
@@ -150,6 +151,7 @@ timeSeekInput.oninput = (e) => {
     mediaControls.setTime(timeSeekInput.value);
 };
 playButton.onclick = (e) => {
+    if (!allowModification) return;
     mediaControls.playing = playButton.checked;
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;

@@ -1,7 +1,5 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
-let allowDrag = true;
-
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
@@ -9,7 +7,7 @@ function setDefaultTileControls() {
     this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
     this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
-    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowDrag && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.oninput = (e) => {
         this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
@@ -724,7 +722,7 @@ drag.placeholder.tile.style.backgroundColor = 'gray';
 drag.placeholder.tile.querySelector('.tileDrag').style.display = 'none';
 drag.placeholder.tile.querySelector('.tileControls').style.display = 'none';
 function startDrag(e) {
-    if (!allowDrag || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
+    if (!allowModification || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
     drag.tile = this;
     const rect = this.tile.querySelector('.tileDrag').getBoundingClientRect();
     drag.dragX = e.clientX - rect.left;
