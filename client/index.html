@@ -29,6 +29,7 @@
     <div id="loadingCover">
         <div id="loadingCoverBar"></div>
         <noscript id="noscript">JavaScript was disabled! Sound Tile requires JavaScript to run!<br>Please enable it and <a href="" style="color: white">reload</a>!</noscript>
+        <div id="notsupported">The Web Audio API is not supported! Sound tile requires the Web Audio API to run!</div>
         <style>
             #loadingCover {
                 position: fixed;
@@ -60,6 +61,14 @@
                 width: 100vw;
                 text-align: center;
             }
+            #notsupported {
+                display: none;
+                position: fixed;
+                top: 55vh;
+                left: 0vw;
+                width: 100vw;
+                text-align: center;
+            }
             @keyframes pageLoadCoverProgress {
                 0% {
                     background-position: -150% 0,-150% 0;
@@ -80,20 +89,20 @@
         <!-- actual buttons are too finicky -->
         <div id="fileControls">
             <label id="uploadButtonLabel" for="uploadButton"></label>
-            <input id="uploadButton" type="file" accept=".soundtile">
-            <div id="downloadButton"></div>
+            <input type="file" id="uploadButton" accept=".soundtile" title="Upload Tiles from computer">
+            <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
         <div id="mediaControls">
             <div id="volumeBody">
-                <input id="volume" type="range" min="0" max="100" step="1" value="100" title="100%">
+                <input type="range" id="volume" min="0" max="100" step="1" value="100" title="100%">
                 <div id="volumeTrack"></div>
                 <div id="volumeThumb"></div>
             </div>
             <div id="seekerBody">
-                <input id="seeker" type="range" min="0" max="0" step="0.1">
+                <input type="range" id="seeker" min="0" max="0" step="0.1">
                 <div id="seekerThumb"></div>
             </div>
-            <input id="playButton" type="checkbox">
+            <input type="checkbox" id="playButton">
             <label id="playButtonLabel" for="playButton"></label>
             <div id="time">
                 <div id="timeDisplay"></div>
@@ -104,7 +113,7 @@
                     </label>
                 </div>
             </div>
-            <div id="exportButton"></div>
+            <input type="button" id="exportButton" title="Export video">
         </div>
         <div id="tileSource"></div>
         <label id="dropdownTab" for="dropdownTabCheckbox"></label>
@@ -118,7 +127,7 @@
             <div id="exportOptions">
                 <!-- make grid? -->
                 <label for="exportFormat">Format</label>
-                    <option value="video/mp4"></option>
+                    <option value="video/mp4">MP4</option>
                     <option value="video/mpeg"></option>
                 <select id="exportFormat">
                 </select>

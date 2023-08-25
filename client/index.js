@@ -1,6 +1,10 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
 window.addEventListener('load', (e) => {
+    if (typeof AudioContext != 'function') {
+        document.getElementById('notsupported').style.display = 'block';
+        return;
+    }
     document.getElementById('loadingCover').style.opacity = 0;
     setTimeout(() => {
         document.getElementById('loadingCover').remove();

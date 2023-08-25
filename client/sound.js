@@ -1,6 +1,6 @@
 // Copyright (C) 2023 Sampleprovider(sp)
 
-const audioContext = new (window.AudioContext ?? window.webkitAudioContext ?? Error)();
+const audioContext = new AudioContext();
 const globalVolume = audioContext.createGain();
 globalVolume.connect(audioContext.destination);
 
@@ -171,11 +171,20 @@ class Visualizer {
     set smoothingTimeConstant(c) {
         this.analyzer.smoothingTimeConstant = c;
     }
+    get smoothingTimeConstant() {
+        return this.analyzer.smoothingTimeConstant;
+    }
     set fftSize(size) {
         this.analyzer.fftSize = size;
     }
+    get fftSize() {
+        return this.analyzer.fftSize;
+    }
     set volume(v) {
         this.gain.gain.setValueAtTime(v, audioContext.currentTime);
+    }
+    get volume() {
+        return this.gain.gain.value;
     }
 
     getData() {

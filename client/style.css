@@ -203,12 +203,13 @@ img {
     border-left: 4px solid white;
 }
 #uploadButtonLabel, #downloadButton {
+    width: 58px;
+    height: 58px;
     background-color: gray;
     background-position: center;
     background-repeat: no-repeat;
     background-size: 80% 80%;
     transition: 100ms linear background-color;
-    aspect-ratio: 1;
     cursor: pointer;
 }
 #uploadButtonLabel:hover, #downloadButton:hover {
@@ -222,7 +223,10 @@ img {
     display: none;
 }
 #downloadButton {
+    height: 60px;
+    border: none;
     border-top: 2px solid white;
+    padding: 0px 0px;
     background-image: url(./assets/download.svg);
 }
 
@@ -351,6 +355,7 @@ img {
     background-repeat: no-repeat;
     background-size: 50% 50%;
     background-image: url(./assets/play.svg);
+    transition: 100ms linear background-color;
     aspect-ratio: 1;
     cursor: pointer;
 }
@@ -360,6 +365,12 @@ img {
 #playButton:checked + #playButtonLabel {
     background-color: #070;
     background-image: url(./assets/pause.svg);
+}
+#playButton + #playButtonLabel:hover {
+    background-color: #C00;
+}
+#playButton:checked + #playButtonLabel:hover {
+    background-color: #090;
 }
 #time {
     grid-row: 2;
@@ -381,16 +392,26 @@ img {
 #exportButton {
     grid-row: 2;
     grid-column: 4;
+    width: 64px;
+    height: 60px;
     margin-right: -4px;
-    background-color: dodgerblue;
+    border: none;
     border-right: 4px solid white;
+    padding: 0px 0px;
+    background-color: dodgerblue;
     background-position: center;
     background-repeat: no-repeat;
     background-size: 80% 80%;
     background-image: url(./assets/save.svg);
-    aspect-ratio: 1;
-    /* cursor: pointer; */
+    transition: 100ms linear background-color;
+    cursor: pointer;
+}
+#exportButton:disabled {
+    filter: grayscale(1);
     cursor: not-allowed;
+}
+#exportButton:hover {
+    background-color: rgb(60, 158, 255);
 }
 
 /* tile source */

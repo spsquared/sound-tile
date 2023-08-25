@@ -78,42 +78,46 @@ function drawTiles() {
     renderCtx.stroke();
 };
 
+if (typeof window.VideoEncoder != 'function') {
+    document.getElementById('exportButton').disabled = true;
+    document.getElementById('exportButton').title += ' (Not supported by browser)';
+}
+document.getElementById('exportButton').disabled = true;
+document.getElementById('exportButton').title += ' (Not implemented)';
+
 async function exportVideo(codec, width, height, framerate, bitrate, hardwareEncode = true) {
-    // make sure encoding settings are supported first!!!
-    // make sure encoding settings are supported first!!!
-    // make sure encoding settings are supported first!!!
-    // make sure encoding settings are supported first!!!
-    // make sure encoding settings are supported first!!!
+    const config = {
+        codec: codec,
+        width: width,
+        height: height,
+        displayWidth: width,
+        displayHeight: height,
+        framerate: framerate,
+        bitrate: bitrate,
+        hardwareAcceleration: hardwareEncode ? 'prefer-hardware' : 'prefer-software'
+    };
+    if (!await VideoEncoder.isConfigSupported(config)) return null;
     detachDisplay(width, height);
     renderCanvas.width = width;
     renderCanvas.height = height;
     collectTiles();
     try {
         // prepare encoder with settings and create MediaStream with tracks
+        const encodedChunks = [];
         const encoder = new VideoEncoder({
             output: (chunk, metadata) => {
-                console.log(chunk.timestamp, chunk.byteLength);
+                const buffer = new ArrayBuffer(chunk.byteLength);
+                chunk.copyTo(buffer);
+                encodedChunks.push(buffer);
             },
             error: (err) => {
                 reAttachDisplay();
                 throw err;
             }
         });
-        await encoder.configure({
-            codec: codec,
-            width: width,
-            height: height,
-            displayWidth: width,
-            displayHeight: height,
-            framerate: framerate,
-            bitrate: bitrate,
-            hardwareAcceleration: hardwareEncode ? 'prefer-hardware' : 'prefer-software'
-        });
-        const canvasTrack = renderCanvas.captureStream(0).getTracks()[0];
-        const audioTrack = audioContext.createMediaStreamDestination().stream.getTracks()[0];
-        const renderStream = new MediaStream();
-        renderStream.addTrack(canvasTrack);
-        renderStream.addTrack(audioTrack);
+        await encoder.configure(config);
+        const canvasStream = renderCanvas.captureStream(0);
+        const canvasTrack = canvasStream.getTracks()[0];
         // render the frames sequentially
         await new Promise((resolve, reject) => {
             // how to keep analyzers in sync?
@@ -124,11 +128,10 @@ async function exportVideo(codec, width, height, framerate, bitrate, hardwareEnc
             encoder.addEventListener('dequeue', frame);
             frame();
         });
-        canvasTrack.stop();
-        audioTrack.stop();
-        encoder.flush();
+        await encoder.flush();
         encoder.close();
-        return 'oof';
+        // aaaaaaaaaaaaaaa muxing
+        return encodedChunks; // oof no muxing
     } catch (err) {
         // not the correct way to do this
         reAttachDisplay();
