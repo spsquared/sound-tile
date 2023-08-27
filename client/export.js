@@ -85,53 +85,41 @@ if (typeof window.VideoEncoder != 'function') {
 document.getElementById('exportButton').disabled = true;
 document.getElementById('exportButton').title += ' (Not implemented)';
 
-async function exportVideo(codec, width, height, framerate, bitrate, hardwareEncode = true) {
-    const config = {
-        codec: codec,
-        width: width,
-        height: height,
-        displayWidth: width,
-        displayHeight: height,
-        framerate: framerate,
-        bitrate: bitrate,
-        hardwareAcceleration: hardwareEncode ? 'prefer-hardware' : 'prefer-software'
-    };
-    if (!await VideoEncoder.isConfigSupported(config)) return null;
-    detachDisplay(width, height);
-    renderCanvas.width = width;
-    renderCanvas.height = height;
+async function exportVideo(container, videoOptions = {codec, width, height, framerate, bitrate}, audioOptions = {codec, bitrate}, hardwareEncode = true) {
+    // if (!MediaRecorder.isTypeSupported(`${container};codecs=${videoOptions.codec},${audioOptions.codec}`)) return null;
+    detachDisplay(videoOptions.width, videoOptions.height);
+    renderCanvas.width = videoOptions.width;
+    renderCanvas.height = videoOptions.height;
     collectTiles();
     try {
-        // prepare encoder with settings and create MediaStream with tracks
-        const encodedChunks = [];
-        const encoder = new VideoEncoder({
-            output: (chunk, metadata) => {
-                const buffer = new ArrayBuffer(chunk.byteLength);
-                chunk.copyTo(buffer);
-                encodedChunks.push(buffer);
-            },
-            error: (err) => {
-                reAttachDisplay();
-                throw err;
-            }
+        // probably should move to separate thread
+        const audioStreamGenerator = audioContext.createMediaStreamDestination();
+        const canvasTrack = new MediaStreamTrackGenerator({ kind: "video" });
+        const audioTrack = audioStreamGenerator.stream.getTracks()[0];
+        const renderStream = new MediaStream();
+        renderStream.addTrack(canvasTrack);
+        renderStream.addTrack(audioTrack);
+        const recorder = new MediaRecorder(renderStream, {
+            mimeType: `${container};codecs=${videoOptions.codec},${audioOptions.codec}`,
+            videoBitsPerSecond: videoOptions.bitrate,
+            audioBitsPerSecond: audioOptions.bitrate
         });
-        await encoder.configure(config);
-        const canvasStream = renderCanvas.captureStream(0);
-        const canvasTrack = canvasStream.getTracks()[0];
-        // render the frames sequentially
-        await new Promise((resolve, reject) => {
-            // how to keep analyzers in sync?
-            function frame() {
-                // resolve when last frame is rendered
-                canvasTrack.requestFrame();
+        const streamWriter = canvasTrack.writable.getWriter();
+        const frameCount = Math.ceil(Visualizer.duration * videoOptions.framerate);
+        recorder.start();
+        for (let frame = 0; frame < frameCount; frame++) {
+            drawTiles();
+            const vFrame = new VideoFrame(renderCanvas, { timestamp: frame / videoOptions.framerate });
+            await streamWriter.write(vFrame);
+        }
+        return await new Promise((resolve, reject) => {
+            recorder.ondataavailable = (e) => {
+                let omg = e.data;
+                resolve('omg video');
             };
-            encoder.addEventListener('dequeue', frame);
-            frame();
+            recorder.stop();
+            reAttachDisplay();
         });
-        await encoder.flush();
-        encoder.close();
-        // aaaaaaaaaaaaaaa muxing
-        return encodedChunks; // oof no muxing
     } catch (err) {
         // not the correct way to do this
         reAttachDisplay();

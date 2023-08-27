@@ -18,7 +18,6 @@
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
     <script src="https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js" defer></script>
-    <script type="module" src="./module-loader.js" defer></script>
     <script src="./index.js" defer></script>
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
@@ -125,34 +124,37 @@
         <div id="exportWindow">
             <div id="exportClose"></div>
             <div id="exportOptions">
-                <!-- make grid? -->
+                <!-- make table? -->
                 <label for="exportFormat">Format</label>
-                    <option value="video/mp4">MP4</option>
-                    <option value="video/mpeg"></option>
                 <select id="exportFormat">
+                    <option value="video/mp4">MP4</option>
+                    <option value="video/webm">WEBM</option>
+                    <option value="video/x-matroska">MKV</option>
                 </select>
                 <!-- I have no idea how codecs should be done -->
-                <label for="exportCodec">Codec</label>
-                <select id="exportCodec">
+                <label for="exportVideoCodec">Video Codec</label>
+                <select id="exportVideoCodec">
+                    <option value="vp8">VP8</option>
+                    <option value="vp9">VP9</option>
+                    <option value="avc1">AVC</option>
+                    <!-- let the user agent pick the encoder settings -->
+                    <!-- <optgroup label="VP8">
+                        <option value="vp8">VP8</option>
+                    </optgroup>
                     <optgroup label="VP9">
-                        <option value="vp9.00.31.08;12;720p">Compression-optimized</option>
-                        <option value="vp9.00.41.08;30;1080p">Balanced</option>
-                        <option value="vp9.01.52.08;180;2160p (4k)">Quality-optimized</option>
-                        <option value="vp9.03.62.10;480;yes">Ridiculous</option>
+                        <option value="vp9.00.31.08;12;720p">VP9 Compression-optimized</option>
+                        <option value="vp9.00.41.08;30;1080p">VP9 Balanced</option>
+                        <option value="vp9.01.52.08;180;2160p (4K)">VP9 Quality-optimized</option>
+                        <option value="vp9.03.62.10;480;yes">VP9 Ridiculous</option>
                     </optgroup>
-                    <optgroup label="AVC (H.264)">
-                        <option value="avc1.580031;14;720p">H.264 Compression-optimized</option>
-                        <option value="avc1.640042;62.5;1080p" selected>H.264 Balanced</option>
-                        <option value="avc1.7A0052;960;2160p (4k)">H.264 Quality-optimized</option>
-                        <option value="avc1.7A0062;3200;yes">Ridiculous</option>
-                    </optgroup>
-                    <optgroup label="HEVC (H.265)" class="exportMP4Only">
-                        <option value="" disabled>Licensing moment</option>
-                    </optgroup>
-                    <optgroup label="MPEG-4" class="exportMP4Only">
-
-                    </optgroup>
+                    <optgroup label="AVC (H.264)" class="exportWebmNotSupported">
+                        <option value="avc1.58001F;14;720p;11">H.264 Compression-optimized</option>
+                        <option value="avc1.64002A;62.5;1080p;24" selected>H.264 Balanced</option>
+                        <option value="avc1.7A0034;960;2160p (4K);96">H.264 Quality-optimized</option>
+                        <option value="avc1.7A003E;3200;yes;96">H.264 Ridiculous</option>
+                    </optgroup> -->
                 </select>
+                <!-- allow auto bitrate by MediaRecorder? -->
                 <label for="exportResolution">Resolution</label>
                 <select id="exportResolution">
                     <option value="640;480">SD (480p 4:3)</option>
@@ -162,6 +164,8 @@
                     <option value="3840;2160">UHD (2160p 16:9)</option>
                     <option value="7680;4320">FUHD (4320p 16:9)</option>
                 </select>
+                <input type="number" id="exportWidth" min="1" max="7680" value="1920">
+                <input type="number" id="exportHeight" min="1" max="7680" value="1080">
                 <label for="exportFramerate">Framerate</label>
                 <select id="exportFramerate">
                     <option value="15">15</option>
@@ -171,8 +175,16 @@
                     <option value="60">60</option>
                     <option value="120">120</option>
                 </select>
-                <label for="exportBitrate">Bitrate</label>
-                <input type="number" id="exportBitrate" min="1" max="62.5" value="4.5">
+                <label for="exportVideoBitrate">Video Bitrate (Mb/s)</label>
+                <input type="number" id="exportVideoBitrate" min="1" max="192" value="24">
+                <label for="exportAudioCodec">Audio Codec</label>
+                <select id="exportAudioCodec">
+                    <option value="aac">AAC</option>
+                    <option value="opus">Opus</option>
+                    <option value="flac">FLAC</option>
+                </select>
+                <label for="exportAudioBitrate">Audio Bitrate (kb/s)</label>
+                <input type="number" id="exportAudioBitrate" min="1" max="320" value="160">
             </div>
         </div>
     </div>
