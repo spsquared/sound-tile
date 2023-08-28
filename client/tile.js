@@ -811,7 +811,6 @@ document.addEventListener('mouseup', (e) => {
     }
 });
 
-// test code
 window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new ImageTile());
     GroupTile.root.addChild(new ImageTile());

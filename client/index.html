@@ -127,9 +127,10 @@
                 <!-- make table? -->
                 <label for="exportFormat">Format</label>
                 <select id="exportFormat">
-                    <option value="video/mp4">MP4</option>
-                    <option value="video/webm">WEBM</option>
-                    <option value="video/x-matroska">MKV</option>
+                    <!-- most browsers don't support MP4 muxing for some reason -->
+                    <option value="video/mp4;mp4">MP4</option>
+                    <option value="video/webm;webm">WEBM</option>
+                    <option value="video/x-matroska;mkv">MKV</option>
                 </select>
                 <!-- I have no idea how codecs should be done -->
                 <label for="exportVideoCodec">Video Codec</label>
@@ -179,7 +180,7 @@
                 <input type="number" id="exportVideoBitrate" min="1" max="192" value="24">
                 <label for="exportAudioCodec">Audio Codec</label>
                 <select id="exportAudioCodec">
-                    <option value="aac">AAC</option>
+                    <option value="mp4a">AAC</option>
                     <option value="opus">Opus</option>
                     <option value="flac">FLAC</option>
                 </select>

@@ -116,6 +116,7 @@ class Visualizer {
             this.analyzer.getByteFrequencyData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'round';
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
@@ -132,6 +133,7 @@ class Visualizer {
             this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'round';
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
@@ -150,6 +152,7 @@ class Visualizer {
             this.analyzer.getByteTimeDomainData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'miter';
             let xStep = width / (this.analyzer.frequencyBinCount - 1);
             let yOffset = height * (this.scale - 1) * 0.5;
             let yScale = ((height) / 255) * this.scale;
@@ -249,14 +252,16 @@ class Visualizer {
     }
 }
 
+let drawVisualizers = true;
 async function startDraw() {
     delete startDraw;
     while (true) {
         await new Promise((resolve, reject) => {
-            window.requestAnimationFrame(() => {
+            if (drawVisualizers) window.requestAnimationFrame(() => {
                 Visualizer.draw();
                 resolve();
             });
+            else setTimeout(resolve, 200);
         });
     }
 };

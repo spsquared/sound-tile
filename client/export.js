@@ -4,6 +4,7 @@ function detachDisplay(width, height) {
     display.style.width = (parseInt(width) - 4) + 'px';
     display.style.height = (parseInt(height) - 4) + 'px';
     allowModification = false;
+    drawVisualizers = false;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = true);
     GroupTile.root.refresh();
 };
@@ -11,6 +12,7 @@ function reAttachDisplay() {
     display.style.width = '';
     display.style.height = '';
     allowModification = true;
+    drawVisualizers = true;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = false);
     GroupTile.root.refresh();
 };
@@ -78,51 +80,85 @@ function drawTiles() {
     renderCtx.stroke();
 };
 
-if (typeof window.VideoEncoder != 'function') {
-    document.getElementById('exportButton').disabled = true;
-    document.getElementById('exportButton').title += ' (Not supported by browser)';
+const exportButton = document.getElementById('exportButton');
+if (typeof window.MediaRecorder != 'function') {
+    exportButton.disabled = true;
+    exportButton.title += ' (Not supported by browser)';
 }
-document.getElementById('exportButton').disabled = true;
-document.getElementById('exportButton').title += ' (Not implemented)';
+exportButton.onclick = async (e) => {
+    const video = exportVideo('video/x-matroska', {
+        codec: 'avc1',
+        width: 1920,
+        height: 1080,
+        framerate: 60,
+        bitrate: 24_000_000
+    }, {
+        codec: 'opus',
+        bitrate: 160_000
+    });
+    if (video === null) return;
+    await video.promise;
+    const download = document.createElement('a');
+    let current = new Date();
+    download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.mkv`;
+    download.href = window.URL.createObjectURL(video.result);
+    download.click();
+};
 
-async function exportVideo(container, videoOptions = {codec, width, height, framerate, bitrate}, audioOptions = {codec, bitrate}, hardwareEncode = true) {
-    // if (!MediaRecorder.isTypeSupported(`${container};codecs=${videoOptions.codec},${audioOptions.codec}`)) return null;
+function exportVideo(container, videoOptions = {codec, width, height, framerate, bitrate}, audioOptions = {codec, bitrate}, hardwareEncode = true) {
+    if (!MediaRecorder.isTypeSupported(`${container};codecs=${videoOptions.codec},${audioOptions.codec}`)) return null;
     detachDisplay(videoOptions.width, videoOptions.height);
     renderCanvas.width = videoOptions.width;
     renderCanvas.height = videoOptions.height;
     collectTiles();
-    try {
-        // probably should move to separate thread
-        const audioStreamGenerator = audioContext.createMediaStreamDestination();
-        const canvasTrack = new MediaStreamTrackGenerator({ kind: "video" });
-        const audioTrack = audioStreamGenerator.stream.getTracks()[0];
-        const renderStream = new MediaStream();
-        renderStream.addTrack(canvasTrack);
-        renderStream.addTrack(audioTrack);
-        const recorder = new MediaRecorder(renderStream, {
-            mimeType: `${container};codecs=${videoOptions.codec},${audioOptions.codec}`,
-            videoBitsPerSecond: videoOptions.bitrate,
-            audioBitsPerSecond: audioOptions.bitrate
-        });
-        const streamWriter = canvasTrack.writable.getWriter();
-        const frameCount = Math.ceil(Visualizer.duration * videoOptions.framerate);
-        recorder.start();
-        for (let frame = 0; frame < frameCount; frame++) {
-            drawTiles();
-            const vFrame = new VideoFrame(renderCanvas, { timestamp: frame / videoOptions.framerate });
-            await streamWriter.write(vFrame);
-        }
-        return await new Promise((resolve, reject) => {
+    const ret = {
+        promise: null,
+        result: null,
+        progress: 0
+    };
+    ret.promise = new Promise(async (resolve, reject) => {
+        try {
+            // probably should move to separate thread
+            const audioStreamGenerator = audioContext.createMediaStreamDestination();
+            const canvasTrack = new MediaStreamTrackGenerator({ kind: "video" });
+            const audioTrack = audioStreamGenerator.stream.getTracks()[0];
+            globalVolume.connect(audioStreamGenerator);
+            const renderStream = new MediaStream();
+            renderStream.addTrack(canvasTrack);
+            renderStream.addTrack(audioTrack);
+            const recorder = new MediaRecorder(renderStream, {
+                mimeType: `${container};codecs=${videoOptions.codec},${audioOptions.codec}`,
+                videoBitsPerSecond: videoOptions.bitrate,
+                audioBitsPerSecond: audioOptions.bitrate
+            });
+            const streamWriter = canvasTrack.writable.getWriter();
+            const frameCount = Math.ceil(Visualizer.duration * videoOptions.framerate);
+            recorder.start();
+            for (let frame = 0; frame < frameCount; frame++) {
+                // playback for some duration, account for processing delay
+                drawTiles();
+                await new Promise((resolve, reject) => {
+                    window.requestAnimationFrame(() => {
+                        Visualizer.draw();
+                        resolve();
+                    });
+                });
+                const vFrame = new VideoFrame(renderCanvas, { timestamp: (frame / videoOptions.framerate) * 1000000 });
+                await streamWriter.write(vFrame);
+                ret.progress = (frame + 1) / frameCount;
+            }
             recorder.ondataavailable = (e) => {
-                let omg = e.data;
-                resolve('omg video');
+                const blob = new Blob([e.data], { type: `${container};codecs=${videoOptions.codec},${audioOptions.codec}` });
+                ret.result = blob;
+                resolve(blob);
             };
             recorder.stop();
             reAttachDisplay();
-        });
-    } catch (err) {
-        // not the correct way to do this
-        reAttachDisplay();
-        throw err;
-    }
+        } catch (err) {
+            // not the correct way to do this
+            reAttachDisplay();
+            reject(err);
+        }
+    });
+    return ret;
 };
