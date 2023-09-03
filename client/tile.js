@@ -335,6 +335,7 @@ class VisualizerImageTile {
                     this.img.src = reader.result;
                     this.img.onload = (e) => this.#resize();
                     imageReplaceLabel.innerText = 'Change Image';
+                    if (this.tile.querySelector('.tileImgUploadCoverSmall') !== null) this.tile.querySelector('.tileImgUploadCoverSmall').remove();
                 };
                 reader.readAsDataURL(imageReplace.files[0]);
             }

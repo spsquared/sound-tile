@@ -148,18 +148,18 @@ class Visualizer {
             this.ctx.stroke();
             this.ctx.fill();
         } else if (this.mode == 4) {
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getByteTimeDomainData(data);
+            const data = new Float32Array(this.analyzer.frequencyBinCount);
+            this.analyzer.getFloatTimeDomainData(data);
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'miter';
             let xStep = width / (this.analyzer.frequencyBinCount - 1);
-            let yOffset = height * (this.scale - 1) * 0.5;
-            let yScale = ((height) / 255) * this.scale;
+            let yOffset = height / 2;
+            let yScale = this.scale * 128;
             this.ctx.beginPath();
-            this.ctx.moveTo(0, data[0] * yScale - yOffset);
+            this.ctx.moveTo(0, data[0] * yScale + yOffset);
             for (let i = 1; i < data.length; i++) {
-                this.ctx.lineTo(i * xStep, data[i] * yScale - yOffset);
+                this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
             }
             this.ctx.stroke();
         } else {

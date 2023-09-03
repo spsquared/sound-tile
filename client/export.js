@@ -90,7 +90,7 @@ exportButton.onclick = async (e) => {
         codec: 'avc1',
         width: 1920,
         height: 1080,
-        framerate: 60,
+        framerate: 24,
         bitrate: 24_000_000
     }, {
         codec: 'opus',
@@ -136,6 +136,7 @@ function exportVideo(container, videoOptions = {codec, width, height, framerate,
             recorder.start();
             for (let frame = 0; frame < frameCount; frame++) {
                 // playback for some duration, account for processing delay
+                audioContext.baseLatency;
                 drawTiles();
                 await new Promise((resolve, reject) => {
                     window.requestAnimationFrame(() => {
