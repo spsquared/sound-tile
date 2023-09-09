@@ -25,6 +25,7 @@ class Visualizer {
     buffer = null;
     canvas = null;
     ctx = null;
+    worker = (Worker !== undefined && OffscreenCanvas !== undefined) ? new Worker('./visualizerWorker.js') : null;
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     gain = audioContext.createGain();
@@ -35,17 +36,22 @@ class Visualizer {
     scale = 1;
     lineWidth = 2;
     ready = false;
-    constructor(arrbuf, ctx) {
+    constructor(arrbuf, canvas) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
-        if (!(ctx instanceof CanvasRenderingContext2D)) throw new TypeError('Visualizer ctx must be an CanvasRenderingContext2D');
+        if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
         this.rawBuffer = new Uint8Array(new Uint8Array(arrbuf)).buffer;
+        this.canvas = (OffscreenCanvas !== undefined) ? canvas.transferControlToOffscreen() : canvas;
+        if (this.worker !== null) this.worker.postMessage([this.canvas], [this.canvas]);
+        else {
+            this.ctx = canvas.getContext('2d');
+            this.ctx.imageSmoothingEnabled = false;
+            this.ctx.webkitImageSmoothingEnabled = false;
+        }
         audioContext.decodeAudioData(arrbuf, buf => {
             this.buffer = buf;
             this.ready = true;
             Visualizer.#onUpdate();
         });
-        this.canvas = ctx.canvas;
-        this.ctx = ctx;
         this.analyzer.connect(globalVolume);
         this.analyzer.fftSize = 512;
         this.gain.connect(this.analyzer);
@@ -66,109 +72,44 @@ class Visualizer {
         }
         this.playingSource = null;
     }
-    draw() {
-        let width = this.canvas.width;
-        let height = this.canvas.height;
-        this.ctx.clearRect(0, 0, width, height);
-        if (this.buffer == null) {
-            this.ctx.fillStyle = 'white';
-            this.ctx.beginPath();
-            let r = Math.min(width, height) / 3;
-            this.ctx.translate(width / 2, height / 2);
-            this.ctx.rotate((Date.now() / 100) % (4 * Math.PI)); // modulo probably not necessary
-            this.ctx.arc(0, 0, r, 0, 4 * Math.PI / 3);
-            this.ctx.lineTo(Math.cos(4 * Math.PI / 3) * (r * 0.8), Math.sin(4 * Math.PI / 3) * (r * 0.8));
-            this.ctx.arc(0, 0, r * 0.8, 4 * Math.PI / 3, 0, true);
-            this.ctx.lineTo(r, 0);
-            this.ctx.fill();
-            this.ctx.resetTransform();
-            return;
+    async draw() {
+        await new Promise((resolve, reject) => {
+            this.worker.onmessage = (e) => resolve();
+            if (this.buffer === null) {
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
+                else VisualizerWorker.draw.call(this, data);
+            } else if (this.mode >= 0 && this.mode <= 3) {
+                const data = new Uint8Array(this.analyzer.frequencyBinCount);
+                this.analyzer.getByteFrequencyData(data);
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
+                else VisualizerWorker.draw.call(this, data);
+            } else if (this.mode == 4) {
+                const data = new Float32Array(this.analyzer.frequencyBinCount);
+                this.analyzer.getFloatTimeDomainData(data);
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
+                else VisualizerWorker.draw.call(this, data);
+            } else {
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
+                else VisualizerWorker.draw.call(this, data);
+            }
+        });
+    }
+    resize(w, h) {
+        if (this.worker !== null) this.worker.postMessage([1, w, h]);
+        else {
+            this.canvas.width = w;
+            this.canvas.height = h;
         }
-        if (this.mode == 0) {
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.fillStyle = this.color;
-            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
-            let barSpace = (width / croppedFreq);
-            let barWidth = barSpace * this.barWidthPercent;
-            let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256;
-            for (let i = 0; i < croppedFreq; i++) {
-                let barHeight = (data[i] + 1) * yScale;
-                this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
-            }
-        } else if (this.mode == 1) {
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.fillStyle = this.color;
-            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
-            let barSpace = (width / croppedFreq);
-            let barWidth = barSpace * this.barWidthPercent;
-            let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256;
-            for (let i = 0; i < croppedFreq; i++) {
-                let barHeight = (data[i] + 1) * yScale;
-                this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-            }
-        } else if (this.mode == 2) {
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.strokeStyle = this.color;
-            this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'round';
-            let xStep = width / (croppedFreq - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255;
-            let yOffset = this.lineWidth / 2;
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, height - (data[0] * yScale));
-            for (let i = 0; i < croppedFreq; i++) {
-                this.ctx.lineTo(i * xStep, height - (data[i] * yScale + yOffset));
-            }
-            this.ctx.stroke();
-        } else if (this.mode == 3) {
-            const data = new Uint8Array(this.analyzer.frequencyBinCount);
-            let croppedFreq = this.analyzer.frequencyBinCount * this.barCrop;
-            this.analyzer.getByteFrequencyData(data);
-            this.ctx.strokeStyle = this.color;
-            this.ctx.fillStyle = this.color;
-            this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'round';
-            let xStep = width / (croppedFreq - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255;
-            let yOffset = this.lineWidth / 2;
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, height - yOffset);
-            this.ctx.lineTo(0, height - (data[0] * yScale));
-            for (let i = 0; i < croppedFreq; i++) {
-                this.ctx.lineTo(i * xStep, height - (data[i] * yScale + yOffset));
-            }
-            this.ctx.lineTo((croppedFreq - 1) * xStep, height - yOffset);
-            this.ctx.lineTo(0, height - yOffset);
-            this.ctx.stroke();
-            this.ctx.fill();
-        } else if (this.mode == 4) {
-            const data = new Float32Array(this.analyzer.frequencyBinCount);
-            this.analyzer.getFloatTimeDomainData(data);
-            this.ctx.strokeStyle = this.color;
-            this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'miter';
-            let xStep = width / (this.analyzer.frequencyBinCount - 1);
-            let yOffset = height / 2;
-            let yScale = this.scale * 128;
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, data[0] * yScale + yOffset);
-            for (let i = 1; i < data.length; i++) {
-                this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
-            }
-            this.ctx.stroke();
-        } else {
-            this.ctx.fillStyle = 'red';
-            this.ctx.textAlign = 'center';
-            this.ctx.textBaseline = 'middle';
-            this.ctx.font = '16px Arial';
-            this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
-        }
+    }
+    get #workerData() {
+        return {
+            color: this.color,
+            mode: this.mode,
+            barWidthPercent: this.barWidthPercent,
+            barCrop: this.barCrop,
+            scale: this.scale,
+            lineWidth: this.lineWidth
+        };
     }
 
     set smoothingTimeConstant(c) {
@@ -204,8 +145,8 @@ class Visualizer {
             volume: this.gain.gain.value
         };
     }
-    static fromData(data, ctx) {
-        const visualizer = new Visualizer(data.buffer, ctx);
+    static fromData(data, canvas) {
+        const visualizer = new Visualizer(data.buffer, canvas);
         visualizer.mode = data.mode;
         visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
         visualizer.fftSize = data.fftSize;
@@ -224,8 +165,10 @@ class Visualizer {
         Visualizer.#onUpdate();
     }
 
-    static draw() {
-        Visualizer.#list.forEach(visualizer => visualizer.draw());
+    static async draw() {
+        for (let visualizer of Visualizer.#list) {
+            await visualizer.draw();
+        }
     }
     static startAll(time = 0) {
         Visualizer.#list.forEach(visualizer => visualizer.start(time));
@@ -257,8 +200,8 @@ async function startDraw() {
     delete startDraw;
     while (true) {
         await new Promise((resolve, reject) => {
-            if (drawVisualizers) window.requestAnimationFrame(() => {
-                Visualizer.draw();
+            if (drawVisualizers) window.requestAnimationFrame(async () => {
+                await Visualizer.draw();
                 resolve();
             });
             else setTimeout(resolve, 200);

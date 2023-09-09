@@ -21,7 +21,7 @@ function setVisualizerControls() {
     const audioUpload = this.tile.querySelector('.tileSourceUpload');
     audioUpload.addEventListener('change', async (e) => {
         if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
-            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.ctx);
+            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.canvas);
             this.tile.querySelector('.tileSourceUploadCover').remove();
         }
     });
@@ -29,7 +29,7 @@ function setVisualizerControls() {
     audioReplace.addEventListener('change', async (e) => {
         if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
-            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.ctx);
+            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.canvas);
             this.visualizer.mode = parseInt(visualizerMode.value);
             this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
             this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
@@ -151,7 +151,7 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
     if (data.flipped2) tile.tile.querySelector('.tileVisualizerFlip2').click();
-    if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.ctx);
+    if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
 };
 
 class GroupTile {
@@ -241,16 +241,14 @@ class VisualizerTile {
         this.tile = VisualizerTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
-        this.ctx = this.canvas.getContext('2d');
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.webkitImageSmoothingEnabled = false;
+        this.canvas.width = 500;
+        this.canvas.height = 500;
         // visualizer controls
         setVisualizerControls.call(this);
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            this.canvas.width = Math.round(rect.width);
-            this.canvas.height = Math.round(rect.height);
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
@@ -299,10 +297,7 @@ class VisualizerImageTile {
         this.tile = VisualizerImageTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
-        this.ctx = this.canvas.getContext('2d');
         this.img = this.tile.querySelector('.tileImg');
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.webkitImageSmoothingEnabled = false;
         // visualizer controls
         setVisualizerControls.call(this);
         // image controls
@@ -344,8 +339,7 @@ class VisualizerImageTile {
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            this.canvas.width = Math.round(rect.width);
-            this.canvas.height = Math.round(rect.height);
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
             const rect2 = imageContainer.getBoundingClientRect();
@@ -411,11 +405,8 @@ class VisualizerTextTile {
         this.tile = VisualizerTextTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
         this.canvas = this.tile.querySelector('.tileCanvas');
-        this.ctx = this.canvas.getContext('2d');
         this.canvas2 = this.tile.querySelector('.tileCanvas2');
         this.ctx2 = this.canvas2.getContext('2d');
-        this.ctx.imageSmoothingEnabled = false;
-        this.ctx.webkitImageSmoothingEnabled = false;
         this.ctx2.imageSmoothingEnabled = false;
         this.ctx2.webkitImageSmoothingEnabled = false;
         // visualizer controls
@@ -453,8 +444,7 @@ class VisualizerTextTile {
         this.#resize = () => {
             let textHeight = this.text.split('\n').length * parseInt(fontSize.value) + 2;
             const rect = canvasContainer.getBoundingClientRect();
-            this.canvas.width = Math.round(rect.width);
-            this.canvas.height = Math.round(rect.height - textHeight - 4);
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height - textHeight - 4));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
             this.canvas.style.transform = `translateY(-${textHeight / 2}px)`;

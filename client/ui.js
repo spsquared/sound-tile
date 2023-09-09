@@ -133,6 +133,7 @@ setInterval(() => {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
             playButton.checked = false;
+            mediaControls.setTime(mediaControls.duration);
         } else if (mediaControls.playing) {
             mediaControls.setTime(0);
         }
