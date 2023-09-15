@@ -21,7 +21,7 @@ function setVisualizerControls() {
     const audioUpload = this.tile.querySelector('.tileSourceUpload');
     audioUpload.addEventListener('change', async (e) => {
         if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
-            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.canvas);
+            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.tile.querySelector('.tileSourceUploadCover').remove();
         }
     });
@@ -29,7 +29,7 @@ function setVisualizerControls() {
     audioReplace.addEventListener('change', async (e) => {
         if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
-            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.canvas);
+            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.visualizer.mode = parseInt(visualizerMode.value);
             this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
             this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
@@ -418,6 +418,7 @@ class VisualizerTextTile {
         const textEditor = this.tile.querySelector('.tileText');
         this.tile.querySelector('.tileTextEditDoneButton').addEventListener('click', (e) => {
             this.text = textEditor.value;
+            this.refresh();
             draw();
             editContainer.classList.add('hidden');
         });
@@ -425,12 +426,12 @@ class VisualizerTextTile {
         const textAlign = this.tile.querySelector('.tileTextAlign');
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
-            this.ctx2.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
             this.ctx2.font = `${fontSize.value}px Source Code Pro`;
             this.ctx2.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let x = this.canvas.width * parseFloat(textAlign.value);
+            let x = this.canvas2.width * parseFloat(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
                 this.ctx2.fillText(text[i], x, (i + 0.5) * parseInt(fontSize.value));
@@ -602,6 +603,7 @@ class TextTile {
         const textEditor = this.tile.querySelector('.tileText');
         this.tile.querySelector('.tileTextEditDoneButton').addEventListener('click', (e) => {
             this.text = textEditor.value;
+            this.refresh();
             draw();
             editContainer.classList.add('hidden');
         });

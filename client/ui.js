@@ -46,6 +46,9 @@ uploadButton.oninput = (e) => {
                 }
             };
             GroupTile.root.addChild(dfs(tree.root));
+            const nestingFix = new BlankTile();
+            GroupTile.root.addChild(nestingFix);
+            GroupTile.root.removeChild(nestingFix);
             setTimeout(() => GroupTile.root.refresh(), 0);
         };
         reader.readAsArrayBuffer(uploadButton.files[0]);

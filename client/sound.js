@@ -24,6 +24,7 @@ class Visualizer {
     rawBuffer = null;
     buffer = null;
     canvas = null;
+    workerCanvas = (Worker !== undefined) ? new (OffscreenCanvas !== undefined ? OffscreenCanvas : HTMLCanvasElement)(0, 0) : null;
     ctx = null;
     worker = (Worker !== undefined && OffscreenCanvas !== undefined) ? new Worker('./visualizerWorker.js') : null;
     playingSource = null;
@@ -36,13 +37,17 @@ class Visualizer {
     scale = 1;
     lineWidth = 2;
     ready = false;
-    constructor(arrbuf, canvas) {
+    constructor(arrbuf, canvas, oncreate) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
         this.rawBuffer = new Uint8Array(new Uint8Array(arrbuf)).buffer;
-        this.canvas = (OffscreenCanvas !== undefined) ? canvas.transferControlToOffscreen() : canvas;
-        if (this.worker !== null) this.worker.postMessage([this.canvas], [this.canvas]);
-        else {
+        // create new canvas instead to prevent bugs
+        this.canvas = canvas;
+        if (this.worker !== null) {
+            if (typeof oncreate == 'function') this.worker.onmessage = (e) => oncreate();
+            this.worker.postMessage([this.workerCanvas], [this.workerCanvas]);
+            this.ctx = canvas.getContext('bitmaprenderer');
+        } else {
             this.ctx = canvas.getContext('2d');
             this.ctx.imageSmoothingEnabled = false;
             this.ctx.webkitImageSmoothingEnabled = false;
@@ -74,7 +79,10 @@ class Visualizer {
     }
     async draw() {
         await new Promise((resolve, reject) => {
-            this.worker.onmessage = (e) => resolve();
+            this.worker.onmessage = (e) => {
+                this.ctx.transferFromImageBitmap(e.data[0]);
+                resolve();
+            };
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
                 else VisualizerWorker.draw.call(this, data);
@@ -89,7 +97,7 @@ class Visualizer {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
                 else VisualizerWorker.draw.call(this, data);
             } else {
-                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, []]);
                 else VisualizerWorker.draw.call(this, data);
             }
         });
@@ -165,9 +173,9 @@ class Visualizer {
         Visualizer.#onUpdate();
     }
 
-    static async draw() {
+    static draw() {
         for (let visualizer of Visualizer.#list) {
-            await visualizer.draw();
+            visualizer.draw();
         }
     }
     static startAll(time = 0) {

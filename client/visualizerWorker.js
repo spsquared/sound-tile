@@ -2,11 +2,13 @@ class VisualizerWorker {
     static draw(data) {
         let width = this.canvas.width;
         let height = this.canvas.height;
-        this.ctx.clearRect(0, 0, width, height);
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(0, 0, width, height);
-        return;
-        if (this.mode == 0) {
+        // const gradient = this.ctx.createLinearGradient(0, 0, width, height);
+        // for (let i = 0; i <= 18; i++) {
+        //     gradient.addColorStop(i / 18, `hsl(${i * 20}, 100%, 50%)`);
+        // }
+        // this.ctx.fillStyle = gradient;
+        // this.ctx.fillRect(0, 0, width, height);
+        if (data === null) {
             this.ctx.fillStyle = 'white';
             this.ctx.beginPath();
             let r = Math.min(width, height) / 3;
@@ -92,10 +94,11 @@ class VisualizerWorker {
             this.ctx.textBaseline = 'middle';
             this.ctx.font = '16px Arial';
             this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
+            this.ctx.clearRect(0, 0, width, height);
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(0, 0, width, height);
         }
     }
-
-    static resize
 }
 
 onmessage = (e) => {
@@ -107,14 +110,13 @@ onmessage = (e) => {
     ctx.webkitImageSmoothingEnabled = false;
     onmessage = (e) => {
         if (e.data[0] == 0) {
-            VisualizerWorker.draw.call({canvas, ctx, ...e.data[1]}, [e.data[2]]);
-            postMessage([]);
+            VisualizerWorker.draw.call({canvas, ctx, ...e.data[1]}, e.data[2]);
+            postMessage([canvas.transferToImageBitmap()]);
         } else if (e.data[0] == 1) {
-            console.log(e.data)
             canvas.width = e.data[1];
             canvas.height = e.data[2];
-            console.log(canvas)
             postMessage([]);
         }
     };
+    postMessage([]);
 };
