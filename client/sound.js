@@ -37,6 +37,7 @@ class Visualizer {
     scale = 1;
     lineWidth = 2;
     ready = false;
+    drawing = false;
     constructor(arrbuf, canvas, oncreate) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
@@ -78,9 +79,12 @@ class Visualizer {
         this.playingSource = null;
     }
     async draw() {
+        if (this.drawing) return;
         await new Promise((resolve, reject) => {
+            this.drawing = true;
             this.worker.onmessage = (e) => {
                 this.ctx.transferFromImageBitmap(e.data[0]);
+                this.drawing = false;
                 resolve();
             };
             if (this.buffer === null) {

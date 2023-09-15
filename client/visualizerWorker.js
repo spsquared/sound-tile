@@ -111,7 +111,8 @@ onmessage = (e) => {
     onmessage = (e) => {
         if (e.data[0] == 0) {
             VisualizerWorker.draw.call({canvas, ctx, ...e.data[1]}, e.data[2]);
-            postMessage([canvas.transferToImageBitmap()]);
+            const bitmap = canvas.transferToImageBitmap();
+            postMessage([bitmap], [bitmap]);
         } else if (e.data[0] == 1) {
             canvas.width = e.data[1];
             canvas.height = e.data[2];
