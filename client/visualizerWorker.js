@@ -102,22 +102,25 @@ class VisualizerWorker {
 }
 
 onmessage = (e) => {
-    // unconventional? maybe
-    // working? sort of
     const canvas = e.data[0];
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
+    postMessage([]);
     onmessage = (e) => {
         if (e.data[0] == 0) {
             VisualizerWorker.draw.call({canvas, ctx, ...e.data[1]}, e.data[2]);
-            const bitmap = canvas.transferToImageBitmap();
-            postMessage([bitmap], [bitmap]);
+            try {
+                const bitmap = canvas.transferToImageBitmap();
+                postMessage([bitmap], [bitmap]);
+            } catch (err) {
+                console.error(err);
+                postMessage([null]);
+            }
         } else if (e.data[0] == 1) {
             canvas.width = e.data[1];
             canvas.height = e.data[2];
             postMessage([]);
         }
     };
-    postMessage([]);
 };

@@ -125,7 +125,7 @@ function exportVideo(container, videoOptions = {codec, width, height, framerate,
             globalVolume.connect(audioStreamGenerator);
             const renderStream = new MediaStream();
             renderStream.addTrack(canvasTrack);
-            renderStream.addTrack(audioTrack);
+            // renderStream.addTrack(audioTrack);
             const recorder = new MediaRecorder(renderStream, {
                 mimeType: `${container};codecs=${videoOptions.codec},${audioOptions.codec}`,
                 videoBitsPerSecond: videoOptions.bitrate,
@@ -133,6 +133,7 @@ function exportVideo(container, videoOptions = {codec, width, height, framerate,
             });
             const streamWriter = canvasTrack.writable.getWriter();
             const frameCount = Math.ceil(Visualizer.duration * videoOptions.framerate);
+            drawVisualizers = false;
             recorder.start();
             for (let frame = 0; frame < frameCount; frame++) {
                 // playback for some duration, account for processing delay
@@ -155,6 +156,7 @@ function exportVideo(container, videoOptions = {codec, width, height, framerate,
             };
             recorder.stop();
             reAttachDisplay();
+            drawVisualizers = true;
         } catch (err) {
             // not the correct way to do this
             reAttachDisplay();

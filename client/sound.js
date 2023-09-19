@@ -24,7 +24,7 @@ class Visualizer {
     rawBuffer = null;
     buffer = null;
     canvas = null;
-    workerCanvas = (Worker !== undefined) ? new (OffscreenCanvas !== undefined ? OffscreenCanvas : HTMLCanvasElement)(0, 0) : null;
+    workerCanvas = (Worker !== undefined) ? new (OffscreenCanvas !== undefined ? OffscreenCanvas : HTMLCanvasElement)(1, 1) : null;
     ctx = null;
     worker = (Worker !== undefined && OffscreenCanvas !== undefined) ? new Worker('./visualizerWorker.js') : null;
     playingSource = null;
@@ -45,7 +45,13 @@ class Visualizer {
         // create new canvas instead to prevent bugs
         this.canvas = canvas;
         if (this.worker !== null) {
-            if (typeof oncreate == 'function') this.worker.onmessage = (e) => oncreate();
+            if (typeof oncreate == 'function') {
+                let res = (e) => {
+                    this.worker.removeEventListener('message', res);
+                    oncreate();
+                };
+                this.worker.addEventListener('message', res);
+            }
             this.worker.postMessage([this.workerCanvas], [this.workerCanvas]);
             this.ctx = canvas.getContext('bitmaprenderer');
         } else {
@@ -83,7 +89,7 @@ class Visualizer {
         await new Promise((resolve, reject) => {
             this.drawing = true;
             this.worker.onmessage = (e) => {
-                this.ctx.transferFromImageBitmap(e.data[0]);
+                if (e.data[0] !== null) this.ctx.transferFromImageBitmap(e.data[0]);
                 this.drawing = false;
                 resolve();
             };
