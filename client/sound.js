@@ -179,6 +179,7 @@ class Visualizer {
     destroy() {
         this.stop();
         this.analyzer.disconnect();
+        if (this.worker) this.worker.terminate();
         Visualizer.#list.delete(this);
         Visualizer.#onUpdate();
     }

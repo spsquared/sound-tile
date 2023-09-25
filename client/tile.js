@@ -812,8 +812,9 @@ window.addEventListener('load', (e) => {
     subgroup.addChild(new VisualizerTile())
     subgroup.addChild(new VisualizerTextTile());
     let subgroup2 = new GroupTile();
-    subgroup2.addChild(new BlankTile);
-    subgroup2.addChild(new ImageTile);
+    subgroup2.addChild(new BlankTile());
+    subgroup2.addChild(new ImageTile());
     subgroup.addChild(subgroup2, 1);
     GroupTile.root.addChild(subgroup, 0);
+    GroupTile.root.refresh();
 });
