@@ -448,12 +448,12 @@ class VisualizerTextTile {
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height - textHeight - 4));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
-            this.canvas.style.transform = `translateY(-${textHeight / 2}px)`;
+            this.canvas.style.top = rect.top + 'px';
             this.canvas2.width = Math.round(rect.width);
             this.canvas2.height = Math.round(textHeight);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
-            this.canvas2.style.transform = `translateY(${(rect.height / 2) - (textHeight / 2)}px)`;
+            this.canvas2.style.bottom = (rect.bottom - rect.height) + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
