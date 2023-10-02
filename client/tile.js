@@ -185,7 +185,7 @@ class GroupTile {
         else this.tile.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
         child.parent = this;
-        this.refresh();
+        GroupTile.root.refresh();
     }
     replaceChild(child, replacement) {
         if (!this.children.includes(child)) return false;
@@ -196,7 +196,7 @@ class GroupTile {
         removed.parent = null;
         removed.tile.remove();
         this.addChild(replacement, index);
-        this.refresh();
+        GroupTile.root.refresh();
         return removed;
     }
     removeChild(child) {
@@ -207,7 +207,7 @@ class GroupTile {
         const removed = this.children.splice(index, 1)[0];
         removed.parent = null;
         removed.tile.remove();
-        this.refresh();
+        GroupTile.root.refresh();
         this.checkObsolescence();
         return removed;
     }
@@ -218,7 +218,6 @@ class GroupTile {
         for (let child of this.children) {
             child.refresh();
         }
-        if (this.parent !== null) this.parent.checkObsolescence();
     }
     checkObsolescence() {
         if (this.parent === null) return;
@@ -427,6 +426,7 @@ class VisualizerTextTile {
         this.ctx2 = this.canvas2.getContext('2d');
         this.ctx2.imageSmoothingEnabled = false;
         this.ctx2.webkitImageSmoothingEnabled = false;
+        this.canvas2.style.bottom = '4px';
         // visualizer controls
         setVisualizerControls.call(this);
         // text controls
@@ -476,7 +476,6 @@ class VisualizerTextTile {
             this.canvas2.height = Math.round(textHeight);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
-            this.canvas2.style.bottom = (rect.bottom - rect.height) + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
@@ -740,6 +739,7 @@ drag.placeholder.tile.querySelector('.tileControls').style.display = 'none';
 function startDrag(e) {
     if (!allowModification || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
     drag.tile = this;
+    drag.placeholder.tile.style.flexGrow = drag.tile.tile.style.flexGrow;
     const rect = this.tile.querySelector('.tileDrag').getBoundingClientRect();
     drag.dragX = e.clientX - rect.left;
     drag.dragY = e.clientY - rect.top;
