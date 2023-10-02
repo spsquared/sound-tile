@@ -86,6 +86,7 @@ if (typeof window.MediaRecorder != 'function') {
     exportButton.title += ' (Not supported by browser)';
 }
 exportButton.onclick = async (e) => {
+    if (!window.confirm('Exporting is a very unfinished feature!!! Screen record playback instead!!!')) return;
     const video = exportVideo('video/x-matroska', {
         codec: 'avc1',
         width: 1920,

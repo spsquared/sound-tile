@@ -119,6 +119,13 @@ function setVisualizerControls() {
         if (visualizerFlip2.checked) this.canvas.classList.add('flippedY');
         else this.canvas.classList.remove('flippedY');
     });
+    const visualizerRotate = this.tile.querySelector('.tileVisualizerRotate');
+    visualizerRotate.addEventListener('click', (e) => {
+        this.visualizer.rotated = visualizerRotate.checked;
+        if (visualizerRotate.checked) this.canvas.classList.add('rotated');
+        else this.canvas.classList.remove('rotated');
+        this.refresh();
+    });
 };
 function applyDefaultTileControls(tile, data) {
     tile.tile.querySelector('.tileBackgroundColor').value = data.backgroundColor;
@@ -151,7 +158,8 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
     if (data.flipped2) tile.tile.querySelector('.tileVisualizerFlip2').click();
-    if (data.visualizer !== null) tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
+    if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
+    tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
 };
 
 class GroupTile {
@@ -249,8 +257,13 @@ class VisualizerTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
-            this.canvas.style.width = rect.width + 'px';
-            this.canvas.style.height = rect.height + 'px';
+            if (this.visualizer !== null && this.visualizer.rotated) {
+                this.canvas.style.width = rect.height + 'px';
+                this.canvas.style.height = rect.width + 'px';
+            } else {
+                this.canvas.style.width = rect.width + 'px';
+                this.canvas.style.height = rect.height + 'px';
+            }
         };
         window.addEventListener('resize', this.#resize);
     }
@@ -340,8 +353,13 @@ class VisualizerImageTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
-            this.canvas.style.width = rect.width + 'px';
-            this.canvas.style.height = rect.height + 'px';
+            if (this.visualizer !== null && this.visualizer.rotated) {
+                this.canvas.style.width = rect.height + 'px';
+                this.canvas.style.height = rect.width + 'px';
+            } else {
+                this.canvas.style.width = rect.width + 'px';
+                this.canvas.style.height = rect.height + 'px';
+            }
             const rect2 = imageContainer.getBoundingClientRect();
             if (rect2.width / rect2.height < this.img.width / this.img.height) {
                 // width restriction
@@ -446,8 +464,13 @@ class VisualizerTextTile {
             let textHeight = this.text.split('\n').length * parseInt(fontSize.value) + 2;
             const rect = canvasContainer.getBoundingClientRect();
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height - textHeight - 4));
-            this.canvas.style.width = rect.width + 'px';
-            this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
+            if (this.visualizer !== null && this.visualizer.rotated) {
+                this.canvas.style.width = (rect.height - textHeight - 2) + 'px';
+                this.canvas.style.height = rect.width + 'px';
+            } else {
+                this.canvas.style.width = rect.width + 'px';
+                this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
+            }
             this.canvas.style.top = rect.top + 'px';
             this.canvas2.width = Math.round(rect.width);
             this.canvas2.height = Math.round(textHeight);
