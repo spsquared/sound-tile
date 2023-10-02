@@ -2,6 +2,17 @@ class VisualizerWorker {
     static draw(data) {
         let width = this.canvas.width;
         let height = this.canvas.height;
+        this.ctx.resetTransform();
+        this.ctx.scale(this.flippedX * -2 + 1, this.flippedY * -2 + 1);
+        this.ctx.translate(this.flippedX * -width, this.flippedY * -height);
+        if (this.rotated) {
+            let w = width;
+            width = height;
+            height = w;
+            this.ctx.rotate(Math.PI / 2);
+            this.ctx.scale(-1, 1);
+            this.ctx.translate(-width, -height);
+        }
         // const gradient = this.ctx.createLinearGradient(0, 0, width, height);
         // for (let i = 0; i <= 18; i++) {
         //     gradient.addColorStop(i / 18, `hsl(${i * 20}, 100%, 50%)`);
@@ -9,6 +20,7 @@ class VisualizerWorker {
         // this.ctx.fillStyle = gradient;
         // this.ctx.fillRect(0, 0, width, height);
         if (data === null) {
+            this.ctx.resetTransform();
             this.ctx.fillStyle = 'white';
             this.ctx.beginPath();
             let r = Math.min(width, height) / 3;

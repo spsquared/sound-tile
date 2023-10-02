@@ -111,20 +111,15 @@ function setVisualizerControls() {
     // more visualizer options
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
     visualizerFlip.addEventListener('click', (e) => {
-        if (visualizerFlip.checked) this.canvas.classList.add('flippedX');
-        else this.canvas.classList.remove('flippedX');
+        if (this.visualizer !== null) this.visualizer.flippedX = visualizerFlip.checked;
     });
     const visualizerFlip2 = this.tile.querySelector('.tileVisualizerFlip2');
     visualizerFlip2.addEventListener('click', (e) => {
-        if (visualizerFlip2.checked) this.canvas.classList.add('flippedY');
-        else this.canvas.classList.remove('flippedY');
+        if (this.visualizer !== null) this.visualizer.flippedY = visualizerFlip2.checked;
     });
     const visualizerRotate = this.tile.querySelector('.tileVisualizerRotate');
     visualizerRotate.addEventListener('click', (e) => {
-        this.visualizer.rotated = visualizerRotate.checked;
-        if (visualizerRotate.checked) this.canvas.classList.add('rotated');
-        else this.canvas.classList.remove('rotated');
-        this.refresh();
+        if (this.visualizer !== null) this.visualizer.rotated = visualizerRotate.checked;
     });
 };
 function applyDefaultTileControls(tile, data) {
@@ -156,8 +151,8 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
-    if (data.flipped) tile.tile.querySelector('.tileVisualizerFlip').click();
-    if (data.flipped2) tile.tile.querySelector('.tileVisualizerFlip2').click();
+    if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
+    if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
     tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
 };
@@ -276,8 +271,6 @@ class VisualizerTile {
         return {
             type: 'v',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flippedX'),
-            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             flex: this.tile.querySelector('.tileFlex').value
         };
@@ -382,8 +375,6 @@ class VisualizerImageTile {
         return {
             type: 'vi',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flippedX'),
-            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             image: this.img.src,
             flex: this.tile.querySelector('.tileFlex').value
@@ -493,8 +484,6 @@ class VisualizerTextTile {
         return {
             type: 'vt',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            flipped: this.canvas.classList.contains('flippedX'),
-            flipped2: this.canvas.classList.contains('flippedY'),
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,

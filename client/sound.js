@@ -36,6 +36,8 @@ class Visualizer {
     barCrop = 1;
     scale = 1;
     lineWidth = 2;
+    flippedX = false;
+    flippedY = false;
     rotated = false;
     ready = false;
     drawing = false;
@@ -114,11 +116,6 @@ class Visualizer {
         });
     }
     resize(w, h) {
-        if (this.rotated) {
-            let a = h;
-            h = w;
-            w = a;
-        }
         if (this.worker !== null) this.worker.postMessage([1, w, h]);
         else {
             this.canvas.width = w;
@@ -132,7 +129,10 @@ class Visualizer {
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             scale: this.scale,
-            lineWidth: this.lineWidth
+            lineWidth: this.lineWidth,
+            flippedX: this.flippedX,
+            flippedY: this.flippedY,
+            rotated: this.rotated
         };
     }
 
@@ -166,6 +166,8 @@ class Visualizer {
             barCrop: this.barCrop,
             scale: this.scale,
             lineWidth: this.lineWidth,
+            flippedX: this.flippedX,
+            flippedY: this.flippedY,
             rotated: this.rotated,
             volume: this.gain.gain.value
         };
@@ -180,6 +182,8 @@ class Visualizer {
         visualizer.barCrop = data.barCrop;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
+        visualizer.flippedX = data.flippedX ?? false;
+        visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;
         visualizer.volume = data.volume ?? 1;
         return visualizer;
