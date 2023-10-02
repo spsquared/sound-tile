@@ -34,7 +34,7 @@ class VisualizerWorker {
             this.ctx.resetTransform();
         } else if (this.mode == 0) {
             this.ctx.fillStyle = this.color;
-            let croppedFreq = data.length * this.barCrop;
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
@@ -45,7 +45,7 @@ class VisualizerWorker {
             }
         } else if (this.mode == 1) {
             this.ctx.fillStyle = this.color;
-            let croppedFreq = data.length * this.barCrop;
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / croppedFreq);
             let barWidth = barSpace * this.barWidthPercent;
             let barShift = (barSpace - barWidth) / 2;
@@ -58,7 +58,7 @@ class VisualizerWorker {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
-            let croppedFreq = data.length * this.barCrop;
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
@@ -73,7 +73,7 @@ class VisualizerWorker {
             this.ctx.fillStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
-            let croppedFreq = data.length * this.barCrop;
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
