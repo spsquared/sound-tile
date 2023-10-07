@@ -340,6 +340,11 @@ class VisualizerImageTile {
                 reader.readAsDataURL(imageReplace.files[0]);
             }
         });
+        const imageSmoothing = this.tile.querySelector('.tileImgSmoothing');
+        imageSmoothing.addEventListener('click', (e) => {
+            if (imageSmoothing.checked) this.img.style.imageRendering = 'auto';
+            else this.img.style.imageRendering = 'pixelated';
+        });
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
@@ -377,6 +382,7 @@ class VisualizerImageTile {
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             image: this.img.src,
+            smoothing: this.tile.querySelector('.tileImgSmoothing').checked,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -391,6 +397,7 @@ class VisualizerImageTile {
             tile.img.src = data.image;
             tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
         }
+        if (data.smoothing === false) tile.tile.querySelector('.tileImgSmoothing').click();
         return tile;
     };
     destroy() {
@@ -551,6 +558,11 @@ class ImageTile {
                 reader.readAsDataURL(imageReplace.files[0]);
             }
         });
+        const imageSmoothing = this.tile.querySelector('.tileImgSmoothing');
+        imageSmoothing.addEventListener('click', (e) => {
+            if (imageSmoothing.checked) this.img.style.imageRendering = 'auto';
+            else this.img.style.imageRendering = 'pixelated';
+        });
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = imageContainer.getBoundingClientRect();
@@ -577,6 +589,7 @@ class ImageTile {
             type: 'i',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
             image: this.img.src,
+            smoothing: this.tile.querySelector('.tileImgSmoothing').checked,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -587,6 +600,7 @@ class ImageTile {
             tile.img.src = data.image;
             tile.tile.querySelector('.tileImgUploadCover').remove();
         }
+        if (data.smoothing === false) tile.tile.querySelector('.tileImgSmoothing').click();
         return tile;
     };
     destroy() {
