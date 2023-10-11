@@ -251,13 +251,8 @@ class VisualizerTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
-            if (this.visualizer !== null && this.visualizer.rotated) {
-                this.canvas.style.width = rect.height + 'px';
-                this.canvas.style.height = rect.width + 'px';
-            } else {
-                this.canvas.style.width = rect.width + 'px';
-                this.canvas.style.height = rect.height + 'px';
-            }
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = rect.height + 'px';
         };
         window.addEventListener('resize', this.#resize);
     }

@@ -147,7 +147,7 @@ img {
 
 #dropdown {
     display: flex;
-    position: absolute;
+    position: fixed;
     top: 0px;
     left: 0px;
     width: 100vw;
@@ -493,6 +493,7 @@ img {
     flex-grow: 1;
     padding: 8px 8px;
     border: 2px solid white;
+    box-sizing: border-box;
 }
 
 .tileDrag {
@@ -673,7 +674,7 @@ img {
 /* drag */
 #draggingContainer {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0px;
     left: 0px;
     width: 0px;
