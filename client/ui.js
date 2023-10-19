@@ -202,6 +202,7 @@ createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
+// 
 
 // tree editor
 

@@ -4,8 +4,6 @@ const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemp
 function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
-    this.tile.addEventListener('mouseover', (e) => { if (drag.tile !== this) drag.hoverTile = this; });
-    this.tile.addEventListener('mouseleave', (e) => { if (drag.hoverTile === this) drag.hoverTile = null; });
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
@@ -719,20 +717,27 @@ display.appendChild(GroupTile.root.tile);
 
 const drag = {
     container: document.getElementById('draggingContainer'),
+    layoutPreview: document.getElementById('draggingLayoutPreview'),
     tile: null,
     dragX: 0,
     dragY: 0,
-    hoverTile: null,
-    placeholder: new BlankTile(),
+    drop: {
+        tile: null,
+        index: 0,
+        createGroup: false,
+        groupOrientation: 0
+    },
+    from: {
+        tile: null,
+        index: 0
+    },
     dragging: false
 };
-drag.placeholder.tile.style.backgroundColor = 'gray';
-drag.placeholder.tile.querySelector('.tileDrag').style.display = 'none';
-drag.placeholder.tile.querySelector('.tileControls').style.display = 'none';
 function startDrag(e) {
     if (!allowModification || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
     drag.tile = this;
-    drag.placeholder.tile.style.flexGrow = drag.tile.tile.style.flexGrow;
+    drag.from.tile = this.parent;
+    drag.from.index = this.parent.getChildIndex(this);
     const rect = this.tile.querySelector('.tileDrag').getBoundingClientRect();
     drag.dragX = e.clientX - rect.left;
     drag.dragY = e.clientY - rect.top;
@@ -743,78 +748,144 @@ function startDrag(e) {
     drag.container.style.height = rect2.height + 'px';
     this.parent.removeChild(this);
     drag.container.appendChild(this.tile);
-    drag.container.style.display = 'flex';
-    document.body.style.cursor = 'grabbing';
+    drag.layoutPreview.style.display = 'flex';
     drag.dragging = true;
 };
 document.addEventListener('mousemove', (e) => {
     if (drag.dragging) {
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
-        if (drag.hoverTile !== null) {
-            // prevent infinite grouping if hovered over the placeholder
-            if (drag.hoverTile !== drag.placeholder) {
-                if (drag.placeholder.parent) drag.placeholder.parent.removeChild(drag.placeholder);
-                const parent = drag.hoverTile.parent;
-                const rect = drag.hoverTile.tile.getBoundingClientRect();
-                let topDist = e.clientY - rect.top;
-                let bottomDist = (rect.top + rect.height) - e.clientY;
-                let leftDist = e.clientX - rect.left;
-                let rightDist = (rect.left + rect.width) - e.clientX;
-                let groupThreshhold = Math.min(rect.width, rect.height);
-                switch (Math.min(topDist, bottomDist, leftDist, rightDist)) {
-                    case topDist:
-                        if (topDist > 0.2 * groupThreshhold || !parent.orientation) {
-                            const group = new GroupTile(true);
-                            parent.replaceChild(drag.hoverTile, group);
-                            group.addChild(drag.placeholder);
-                            group.addChild(drag.hoverTile);
-                        } else {
-                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
-                        }
+        let currTile = GroupTile.root;
+        for (let child of currTile.children) {
+            const rect2 = child.tile.getBoundingClientRect();
+            if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
+                currTile = child;
+            }
+        }
+        let simulateLayout = (tile, index, createGroup, groupOrientation) => {
+            // create copy of tile layout and add a placeholder tile to tile at index
+            // createGroup = make a new group at tile and put the placeholder at index
+            if (createGroup) drag.drop.tile = tile;
+            else drag.drop.tile = tile.parent;
+            drag.drop.index = index;
+            drag.drop.createGroup = createGroup;
+            drag.drop.groupOrientation = groupOrientation;
+            console.log(drag.drop)
+            let rec = (group, div) => {
+                for (let i in group.children) {
+                    const child = group.children[i];
+                    const tdiv = document.createElement('div');
+                    tdiv.classList.add('pTile');
+                    tdiv.style.flexGrow = child.tile.flexGrow;
+                    if (group == drag.drop.tile && !drag.drop.createGroup && i == drag.drop.index) {
+                        const ddiv = document.createElement('div');
+                        ddiv.classList.add('pTile');
+                        ddiv.classList.add('pTileDrop');
+                        ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
+                        div.appendChild(ddiv);
+                    }
+                    if (child.children !== undefined) {
+                        if (child.orientation) tdiv.classList.add('pTileVertical');
+                        rec(child, tdiv);
+                    }
+                    if (drag.drop.createGroup && child == drag.drop.tile) {
+                        const gdiv = document.createElement('div');
+                        gdiv.classList.add('pTile');
+                        if (drag.drop.groupOrientation) gdiv.classList.add('pTileVertical');
+                        if (drag.drop.index == 1) gdiv.appendChild(tdiv);
+                        const ddiv = document.createElement('div');
+                        ddiv.classList.add('pTile');
+                        ddiv.classList.add('pTileDrop');
+                        ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
+                        if (drag.drop.index == 1) gdiv.appendChild(tdiv);
+                        gdiv.appendChild(ddiv);
+                        if (drag.drop.index == 0) gdiv.appendChild(tdiv);
+                        div.appendChild(gdiv);
+                    } else div.appendChild(tdiv);
+                }
+                if (group == drag.drop.tile && !drag.drop.createGroup && drag.drop.index == group.children.length) {
+                    const ddiv = document.createElement('div');
+                    ddiv.classList.add('pTile');
+                    ddiv.classList.add('pTileDrop');
+                    ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
+                    ddiv.appendChild(ddiv);
+                }
+            };
+            drag.layoutPreview.innerHTML = '';
+            drag.layoutPreview.style.opacity = '1';
+            rec(GroupTile.root, drag.layoutPreview);
+        };
+        traverse: while (true) {
+            const rect = currTile.tile.getBoundingClientRect();
+            let relX = e.clientX - rect.left;
+            let relY = e.clientY - rect.top;
+            if (relX >= 0 && relX <= rect.width && relY >= 0 && relY <= rect.height) {
+                const parent = currTile.parent;
+                // box is too big for large tiles
+                let halfBoxWidth = Math.min(12 * Math.log(rect.width + 1), rect.width * 0.6);
+                let halfBoxHeight = Math.min(12 * Math.log(rect.height + 1), rect.height * 0.6);
+                let halfWidth = rect.width / 2;
+                let halfHeight = rect.height / 2;
+                if (relY < rect.height * 0.3 && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
+                    if (parent.orientation == 1 && relY < rect.height * 0.15) {
+                        simulateLayout(currTile, parent.getChildIndex(currTile), false);
                         break;
-                    case bottomDist:
-                        if (bottomDist > 0.2 * groupThreshhold || !parent.orientation) {
-                            const group = new GroupTile(true);
-                            parent.replaceChild(drag.hoverTile, group);
-                            group.addChild(drag.hoverTile);
-                            group.addChild(drag.placeholder);
-                        } else {
-                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
-                        }
+                    } else {
+                        simulateLayout(currTile, 0, true, 1);
                         break;
-                    case leftDist:
-                        if (leftDist > 0.2 * groupThreshhold || parent.orientation) {
-                            const group = new GroupTile(false);
-                            parent.replaceChild(drag.hoverTile, group);
-                            group.addChild(drag.placeholder);
-                            group.addChild(drag.hoverTile);
-                        } else {
-                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile));
-                        }
+                    }
+                } else if (relY > rect.height * 0.7 && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
+                    if (parent.orientation == 1 && relY > rect.height * 0.85) {
+                        simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                         break;
-                    case rightDist:
-                        if (rightDist > 0.2 * groupThreshhold || parent.orientation) {
-                            const group = new GroupTile(false);
-                            parent.replaceChild(drag.hoverTile, group);
-                            group.addChild(drag.hoverTile);
-                            group.addChild(drag.placeholder);
-                        } else {
-                            parent.addChild(drag.placeholder, parent.getChildIndex(drag.hoverTile) + 1);
-                        }
+                    } else {
+                        simulateLayout(currTile, 1, true, 1);
                         break;
+                    }
+                } else if (relX < rect.width * 0.3 && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
+                    if (parent.orientation == 0 && relX < rect.width * 0.15) {
+                        simulateLayout(currTile, parent.getChildIndex(currTile), false);
+                        break;
+                    } else {
+                        simulateLayout(currTile, 0, true, 0);
+                        break;
+                    }
+                } else if (relX > rect.width * 0.7 && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
+                    if (parent.orientation == 0 && relX > rect.width * 0.85) {
+                        simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
+                        break;
+                    } else {
+                        simulateLayout(currTile, 1, true, 0);
+                        break;
+                    }
                 }
             }
-        } else if (drag.placeholder.parent !== null) {
-            drag.placeholder.parent.removeChild(drag.placeholder);
+            drag.drop.tile = null;
+            drag.layoutPreview.innerHTML = '';
+            if (currTile instanceof GroupTile) for (let child of currTile.children) {
+                const rect2 = child.tile.getBoundingClientRect();
+                if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
+                    currTile = child;
+                    continue traverse;
+                }
+            }
+            break;
         }
     }
 });
 document.addEventListener('mouseup', (e) => {
-    if (drag.dragging && drag.placeholder.parent !== null) {
-        drag.placeholder.parent.replaceChild(drag.placeholder, drag.tile);
-        drag.container.style.display = '';
-        document.body.style.cursor = '';
+    if (drag.dragging && drag.drop.tile !== null) {
+        if (drag.drop.createGroup) {
+            const newGroup = new GroupTile(drag.drop.groupOrientation);
+            const parent = drag.drop.tile.parent;
+            parent.replaceChild(drag.drop.tile, newGroup);
+            newGroup.addChild(drag.drop.tile);
+            newGroup.addChild(drag.tile, drag.drop.index);
+        }
+        drag.drop.tile = null;
+        drag.layoutPreview.innerHTML = '';
+        drag.layoutPreview.style.display = 'none';
+        drag.container.innerHTML = '';
         drag.tile = null;
         drag.dragging = false;
     }

@@ -673,7 +673,6 @@ img {
 
 /* drag */
 #draggingContainer {
-    display: none;
     position: fixed;
     top: 0px;
     left: 0px;
@@ -682,6 +681,45 @@ img {
     opacity: 0.5;
     pointer-events: none;
     z-index: 998;
+}
+#draggingLayoutPreview {
+    display: none;
+    align-items: stretch;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: calc(100vw - 4px);
+    height: calc(100vh - 4px);
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: 200ms linear opacity;
+    opacity: 0;
+    overflow: hidden;
+    cursor: grabbing;
+    z-index: 996;
+}
+.pTile {
+    display: flex;
+    flex-grow: 1;
+    border: 2px solid white;
+}
+.pTile:empty {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+.pTileDrop {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+}
+.pTileVertical {
+    flex-direction: column;
+}
+
+/* tree editor */
+#treeEditor {
+    display: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
 }
 
 /* export */
