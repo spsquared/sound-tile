@@ -190,8 +190,7 @@ function createTileSource(tileClass, img, alt) {
         drag.container.style.width = rect.width + 'px';
         drag.container.style.height = rect.height + 'px';
         drag.container.appendChild(tile.tile);
-        drag.container.style.display = 'flex';
-        document.body.style.cursor = 'grabbing';
+        drag.layoutPreview.style.display = 'flex';
         drag.dragging = true;
     });
     tileSourceContainer.appendChild(source);

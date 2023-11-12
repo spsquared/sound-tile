@@ -770,7 +770,6 @@ document.addEventListener('mousemove', (e) => {
             drag.drop.index = index;
             drag.drop.createGroup = createGroup;
             drag.drop.groupOrientation = groupOrientation;
-            console.log(drag.drop)
             let rec = (group, div) => {
                 for (let i in group.children) {
                     const child = group.children[i];
@@ -881,6 +880,8 @@ document.addEventListener('mouseup', (e) => {
             parent.replaceChild(drag.drop.tile, newGroup);
             newGroup.addChild(drag.drop.tile);
             newGroup.addChild(drag.tile, drag.drop.index);
+        } else {
+            drag.drop.tile.addChild(drag.tile, drag.drop.index);
         }
         drag.drop.tile = null;
         drag.layoutPreview.innerHTML = '';
