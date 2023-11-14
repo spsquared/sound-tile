@@ -30,7 +30,7 @@ class Visualizer {
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     gain = audioContext.createGain();
-    color = 'white';
+    color = '#ffffff';
     mode = 0;
     barWidthPercent = 0.80;
     barCrop = 1;

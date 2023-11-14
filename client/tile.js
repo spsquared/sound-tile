@@ -218,6 +218,7 @@ class GroupTile {
         if (this.children.length === 1) {
             let parent = this.parent;
             parent.replaceChild(this, this.children[0]);
+            if (this.children[0] instanceof GroupTile) this.children[0].checkObsolescence();
             this.children = [];
             this.destroy();
             parent.checkObsolescence();
@@ -752,6 +753,7 @@ function startDrag(e) {
     drag.dragging = true;
 };
 document.addEventListener('mousemove', (e) => {
+    // CHANGE TO BOTTOM-UP SEARCH WHERE NODES LOWER IN THE TREE ARE PRIORITIZED
     if (drag.dragging) {
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
@@ -774,8 +776,9 @@ document.addEventListener('mousemove', (e) => {
                 for (let i in group.children) {
                     const child = group.children[i];
                     const tdiv = document.createElement('div');
-                    tdiv.classList.add('pTile');
-                    tdiv.style.flexGrow = child.tile.flexGrow;
+                    if (child.children !== undefined) tdiv.classList.add('pGroupTile');
+                    else tdiv.classList.add('pTile');
+                    tdiv.style.flexGrow = child.tile.style.flexGrow;
                     if (group == drag.drop.tile && !drag.drop.createGroup && i == drag.drop.index) {
                         const ddiv = document.createElement('div');
                         ddiv.classList.add('pTile');
@@ -784,13 +787,13 @@ document.addEventListener('mousemove', (e) => {
                         div.appendChild(ddiv);
                     }
                     if (child.children !== undefined) {
-                        if (child.orientation) tdiv.classList.add('pTileVertical');
+                        if (child.orientation) tdiv.classList.add('pGroupTileVertical');
                         rec(child, tdiv);
                     }
                     if (drag.drop.createGroup && child == drag.drop.tile) {
                         const gdiv = document.createElement('div');
-                        gdiv.classList.add('pTile');
-                        if (drag.drop.groupOrientation) gdiv.classList.add('pTileVertical');
+                        gdiv.classList.add('pGroupTile');
+                        if (drag.drop.groupOrientation) gdiv.classList.add('pGroupTileVertical');
                         if (drag.drop.index == 1) gdiv.appendChild(tdiv);
                         const ddiv = document.createElement('div');
                         ddiv.classList.add('pTile');
@@ -820,37 +823,36 @@ document.addEventListener('mousemove', (e) => {
             let relY = e.clientY - rect.top;
             if (relX >= 0 && relX <= rect.width && relY >= 0 && relY <= rect.height) {
                 const parent = currTile.parent;
-                // box is too big for large tiles
                 let halfBoxWidth = Math.min(12 * Math.log(rect.width + 1), rect.width * 0.6);
                 let halfBoxHeight = Math.min(12 * Math.log(rect.height + 1), rect.height * 0.6);
                 let halfWidth = rect.width / 2;
                 let halfHeight = rect.height / 2;
-                if (relY < rect.height * 0.3 && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
-                    if (parent.orientation == 1 && relY < rect.height * 0.15) {
+                if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
+                    if (parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
                         simulateLayout(currTile, parent.getChildIndex(currTile), false);
                         break;
                     } else {
                         simulateLayout(currTile, 0, true, 1);
                         break;
                     }
-                } else if (relY > rect.height * 0.7 && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
-                    if (parent.orientation == 1 && relY > rect.height * 0.85) {
+                } else if (relY > rect.height - halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
+                    if (parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
                         simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                         break;
                     } else {
                         simulateLayout(currTile, 1, true, 1);
                         break;
                     }
-                } else if (relX < rect.width * 0.3 && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent.orientation == 0 && relX < rect.width * 0.15) {
+                } else if (relX < halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
+                    if (parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
                         simulateLayout(currTile, parent.getChildIndex(currTile), false);
                         break;
                     } else {
                         simulateLayout(currTile, 0, true, 0);
                         break;
                     }
-                } else if (relX > rect.width * 0.7 && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent.orientation == 0 && relX > rect.width * 0.85) {
+                } else if (relX > rect.width - halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
+                    if (parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
                         simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                         break;
                     } else {

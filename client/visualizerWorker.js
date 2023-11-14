@@ -36,7 +36,7 @@ class VisualizerWorker {
             this.ctx.fillStyle = this.color;
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / croppedFreq);
-            let barWidth = barSpace * this.barWidthPercent;
+            let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
             let yScale = height / 256;
             for (let i = 0; i < croppedFreq; i++) {

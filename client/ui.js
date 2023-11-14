@@ -46,9 +46,7 @@ uploadButton.oninput = (e) => {
                 }
             };
             GroupTile.root.addChild(dfs(tree.root));
-            const nestingFix = new BlankTile();
-            GroupTile.root.addChild(nestingFix);
-            GroupTile.root.removeChild(nestingFix);
+            GroupTile.root.checkObsolescence();
             setTimeout(() => GroupTile.root.refresh(), 0);
         };
         reader.readAsArrayBuffer(uploadButton.files[0]);
@@ -201,9 +199,9 @@ createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
-// 
 
 // tree editor
+// edit flex grow of group tiles
 
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
