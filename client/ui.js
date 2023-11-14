@@ -2,6 +2,7 @@
 
 // upload/download
 const uploadButton = document.getElementById('uploadButton');
+const downloadButton = document.getElementById('downloadButton');
 uploadButton.oninput = (e) => {
     if (allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         const reader = new FileReader();
@@ -53,7 +54,7 @@ uploadButton.oninput = (e) => {
         uploadButton.value = '';
     }
 };
-document.getElementById('downloadButton').onclick = (e) => {
+downloadButton.onclick = (e) => {
     const tree = {
         version: 0,
         root: dfs(GroupTile.root)
@@ -205,29 +206,41 @@ createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
-document.addEventListener('keypress', (e) => {
-    if (e.target.matches('input[type=text]') || (e.target.matches('input[type=number]') && (!isNaN(parseInt(e.key)) || e.key == '.')) || e.target.matches('textarea')) return;
-    if (e.target.matches('input')) e.target.blur();
-    const key = e.key.toLowerCase();
-    if (key == ' ' || key == 'p') {
-        e.preventDefault();
-        playButton.click();
-    } else if (key == 'h') {
-        e.preventDefault();
-        dropdownButton.click();
-        if (e.shiftKey) dropdownButton.classList.toggle('hidden');
-    }
-});
 document.addEventListener('keydown', (e) => {
     if (e.target.matches('input[type=text]') || e.target.matches('input[type=number]')|| e.target.matches('textarea')) return;
     if (e.target.matches('input')) e.target.blur();
     const key = e.key.toLowerCase();
-    if (key == 'arrowleft') {
-        e.preventDefault();
-        mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
-    } else if (key == 'arrowright') {
-        e.preventDefault();
-        mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
+    switch (key) {
+        case 'arrowleft':
+            e.preventDefault();
+            mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
+            break;
+        case 'arrowright':
+            e.preventDefault();
+            mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
+            break;
+        case ' ':
+        case 'p':
+            e.preventDefault();
+            playButton.click();
+            break;
+        case 'h':
+            e.preventDefault();
+            dropdownButton.click();
+            if (e.shiftKey) dropdownButton.classList.toggle('hidden');
+            break;
+        case 's':
+            if (e.ctrlKey) {
+                e.preventDefault();
+                downloadButton.click();
+            }
+            break;
+        case 'o':
+            if (e.ctrlKey) {
+                e.preventDefault();
+                uploadButton.click();
+            }
+            break;
     }
 });
 

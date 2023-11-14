@@ -192,6 +192,8 @@ class Visualizer {
         this.stop();
         this.analyzer.disconnect();
         if (this.worker) this.worker.terminate();
+        this.buffer = null;
+        this.rawBuffer = null;
         Visualizer.#list.delete(this);
         Visualizer.#onUpdate();
     }

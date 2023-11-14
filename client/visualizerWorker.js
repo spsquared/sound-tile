@@ -20,7 +20,6 @@ class VisualizerWorker {
         // this.ctx.fillStyle = gradient;
         // this.ctx.fillRect(0, 0, width, height);
         if (data === null) {
-            this.ctx.resetTransform();
             this.ctx.fillStyle = 'white';
             this.ctx.beginPath();
             let r = Math.min(width, height) / 3;
