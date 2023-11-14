@@ -239,4 +239,7 @@ async function startDraw() {
         });
     }
 };
+document.addEventListener('visibilitychange', (e) => {
+    drawVisualizers = !document.hidden;
+});
 startDraw();
