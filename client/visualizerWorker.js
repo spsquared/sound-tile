@@ -99,6 +99,25 @@ class VisualizerWorker {
                 this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
             }
             this.ctx.stroke();
+        } else if (this.mode == 5) {
+            let peaks = [];
+            for (let channel of data) {
+                // oof slow
+                let max = 0;
+                for (let i = 0; i < channel.length; i++) {
+                    if (channel[i] > max) max = channel[i];
+                }
+                peaks.push(max);                
+            }
+            this.ctx.fillStyle = this.color;
+            let barSpace = (width / peaks.length);
+            let barWidth = Math.max(1, barSpace * this.barWidthPercent);
+            let barShift = (barSpace - barWidth) / 2;
+            let yScale = height / 256;
+            for (let i = 0; i < peaks.length; i++) {
+                let barHeight = (peaks[i] + 1) * yScale;
+                this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
+            }
         } else {
             this.ctx.fillStyle = 'red';
             this.ctx.textAlign = 'center';

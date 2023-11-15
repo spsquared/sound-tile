@@ -190,7 +190,7 @@ class Visualizer {
     }
     destroy() {
         this.stop();
-        this.analyzer.disconnect();
+        if (this.analyzer) this.analyzer.disconnect();
         if (this.worker) this.worker.terminate();
         this.buffer = null;
         this.rawBuffer = null;
@@ -217,14 +217,112 @@ class Visualizer {
         return duration;
     }
 
-    static #onUpdate = () => {};
+    static #onUpdate = () => { };
     static set onUpdate(cb) {
         if (typeof cb !== 'function') throw new TypeError('"cb" is not a function');
         Visualizer.#onUpdate = () => cb();
     }
-    
+
     static destroyAll() {
         Visualizer.#list.forEach(visualizer => visualizer.destroy());
+    }
+}
+class ChannelPeakVisualizer extends Visualizer {
+    splitter = audioContext.createChannelSplitter(2);
+    analyzers = [];
+    
+    constructor(arrbuf, canvas, oncreate) {
+        super(arrbuf, canvas, oncreate);
+        this.mode = 5;
+        delete this.barCrop;
+        delete this.scale;
+        delete this.lineWidth;
+        this.analyzer.disconnect();
+        delete this.analyzer;
+        this.channelCount = 2;
+        this.gain.connect(globalVolume);
+    }
+    async draw() {
+        if (this.drawing) return;
+        await new Promise((resolve, reject) => {
+            this.drawing = true;
+            this.worker.onmessage = (e) => {
+                if (e.data[0] !== null) this.ctx.transferFromImageBitmap(e.data[0]);
+                this.drawing = false;
+                resolve();
+            };
+            if (this.buffer === null) {
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
+                else VisualizerWorker.draw.call(this, data);
+            } else {
+                const dataArr = [];
+                for (let i = 0; i < this.analyzers.length; i++) {
+                    const data = new Uint8Array(this.analyzers[i].frequencyBinCount);
+                    this.analyzers[i].getByteFrequencyData(data);
+                    dataArr.push(data);
+                }
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, dataArr], [...dataArr.map(arr => arr.buffer)]);
+                else VisualizerWorker.draw.call(this, data);
+            }
+        });
+    }
+    get #workerData() {
+        return {
+            color: this.color,
+            mode: this.mode,
+            barWidthPercent: this.barWidthPercent,
+            flippedX: this.flippedX,
+            flippedY: this.flippedY,
+            rotated: this.rotated
+        };
+    }
+
+    set channelCount(c) {
+        this.splitter.disconnect();
+        this.splitter = audioContext.createChannelSplitter(c);
+        for (let a of this.analyzers) a.disconnect();
+        this.analyzers = [];
+        for (let i = 0; i < c; i++) {
+            const analyzer = audioContext.createAnalyser();
+            this.splitter.connect(analyzer, i);
+            this.analyzers.push(analyzer);
+        }
+        this.gain.connect(this.splitter);
+    }
+    get channelCount() {
+        return this.analyzers.length;
+    }
+    set smoothingTimeConstant(c) { }
+    get smoothingTimeConstant() { }
+    set fftSize(size) { }
+    get fftSize() { }
+
+    getData() {
+        return {
+            buffer: this.rawBuffer,
+            color: this.color,
+            channelCount: this.channelCount,
+            barWidthPercent: this.barWidthPercent,
+            flippedX: this.flippedX,
+            flippedY: this.flippedY,
+            rotated: this.rotated,
+            volume: this.gain.gain.value
+        };
+    }
+    static fromData(data, canvas) {
+        const visualizer = new ChannelPeakVisualizer(data.buffer, canvas);
+        visualizer.color = data.color;
+        visualizer.channelCount = data.channelCount;
+        visualizer.barWidthPercent = data.barWidthPercent;
+        visualizer.flippedX = data.flippedX ?? false;
+        visualizer.flippedY = data.flippedY ?? false;
+        visualizer.rotated = data.rotated ?? false;
+        visualizer.volume = data.volume ?? 1;
+        return visualizer;
+    }
+    destroy() {
+        for (let a of this.analyzers) a.disconnect();
+        super.destroy();
     }
 }
 

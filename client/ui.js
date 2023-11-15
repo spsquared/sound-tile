@@ -32,6 +32,8 @@ uploadButton.oninput = (e) => {
                             return VisualizerImageTile.fromData(treenode);
                         case 'vt':
                             return VisualizerTextTile.fromData(treenode);
+                        case 'cp':
+                            return ChannelPeakTile.fromData(treenode);
                         case 'i':
                             return ImageTile.fromData(treenode);
                         case 't':
@@ -199,6 +201,7 @@ createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
 createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer tile');
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
+createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel peak tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // tree editor

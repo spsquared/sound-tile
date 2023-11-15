@@ -170,7 +170,7 @@ class GroupTile {
     }
 
     addChild(child, index = this.children.length) {
-        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, or another GroupTile');
+        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ChannelPeakTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
         if (child.parent !== null) child.parent.removeChild(child);
@@ -500,6 +500,117 @@ class VisualizerTextTile {
         tile.tile.querySelector('.tileTextSize').value = data.fontSize;
         tile.tile.querySelector('.tileTextAlign').value = data.textAlign;
         tile.tile.querySelector('.tileTextColor').value = data.textColor;
+        return tile;
+    };
+    destroy() {
+        if (this.visualizer) this.visualizer.destroy();
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
+class ChannelPeakTile {
+    static #template = document.getElementById('channelPeakTileTemplate');
+
+    parent = null;
+    tile = null;
+    canvas = null;
+    ctx = null;
+    visualizer = null;
+    constructor() {
+        this.tile = ChannelPeakTile.#template.content.cloneNode(true).children[0];
+        setDefaultTileControls.call(this);
+        this.canvas = this.tile.querySelector('.tileCanvas');
+        this.canvas.width = 500;
+        this.canvas.height = 500;
+        // visualizer controls
+        // audio controls
+        const audioUpload = this.tile.querySelector('.tileSourceUpload');
+        audioUpload.addEventListener('change', async (e) => {
+            if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
+                this.visualizer = new ChannelPeakVisualizer(await audioUpload.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+                this.tile.querySelector('.tileSourceUploadCover').remove();
+            }
+        });
+        const audioReplace = this.tile.querySelector('.tileAudioReplace');
+        audioReplace.addEventListener('change', async (e) => {
+            if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
+                this.visualizer.destroy();
+                this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+                this.visualizer.color = colorSelect.value;
+                this.visualizer.volume = parseInt(volumeInput.value) / 100;
+                audioReplace.value = '';
+            }
+        });
+        // volume controls
+        const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
+        const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
+        volumeInput.oninput = (e) => {
+            if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
+            volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 120);
+            volumeInput.title = volumeInput.value + '%';
+        };
+        volumeInput.addEventListener('wheel', (e) => {
+            volumeInput.value = parseInt(volumeInput.value) - Math.round(e.deltaY / 20);
+            volumeInput.oninput();
+        }, { passive: true });
+        // visualizer options
+        const colorSelect = this.tile.querySelector('.tileVisualizerColor');
+        colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+        // actual options that arent copied from somewhere else
+        const channelPeakChannels = this.tile.querySelector('.tileChannelPeakChannels');
+        channelPeakChannels.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.channelCount = parseInt(channelPeakChannels.value);
+        });
+        // bar options
+        const channelPeakBarWidth = this.tile.querySelector('.tileChannelPeakBarWidth');
+        channelPeakBarWidth.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
+        });
+        // more visualizer options
+        const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
+        visualizerFlip.addEventListener('click', (e) => {
+            if (this.visualizer !== null) this.visualizer.flippedX = visualizerFlip.checked;
+        });
+        const visualizerFlip2 = this.tile.querySelector('.tileVisualizerFlip2');
+        visualizerFlip2.addEventListener('click', (e) => {
+            if (this.visualizer !== null) this.visualizer.flippedY = visualizerFlip2.checked;
+        });
+        const visualizerRotate = this.tile.querySelector('.tileVisualizerRotate');
+        visualizerRotate.addEventListener('click', (e) => {
+            if (this.visualizer !== null) this.visualizer.rotated = visualizerRotate.checked;
+        });
+        const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
+        this.#resize = () => {
+            const rect = canvasContainer.getBoundingClientRect();
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = rect.height + 'px';
+        };
+        window.addEventListener('resize', this.#resize);
+    }
+
+    #resize = () => { }
+    refresh() {
+        this.#resize();
+    }
+
+    getData() {
+        return {
+            type: 'cp',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            flex: this.tile.querySelector('.tileFlex').value
+        };
+    }
+    static fromData(data) {
+        const tile = new ChannelPeakTile();
+        applyDefaultTileControls(tile, data);
+        if (data.visualizer !== null) {
+            tile.tile.querySelector('.tileChannelPeakChannels').value = data.visualizer.channelCount;
+            tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent;
+            tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
+            tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
+            tile.tile.querySelector('.tileSourceUploadCover').remove();
+        }
         return tile;
     };
     destroy() {
@@ -875,7 +986,7 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 document.addEventListener('mouseup', (e) => {
-    if (drag.dragging && drag.drop.tile !== null) {
+    if (drag.dragging) {
         if (drag.drop.createGroup) {
             const newGroup = new GroupTile(drag.drop.groupOrientation);
             const parent = drag.drop.tile.parent;
@@ -906,5 +1017,4 @@ window.addEventListener('load', (e) => {
     subgroup2.addChild(new ImageTile());
     subgroup.addChild(subgroup2, 1);
     GroupTile.root.addChild(subgroup, 0);
-    GroupTile.root.refresh();
 });
