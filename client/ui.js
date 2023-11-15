@@ -210,7 +210,7 @@ createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
 document.addEventListener('keydown', (e) => {
-    if (e.target.matches('input[type=text]') || e.target.matches('input[type=number]')|| e.target.matches('textarea')) return;
+    if (e.target.matches('input[type=text]') || e.target.matches('input[type=number]') || e.target.matches('textarea')) return;
     if (e.target.matches('input')) e.target.blur();
     const key = e.key.toLowerCase();
     switch (key) {

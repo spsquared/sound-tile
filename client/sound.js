@@ -230,7 +230,7 @@ class Visualizer {
 class ChannelPeakVisualizer extends Visualizer {
     splitter = audioContext.createChannelSplitter(2);
     analyzers = [];
-    
+
     constructor(arrbuf, canvas, oncreate) {
         super(arrbuf, canvas, oncreate);
         this.mode = 5;
@@ -280,10 +280,12 @@ class ChannelPeakVisualizer extends Visualizer {
     set channelCount(c) {
         this.splitter.disconnect();
         this.splitter = audioContext.createChannelSplitter(c);
+        let smoothing = this.analyzers.length ? this.analyzers[0].smoothingTimeConstant : 0.8;
         for (let a of this.analyzers) a.disconnect();
         this.analyzers = [];
         for (let i = 0; i < c; i++) {
             const analyzer = audioContext.createAnalyser();
+            analyzer.smoothingTimeConstant = smoothing;
             this.splitter.connect(analyzer, i);
             this.analyzers.push(analyzer);
         }
@@ -292,8 +294,12 @@ class ChannelPeakVisualizer extends Visualizer {
     get channelCount() {
         return this.analyzers.length;
     }
-    set smoothingTimeConstant(c) { }
-    get smoothingTimeConstant() { }
+    set smoothingTimeConstant(c) {
+        for (let a of this.analyzers) a.smoothingTimeConstant = c;
+    }
+    get smoothingTimeConstant() {
+        return this.analyzers[0].smoothingTimeConstant;
+    }
     set fftSize(size) { }
     get fftSize() { }
 
@@ -301,6 +307,7 @@ class ChannelPeakVisualizer extends Visualizer {
         return {
             buffer: this.rawBuffer,
             color: this.color,
+            smoothing: this.smoothingTimeConstant,
             channelCount: this.channelCount,
             barWidthPercent: this.barWidthPercent,
             flippedX: this.flippedX,
@@ -312,6 +319,7 @@ class ChannelPeakVisualizer extends Visualizer {
     static fromData(data, canvas) {
         const visualizer = new ChannelPeakVisualizer(data.buffer, canvas);
         visualizer.color = data.color;
+        visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
         visualizer.channelCount = data.channelCount;
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.flippedX = data.flippedX ?? false;

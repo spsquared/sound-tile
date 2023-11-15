@@ -535,6 +535,9 @@ class ChannelPeakTile {
             if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
                 this.visualizer.destroy();
                 this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+                this.visualizer.channelCount = parseInt(channelPeakChannels.value);
+                this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
+                this.visualizer.smoothingTimeConstant = parseInt(channelPeakSmoothing.value) / 100;
                 this.visualizer.color = colorSelect.value;
                 this.visualizer.volume = parseInt(volumeInput.value) / 100;
                 audioReplace.value = '';
@@ -564,6 +567,10 @@ class ChannelPeakTile {
         const channelPeakBarWidth = this.tile.querySelector('.tileChannelPeakBarWidth');
         channelPeakBarWidth.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
+        });
+        const channelPeakSmoothing = this.tile.querySelector('.tileChannelPeakSmoothing');
+        channelPeakSmoothing.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseInt(channelPeakSmoothing.value) / 100;
         });
         // more visualizer options
         const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
@@ -606,7 +613,8 @@ class ChannelPeakTile {
         applyDefaultTileControls(tile, data);
         if (data.visualizer !== null) {
             tile.tile.querySelector('.tileChannelPeakChannels').value = data.visualizer.channelCount;
-            tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent;
+            tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
+            tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
             tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
             tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
             tile.tile.querySelector('.tileSourceUploadCover').remove();
@@ -883,6 +891,7 @@ document.addEventListener('mousemove', (e) => {
             drag.drop.index = index;
             drag.drop.createGroup = createGroup;
             drag.drop.groupOrientation = groupOrientation;
+            console.log(drag.drop.createGroup)
             let rec = (group, div) => {
                 for (let i in group.children) {
                     const child = group.children[i];
@@ -890,7 +899,7 @@ document.addEventListener('mousemove', (e) => {
                     if (child.children !== undefined) tdiv.classList.add('pGroupTile');
                     else tdiv.classList.add('pTile');
                     tdiv.style.flexGrow = child.tile.style.flexGrow;
-                    if (group == drag.drop.tile && !drag.drop.createGroup && i == drag.drop.index) {
+                    if (group === drag.drop.tile && !drag.drop.createGroup && i == drag.drop.index) {
                         const ddiv = document.createElement('div');
                         ddiv.classList.add('pTile');
                         ddiv.classList.add('pTileDrop');
@@ -901,7 +910,7 @@ document.addEventListener('mousemove', (e) => {
                         if (child.orientation) tdiv.classList.add('pGroupTileVertical');
                         rec(child, tdiv);
                     }
-                    if (drag.drop.createGroup && child == drag.drop.tile) {
+                    if (drag.drop.createGroup && child === drag.drop.tile) {
                         const gdiv = document.createElement('div');
                         gdiv.classList.add('pGroupTile');
                         if (drag.drop.groupOrientation) gdiv.classList.add('pGroupTileVertical');
@@ -921,7 +930,7 @@ document.addEventListener('mousemove', (e) => {
                     ddiv.classList.add('pTile');
                     ddiv.classList.add('pTileDrop');
                     ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
-                    ddiv.appendChild(ddiv);
+                    div.appendChild(ddiv);
                 }
             };
             drag.layoutPreview.innerHTML = '';
@@ -986,7 +995,7 @@ document.addEventListener('mousemove', (e) => {
     }
 });
 document.addEventListener('mouseup', (e) => {
-    if (drag.dragging) {
+    if (drag.dragging && drag.drop.tile !== null) {
         if (drag.drop.createGroup) {
             const newGroup = new GroupTile(drag.drop.groupOrientation);
             const parent = drag.drop.tile.parent;

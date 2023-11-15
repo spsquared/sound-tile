@@ -106,7 +106,7 @@ exportButton.onclick = async (e) => {
     download.click();
 };
 
-function exportVideo(container, videoOptions = {codec, width, height, framerate, bitrate}, audioOptions = {codec, bitrate}, hardwareEncode = true) {
+function exportVideo(container, videoOptions = { codec, width, height, framerate, bitrate }, audioOptions = { codec, bitrate }, hardwareEncode = true) {
     if (!MediaRecorder.isTypeSupported(`${container};codecs=${videoOptions.codec},${audioOptions.codec}`)) return null;
     detachDisplay(videoOptions.width, videoOptions.height);
     renderCanvas.width = videoOptions.width;

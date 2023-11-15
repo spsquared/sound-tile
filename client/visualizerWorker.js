@@ -107,7 +107,7 @@ class VisualizerWorker {
                 for (let i = 0; i < channel.length; i++) {
                     if (channel[i] > max) max = channel[i];
                 }
-                peaks.push(max);                
+                peaks.push(max);
             }
             this.ctx.fillStyle = this.color;
             let barSpace = (width / peaks.length);
@@ -139,7 +139,7 @@ onmessage = (e) => {
     postMessage([]);
     onmessage = (e) => {
         if (e.data[0] == 0) {
-            VisualizerWorker.draw.call({canvas, ctx, ...e.data[1]}, e.data[2]);
+            VisualizerWorker.draw.call({ canvas, ctx, ...e.data[1] }, e.data[2]);
             try {
                 const bitmap = canvas.transferToImageBitmap();
                 postMessage([bitmap], [bitmap]);

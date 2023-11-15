@@ -21,5 +21,3 @@ window.onerror = (e) => {
 
 const display = document.getElementById('display');
 let allowModification = true;
-
-// welcome to Sound Tile, isdfsdffds how to use
