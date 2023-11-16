@@ -60,15 +60,16 @@ function setVisualizerControls() {
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     visualizerMode.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.mode = parseInt(visualizerMode.value);
-        if (parseInt(visualizerMode.value) < 4) {
+        let mode = parseInt(visualizerMode.value);
+        if (this.visualizer !== null) this.visualizer.mode = mode;
+        if (mode <= 3 || mode == 5) {
             visualizerFrequencyOptions.classList.remove('hidden');
             visualizerWaveformOptions.classList.add('hidden');
         } else {
             visualizerFrequencyOptions.classList.add('hidden');
             visualizerWaveformOptions.classList.remove('hidden');
         }
-        if (parseInt(visualizerMode.value) < 2) {
+        if (mode < 2) {
             visualizerBarOptions.classList.remove('hidden');
             visualizerLineOptions.classList.add('hidden');
         } else {
@@ -129,7 +130,7 @@ function applyDefaultTileControls(tile, data) {
 function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    if (data.visualizer.mode < 4) {
+    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
@@ -872,7 +873,6 @@ function startDrag(e) {
     drag.dragging = true;
 };
 document.addEventListener('mousemove', (e) => {
-    // CHANGE TO BOTTOM-UP SEARCH WHERE NODES LOWER IN THE TREE ARE PRIORITIZED
     if (drag.dragging) {
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
@@ -883,15 +883,16 @@ document.addEventListener('mousemove', (e) => {
                 currTile = child;
             }
         }
-        let simulateLayout = (tile, index, createGroup, groupOrientation) => {
-            // create copy of tile layout and add a placeholder tile to tile at index
-            // createGroup = make a new group at tile and put the placeholder at index
+        let foundDrop = false;
+        let setLayout = (tile, index, createGroup, groupOrientation) => {
             if (createGroup) drag.drop.tile = tile;
             else drag.drop.tile = tile.parent;
             drag.drop.index = index;
             drag.drop.createGroup = createGroup;
             drag.drop.groupOrientation = groupOrientation;
-            console.log(drag.drop.createGroup)
+            foundDrop = true;
+        };
+        let simulateLayout = () => {
             let rec = (group, div) => {
                 for (let i in group.children) {
                     const child = group.children[i];
@@ -949,39 +950,30 @@ document.addEventListener('mousemove', (e) => {
                 let halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     if (parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
-                        simulateLayout(currTile, parent.getChildIndex(currTile), false);
-                        break;
+                        setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
-                        simulateLayout(currTile, 0, true, 1);
-                        break;
+                        setLayout(currTile, 0, true, 1);
                     }
                 } else if (relY > rect.height - halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     if (parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
-                        simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
-                        break;
+                        setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
-                        simulateLayout(currTile, 1, true, 1);
-                        break;
+                        setLayout(currTile, 1, true, 1);
                     }
                 } else if (relX < halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
                     if (parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
-                        simulateLayout(currTile, parent.getChildIndex(currTile), false);
-                        break;
+                        setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
-                        simulateLayout(currTile, 0, true, 0);
-                        break;
+                        setLayout(currTile, 0, true, 0);
                     }
                 } else if (relX > rect.width - halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
                     if (parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
-                        simulateLayout(currTile, parent.getChildIndex(currTile) + 1, false);
-                        break;
+                        setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
-                        simulateLayout(currTile, 1, true, 0);
-                        break;
+                        setLayout(currTile, 1, true, 0);
                     }
                 }
             }
-            drag.drop.tile = null;
             drag.layoutPreview.innerHTML = '';
             if (currTile instanceof GroupTile) for (let child of currTile.children) {
                 const rect2 = child.tile.getBoundingClientRect();
@@ -992,6 +984,7 @@ document.addEventListener('mousemove', (e) => {
             }
             break;
         }
+        if (foundDrop) simulateLayout();
     }
 });
 document.addEventListener('mouseup', (e) => {

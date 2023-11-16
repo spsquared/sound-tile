@@ -99,7 +99,7 @@ class Visualizer {
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
                 else VisualizerWorker.draw.call(this, data);
-            } else if (this.mode >= 0 && this.mode <= 3) {
+            } else if (this.mode <= 3 || this.mode == 5) {
                 const data = new Uint8Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getByteFrequencyData(data);
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
@@ -233,7 +233,7 @@ class ChannelPeakVisualizer extends Visualizer {
 
     constructor(arrbuf, canvas, oncreate) {
         super(arrbuf, canvas, oncreate);
-        this.mode = 5;
+        this.mode = 6;
         delete this.barCrop;
         delete this.scale;
         delete this.lineWidth;
@@ -286,6 +286,7 @@ class ChannelPeakVisualizer extends Visualizer {
         for (let i = 0; i < c; i++) {
             const analyzer = audioContext.createAnalyser();
             analyzer.smoothingTimeConstant = smoothing;
+            analyzer.fftSize = 1024;
             this.splitter.connect(analyzer, i);
             this.analyzers.push(analyzer);
         }

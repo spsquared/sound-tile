@@ -56,7 +56,7 @@ class VisualizerWorker {
         } else if (this.mode == 2) {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'round';
+            this.ctx.lineJoin = 'miter';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
@@ -71,25 +71,44 @@ class VisualizerWorker {
             this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'round';
+            this.ctx.lineJoin = 'miter';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height - yOffset);
-            this.ctx.lineTo(0, height - (data[0] * yScale));
+            this.ctx.lineTo(0, height - (data[0] * yScale + yOffset));
             for (let i = 0; i < croppedFreq; i++) {
                 this.ctx.lineTo(i * xStep, height - (data[i] * yScale + yOffset));
             }
-            this.ctx.lineTo((croppedFreq - 1) * xStep, height - yOffset);
+            this.ctx.lineTo(width, height - yOffset);
             this.ctx.lineTo(0, height - yOffset);
+            this.ctx.stroke();
+            this.ctx.fill();
+        } else if (this.mode == 5) {
+            this.ctx.strokeStyle = this.color;
+            this.ctx.fillStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'miter';
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
+            let xStep = width / (croppedFreq - 1);
+            let yScale = (height - (this.lineWidth / 2)) / 255;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, height / 2);
+            for (let i = 0; i < croppedFreq; i++) {
+                this.ctx.lineTo(i * xStep, (height - (data[i] * yScale)) / 2);
+            }
+            for (let i = croppedFreq - 1; i >= 0; i--) {
+                this.ctx.lineTo(i * xStep, (height + (data[i] * yScale)) / 2);
+            }
+            this.ctx.lineTo(0, height / 2);
             this.ctx.stroke();
             this.ctx.fill();
         } else if (this.mode == 4) {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'miter';
+            this.ctx.lineJoin = 'round';
             let xStep = width / (data.length - 1);
             let yOffset = height / 2;
             let yScale = this.scale * 128;
@@ -99,8 +118,9 @@ class VisualizerWorker {
                 this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
             }
             this.ctx.stroke();
-        } else if (this.mode == 5) {
+        } else if (this.mode == 6) {
             let peaks = [];
+            // find true peak?
             for (let channel of data) {
                 // oof slow
                 let max = 0;
