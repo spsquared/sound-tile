@@ -251,7 +251,8 @@ class VisualizerTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
+            let scale = window.devicePixelRatio ?? 1;
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
@@ -345,7 +346,8 @@ class VisualizerImageTile {
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
+            let scale = window.devicePixelRatio ?? 1;
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
             const rect2 = imageContainer.getBoundingClientRect();
@@ -452,7 +454,8 @@ class VisualizerTextTile {
         this.#resize = () => {
             let textHeight = this.text.split('\n').length * parseInt(fontSize.value) + 2;
             const rect = canvasContainer.getBoundingClientRect();
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height - textHeight - 4));
+            let scale = window.devicePixelRatio ?? 1;
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
             if (this.visualizer !== null && this.visualizer.rotated) {
                 this.canvas.style.width = (rect.height - textHeight - 2) + 'px';
                 this.canvas.style.height = rect.width + 'px';
@@ -461,8 +464,8 @@ class VisualizerTextTile {
                 this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
             }
             this.canvas.style.top = rect.top + 'px';
-            this.canvas2.width = Math.round(rect.width);
-            this.canvas2.height = Math.round(textHeight);
+            this.canvas2.width = Math.round(rect.width * scale);
+            this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
             const rect2 = this.tile.getBoundingClientRect();
@@ -590,7 +593,8 @@ class ChannelPeakTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width), Math.round(rect.height));
+            let scale = window.devicePixelRatio ?? 1;
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
