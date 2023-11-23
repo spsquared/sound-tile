@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="./style.css">
     <!-- https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js -->
     <script src="./msgpack.min.js" defer></script>
+    <script src="./fflate.min.js" defer></script>
     <script src="./index.js" defer></script>
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
@@ -97,8 +98,8 @@
         <img id="logo" src="./assets/logo.png">
         <!-- actual buttons are too finicky -->
         <div id="fileControls">
-            <label id="uploadButtonLabel" for="uploadButton"></label>
             <input type="file" id="uploadButton" accept=".soundtile" title="Upload Tiles from computer">
+            <label id="uploadButtonLabel" for="uploadButton"></label>
             <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
         <div id="mediaControls">

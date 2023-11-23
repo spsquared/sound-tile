@@ -206,6 +206,10 @@ img {
 #uploadButtonLabel:hover, #downloadButton:hover {
     background-color: #999;
 }
+#uploadButton:disabled ~ #uploadButtonLabel, #downloadButton:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
 #uploadButtonLabel {
     border-bottom: 2px solid white;
     background-image: url(./assets/upload.svg);
@@ -653,7 +657,7 @@ img {
     border: none;
     background-color: gray;
     pointer-events: none;
-    --volume: 1;
+    --volume: 10 / 12;
 }
 .tileVisualizerVolumeThumb::before {
     content: '';

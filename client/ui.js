@@ -4,10 +4,37 @@
 const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
 uploadButton.oninput = (e) => {
-    if (allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+    if (!uploadButton.disabled && allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+        downloadButton.disabled = true;
+        uploadButton.disabled = true;
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             const tree = msgpack.decode(new Uint8Array(reader.result));
+            if (tree.version > 0) {
+                let promises = [];
+                let curr;
+                let stack = [tree.root];
+                while (stack.length) {
+                    curr = stack.pop();
+                    if (curr.children !== undefined) {
+                        for (let child of curr.children) stack.push(child);
+                        continue;
+                    }
+                    if (curr.visualizer != null) {
+                        let visualizer = curr.visualizer;
+                        promises.push(new Promise((resolve, reject) => {
+                            fflate.decompress(new Uint8Array(visualizer.buffer), {
+                                consume: true
+                            }, (err, data) => {
+                                if (err) throw err;
+                                visualizer.buffer = data.buffer;
+                                resolve();
+                            });
+                        }));
+                    }
+                }
+                for (let p of promises) await p;
+            }
             // jank
             for (let child of GroupTile.root.children) {
                 child.destroy();
@@ -49,16 +76,21 @@ uploadButton.oninput = (e) => {
                 }
             };
             GroupTile.root.addChild(dfs(tree.root));
-            GroupTile.root.checkObsolescence();
+            GroupTile.root.children[0].checkObsolescence();
             setTimeout(() => GroupTile.root.refresh(), 0);
+            downloadButton.disabled = false;
+            uploadButton.disabled = false;
         };
         reader.readAsArrayBuffer(uploadButton.files[0]);
         uploadButton.value = '';
     }
 };
-downloadButton.onclick = (e) => {
+downloadButton.onclick = async (e) => {
+    if (downloadButton.disabled) return;
+    downloadButton.disabled = true;
+    uploadButton.disabled = true;
     const tree = {
-        version: 0,
+        version: 1,
         root: dfs(GroupTile.root)
     };
     function dfs(node) {
@@ -74,11 +106,36 @@ downloadButton.onclick = (e) => {
             return treenode;
         } else return node.getData();
     };
+    let promises = []
+    let curr;
+    let stack = [tree.root];
+    while (stack.length) {
+        curr = stack.pop();
+        if (curr.children !== undefined) {
+            for (let child of curr.children) stack.push(child);
+            continue;
+        }
+        if (curr.visualizer != null) {
+            let visualizer = curr.visualizer;
+            promises.push(new Promise((resolve, reject) => {
+                fflate.gzip(new Uint8Array(visualizer.buffer), {
+                    level: 4
+                }, (err, data) => {
+                    if (err) throw err;
+                    visualizer.buffer = data.buffer;
+                    resolve();
+                });
+            }));
+        }
+    }
+    for (let p of promises) await p;
     const download = document.createElement('a');
     let current = new Date();
     download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
     download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
     download.click();
+    downloadButton.disabled = false;
+    uploadButton.disabled = false;
 };
 
 // volume

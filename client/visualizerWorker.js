@@ -56,7 +56,7 @@ class VisualizerWorker {
         } else if (this.mode == 2) {
             this.ctx.strokeStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'miter';
+            this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
@@ -71,7 +71,7 @@ class VisualizerWorker {
             this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'miter';
+            this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;
@@ -90,7 +90,7 @@ class VisualizerWorker {
             this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;
             this.ctx.lineWidth = this.lineWidth;
-            this.ctx.lineJoin = 'miter';
+            this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
             let yScale = (height - (this.lineWidth / 2)) / 255;

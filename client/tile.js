@@ -218,10 +218,11 @@ class GroupTile {
         if (this.children.length === 0) this.destroy();
         if (this.children.length === 1) {
             let parent = this.parent;
-            parent.replaceChild(this, this.children[0]);
-            if (this.children[0] instanceof GroupTile) this.children[0].checkObsolescence();
+            let child = this.children[0];
+            parent.replaceChild(this, child);
             this.children = [];
             this.destroy();
+            if (child instanceof GroupTile) child.checkObsolescence();
             parent.checkObsolescence();
         }
     }
@@ -617,6 +618,8 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
             tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
             tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
+            tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
+            tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
             tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
             tile.tile.querySelector('.tileSourceUploadCover').remove();
         }
