@@ -311,7 +311,7 @@
                 </label>
                 <span class="tileVisualizerControls"></span>
                 <label>
-                    Size:
+                    Font:
                     <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
                 </label>
                 <label>
@@ -467,7 +467,7 @@
                     <input class="tileTextEdit button" type="button">
                 </label>
                 <label>
-                    Size:
+                    Font:
                     <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
                 </label>
                 <label>
@@ -522,11 +522,11 @@
                 </div>
             </span>
             <select class="tileVisualizerMode selectBox">
-                <option value="0">Freq. (1x Bar)</option>
-                <option value="1">Freq. (2x Bar)</option>
-                <option value="2">Freq. (1x Line)</option>
-                <option value="3">Freq. (1x Smooth)</option>
-                <option value="5">Freq. (2x Smooth)</option>
+                <option value="0">Freq (1x Bar)</option>
+                <option value="1">Freq (2x Bar)</option>
+                <option value="2">Freq (1x Line)</option>
+                <option value="3">Freq (1x Smooth)</option>
+                <option value="5">Freq (2x Smooth)</option>
                 <option value="4">Wave (Line)</option>
             </select>
             <label>
@@ -556,8 +556,13 @@
             </span>
             <span class="tileVisualizerFrequencyOptions">
                 <label>
-                    Crop:
+                    Freq %:
                     <input class="tileVisualizerFrequencyFrequencyCrop numberBox" type="number" min="25" max="100" step="12.5" value="100">
+                    (<span class="tileVisualizerFrequencyFrequencyCropDisplay">0</span>Hz)
+                </label>
+                <label>
+                    Vol %:
+                    <input class="tileVisualizerFrequencyVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
                 </label>
                 <label>
                     Smooth:

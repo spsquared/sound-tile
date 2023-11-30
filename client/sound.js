@@ -18,6 +18,8 @@ if (navigator.userActivation) {
     });
 }
 
+// experiment: test when FFT values are plugged into oscillator node??
+
 class Visualizer {
     static #list = new Set();
 
@@ -34,6 +36,7 @@ class Visualizer {
     mode = 0;
     barWidthPercent = 0.80;
     barCrop = 1;
+    barScale = 1;
     scale = 1;
     lineWidth = 2;
     flippedX = false;
@@ -41,6 +44,7 @@ class Visualizer {
     rotated = false;
     ready = false;
     drawing = false;
+    loadPromise = new Promise(() => {});
     constructor(arrbuf, canvas, oncreate) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
@@ -62,10 +66,13 @@ class Visualizer {
             this.ctx.imageSmoothingEnabled = false;
             this.ctx.webkitImageSmoothingEnabled = false;
         }
-        audioContext.decodeAudioData(arrbuf, buf => {
-            this.buffer = buf;
-            this.ready = true;
-            Visualizer.#onUpdate();
+        this.loadPromise = new Promise((resolve, reject) => {
+            audioContext.decodeAudioData(arrbuf, buf => {
+                this.buffer = buf;
+                this.ready = true;
+                Visualizer.#onUpdate();
+                resolve();
+            });
         });
         this.analyzer.connect(globalVolume);
         this.analyzer.fftSize = 512;
@@ -128,6 +135,7 @@ class Visualizer {
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
+            barScale: this.barScale,
             scale: this.scale,
             lineWidth: this.lineWidth,
             flippedX: this.flippedX,
@@ -154,6 +162,9 @@ class Visualizer {
     get volume() {
         return this.gain.gain.value;
     }
+    get sampleRate() {
+        return this.buffer.sampleRate;
+    }
 
     getData() {
         return {
@@ -164,6 +175,7 @@ class Visualizer {
             color: this.color,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
+            barScale: this.barScale,
             scale: this.scale,
             lineWidth: this.lineWidth,
             flippedX: this.flippedX,
@@ -180,6 +192,7 @@ class Visualizer {
         visualizer.color = data.color;
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.barCrop = data.barCrop;
+        visualizer.barScale = data.barScale ?? 1;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
         visualizer.flippedX = data.flippedX ?? false;

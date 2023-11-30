@@ -37,7 +37,7 @@ class VisualizerWorker {
             let barSpace = (width / croppedFreq);
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256;
+            let yScale = height / 256 * this.barScale;
             for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
@@ -46,9 +46,9 @@ class VisualizerWorker {
             this.ctx.fillStyle = this.color;
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / croppedFreq);
-            let barWidth = barSpace * this.barWidthPercent;
+            let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256;
+            let yScale = height / 256 * this.barScale;
             for (let i = 0; i < croppedFreq; i++) {
                 let barHeight = (data[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
@@ -59,7 +59,7 @@ class VisualizerWorker {
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255;
+            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height - (data[0] * yScale));
@@ -74,7 +74,7 @@ class VisualizerWorker {
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255;
+            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height - yOffset);
@@ -93,7 +93,7 @@ class VisualizerWorker {
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / (croppedFreq - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255;
+            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height / 2);
             for (let i = 0; i < croppedFreq; i++) {

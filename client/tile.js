@@ -79,10 +79,6 @@ function setVisualizerControls() {
     });
     visualizerWaveformOptions.classList.add('hidden');
     visualizerLineOptions.classList.add('hidden');
-    const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
-    visualizerSmoothing.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
-    });
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     visualizerFFTSize.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
@@ -99,8 +95,18 @@ function setVisualizerControls() {
     });
     // frequency mode options
     const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
+    const visualizerFrequencyCropDisplay = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay');
     visualizerFrequencyCrop.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
+        visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * this.visualizer.barCrop;
+    });
+    const visualizerVolumeCrop = this.tile.querySelector('.tileVisualizerFrequencyVolumeCrop');
+    visualizerVolumeCrop.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
+    });
+    const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
+    visualizerSmoothing.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
     });
     // waveform mode options
     const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
@@ -146,6 +152,7 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
+    tile.tile.querySelector('.tileVisualizerFrequencyVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
@@ -154,6 +161,7 @@ function applyVisualizerControls(tile, data) {
     if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
     tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
+    tile.visualizer.loadPromise.then(() => tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay').innerText = tile.visualizer.sampleRate / 2 * (parseFloat(tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value) / 100));
 };
 
 class GroupTile {
@@ -753,7 +761,7 @@ class TextTile {
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.font = `${fontSize.value}px Source Code Pro`;
+            this.ctx.font = `${fontSize.value * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
             this.ctx.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
@@ -773,8 +781,9 @@ class TextTile {
             editContainer.style.width = rect.width + 'px';
             editContainer.style.height = rect.height + 'px';
             const rect2 = canvasContainer.getBoundingClientRect();
-            this.canvas.width = Math.round(rect2.width);
-            this.canvas.height = Math.round(rect2.height);
+            let scale = window.devicePixelRatio ?? 1;
+            this.canvas.width = Math.round(rect2.width * scale);
+            this.canvas.height = Math.round(rect2.height * scale);
             this.canvas.style.width = rect2.width + 'px';
             this.canvas.style.height = rect2.height + 'px';
             draw();
@@ -992,6 +1001,11 @@ document.addEventListener('mousemove', (e) => {
             break;
         }
         if (foundDrop) simulateLayout();
+        // else {
+        //     drag.drop.tile = drag.from.tile;
+        //     drag.drop.createGroup = false;
+        //     drag.drop.index = drag.from.index;
+        // }
     }
 });
 document.addEventListener('mouseup', (e) => {
