@@ -32,8 +32,12 @@ function setVisualizerControls() {
             this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
             this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
             this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
+            this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
             this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
             this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
+            this.visualizer.flippedX = visualizerFlip.checked;
+            this.visualizer.flippedY = visualizerFlip2.checked;
+            this.visualizer.rotated = visualizerRotate.checked;
             this.visualizer.color = colorSelect.value;
             this.visualizer.volume = parseInt(volumeInput.value) / 100;
             audioReplace.value = '';

@@ -33,7 +33,7 @@ uploadButton.oninput = (e) => {
                         }));
                     }
                 }
-                for (let p of promises) await p;
+                await Promise.all(promises);
             }
             // jank
             for (let child of GroupTile.root.children) {
@@ -128,7 +128,7 @@ downloadButton.onclick = async (e) => {
             }));
         }
     }
-    for (let p of promises) await p;
+    await Promise.all(promises);
     const download = document.createElement('a');
     let current = new Date();
     download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;

@@ -268,7 +268,7 @@ img {
 #volumeThumb::before {
     content: '';
     position: absolute;
-    top: 15px;;
+    top: 15px;
     left: 10px;
     width: 10px;
     height: 100vh;
