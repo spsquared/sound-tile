@@ -896,11 +896,14 @@ document.addEventListener('mousemove', (e) => {
     if (drag.dragging) {
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
+        const visited = new Set();
         let currTile = GroupTile.root;
+        visited.add(currTile);
         for (let child of currTile.children) {
             const rect2 = child.tile.getBoundingClientRect();
             if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
                 currTile = child;
+                visited.add(currTile);
             }
         }
         let foundDrop = false;
@@ -992,13 +995,18 @@ document.addEventListener('mousemove', (e) => {
                     } else {
                         setLayout(currTile, 1, true, 0);
                     }
+                } else if (parent != GroupTile.root) {
+                    currTile = parent;
+                    continue traverse;
                 }
             }
             drag.layoutPreview.innerHTML = '';
             if (currTile instanceof GroupTile) for (let child of currTile.children) {
+                if (visited.has(child)) continue;
                 const rect2 = child.tile.getBoundingClientRect();
                 if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
                     currTile = child;
+                    visited.add(currTile);
                     continue traverse;
                 }
             }
