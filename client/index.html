@@ -1,3 +1,4 @@
+<!-- Copyright (C) 2024 Sampleprovider(sp) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +18,6 @@
     <title>Sound Tile</title>
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
-    <!-- https://rawgit.com/kawanet/msgpack-lite/master/dist/msgpack.min.js -->
     <script src="./msgpack.min.js" defer></script>
     <script src="./fflate.min.js" defer></script>
     <script src="./index.js" defer></script>
@@ -35,6 +35,7 @@
             <div id="notsupported">The Web Audio API is not supported! Sound tile requires the Web Audio API to run!</div>
             <div id="loadingerror"></div>
         </div>
+        <div id="copyrightNotice2"><a href="https://www.gnu.org/licenses/gpl-3.0-standalone.html" style="color: white;">Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0</a></div>
         <style>
             #loadingCover {
                 position: fixed;
@@ -42,6 +43,7 @@
                 left: 0px;
                 width: 100vw;
                 height: 100vh;
+                text-align: center;
                 background-color: black;
                 transition: 200ms linear opacity;
                 z-index: 1000;
@@ -90,12 +92,19 @@
                     background-position: 250% 0, 250% 0;
                 }
             }
+            #copyrightNotice2 {
+                position: fixed;
+                bottom: calc(10vh);
+                left: 50vw;
+                font-size: 2vh;
+                transform: translateX(-50%);
+            }
         </style>
     </div>
     <div id="display"></div>
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
-        <img id="logo" src="./assets/logo.png">
+        <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
         <!-- actual buttons are too finicky -->
         <div id="fileControls">
             <input type="file" id="uploadButton" accept=".soundtile" title="Upload Tiles from computer">
@@ -123,7 +132,7 @@
                     </label>
                 </div>
             </div>
-            <input type="button" id="exportButton" title="Export video">
+            <input type="button" id="exportButton" title="Export video (really bad)" disabled>
         </div>
         <div id="tileSource"></div>
         <label id="dropdownTab" for="dropdownTabCheckbox"></label>

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Sampleprovider(sp)
+// Copyright (C) 2024 Sampleprovider(sp)
 
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
@@ -429,7 +429,6 @@ class VisualizerTextTile {
         this.ctx2 = this.canvas2.getContext('2d');
         this.ctx2.imageSmoothingEnabled = false;
         this.ctx2.webkitImageSmoothingEnabled = false;
-        this.canvas2.style.bottom = '4px';
         // visualizer controls
         setVisualizerControls.call(this);
         // text controls
@@ -480,6 +479,7 @@ class VisualizerTextTile {
             this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
+            this.canvas2.style.bottom = (window.innerHeight - rect.bottom) + 4 + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
@@ -882,6 +882,7 @@ function startDrag(e) {
     const rect = this.tile.querySelector('.tileDrag').getBoundingClientRect();
     drag.dragX = e.clientX - rect.left;
     drag.dragY = e.clientY - rect.top;
+    this.tile.querySelector('.tileDrag').style.opacity = 1;
     const rect2 = this.tile.getBoundingClientRect();
     drag.container.style.top = e.clientY - drag.dragY + 'px';
     drag.container.style.left = e.clientX - drag.dragX + 'px';
@@ -889,6 +890,7 @@ function startDrag(e) {
     drag.container.style.height = rect2.height + 'px';
     this.parent.removeChild(this);
     drag.container.appendChild(this.tile);
+    drag.layoutPreview.innerHTML = '';
     drag.layoutPreview.style.display = 'flex';
     drag.dragging = true;
 };
@@ -896,6 +898,7 @@ document.addEventListener('mousemove', (e) => {
     if (drag.dragging) {
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
+        drag.tile.refresh();
         const visited = new Set();
         let currTile = GroupTile.root;
         visited.add(currTile);
@@ -963,9 +966,9 @@ document.addEventListener('mousemove', (e) => {
         };
         traverse: while (true) {
             const rect = currTile.tile.getBoundingClientRect();
-            let relX = e.clientX - rect.left;
-            let relY = e.clientY - rect.top;
-            if (relX >= 0 && relX <= rect.width && relY >= 0 && relY <= rect.height) {
+            if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                let relX = e.clientX - rect.left;
+                let relY = e.clientY - rect.top;
                 const parent = currTile.parent;
                 let halfBoxWidth = Math.min(12 * Math.log(rect.width + 1), rect.width * 0.6);
                 let halfBoxHeight = Math.min(12 * Math.log(rect.height + 1), rect.height * 0.6);
@@ -995,12 +998,14 @@ document.addEventListener('mousemove', (e) => {
                     } else {
                         setLayout(currTile, 1, true, 0);
                     }
-                } else if (parent != GroupTile.root) {
+                } else if (parent != GroupTile.root && (currTile instanceof GroupTile ? currTile.children.every(v => visited.has(v)) : true)) {
                     currTile = parent;
                     continue traverse;
                 }
+            } else if (parent != GroupTile.root) {
+                currTile = currTile.parent;
+                continue traverse;
             }
-            drag.layoutPreview.innerHTML = '';
             if (currTile instanceof GroupTile) for (let child of currTile.children) {
                 if (visited.has(child)) continue;
                 const rect2 = child.tile.getBoundingClientRect();
@@ -1031,6 +1036,7 @@ document.addEventListener('mouseup', (e) => {
         } else {
             drag.drop.tile.addChild(drag.tile, drag.drop.index);
         }
+        drag.tile.tile.querySelector('.tileDrag').style.opacity = '';
         drag.drop.tile = null;
         drag.layoutPreview.innerHTML = '';
         drag.layoutPreview.style.display = 'none';

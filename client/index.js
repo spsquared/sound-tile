@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Sampleprovider(sp)
+// Copyright (C) 2024 Sampleprovider(sp)
 
 let loaded = true;
 window.addEventListener('load', (e) => {

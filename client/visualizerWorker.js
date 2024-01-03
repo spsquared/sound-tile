@@ -1,3 +1,5 @@
+// Copyright (C) 2024 Sampleprovider(sp)
+
 class VisualizerWorker {
     static draw(data) {
         let width = this.canvas.width;

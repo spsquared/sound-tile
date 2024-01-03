@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Sampleprovider(sp)
+// Copyright (C) 2024 Sampleprovider(sp)
 
 const audioContext = new AudioContext();
 const globalVolume = audioContext.createGain();
@@ -17,8 +17,6 @@ if (navigator.userActivation) {
         audioContext.resume();
     });
 }
-
-// experiment: test when FFT values are plugged into oscillator node??
 
 class Visualizer {
     static #list = new Set();

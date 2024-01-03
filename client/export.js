@@ -1,4 +1,6 @@
-// Copyright (C) 2023 Sampleprovider(sp)
+// Copyright (C) 2024 Sampleprovider(sp)
+
+// THIS CODE IS BAD DON'T USE IT
 
 function detachDisplay(width, height) {
     display.style.width = (parseInt(width) - 4) + 'px';
@@ -126,7 +128,7 @@ function exportVideo(container, videoOptions = { codec, width, height, framerate
             globalVolume.connect(audioStreamGenerator);
             const renderStream = new MediaStream();
             renderStream.addTrack(canvasTrack);
-            // renderStream.addTrack(audioTrack);
+            renderStream.addTrack(audioTrack);
             const recorder = new MediaRecorder(renderStream, {
                 mimeType: `${container};codecs=${videoOptions.codec},${audioOptions.codec}`,
                 videoBitsPerSecond: videoOptions.bitrate,

@@ -1,3 +1,5 @@
+/* Copyright (C) 2024 Sampleprovider(sp) */
+
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 100, 200, 300, 400, 500, 600, 700, 800;
@@ -557,9 +559,11 @@ img {
     display: none;
 }
 .tileSourceUploadLabel, .tileImgUploadLabel {
-    height: 24px;
-    padding: 6px 8px;
-    font-size: 18px;
+    height: 20%;
+    max-height: 24px;
+    box-sizing: border-box;
+    padding: 0px 4%;
+    font-size: 100%;
 }
 
 .tileDisplay {
@@ -687,6 +691,7 @@ img {
 
 /* drag */
 #draggingContainer {
+    display: flex;
     position: fixed;
     top: 0px;
     left: 0px;

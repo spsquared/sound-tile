@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Sampleprovider(sp)
+// Copyright (C) 2024 Sampleprovider(sp)
 
 // upload/download
 const uploadButton = document.getElementById('uploadButton');
@@ -40,6 +40,9 @@ uploadButton.oninput = (e) => {
                 child.destroy();
             }
             Visualizer.destroyAll();
+            mediaControls.playing = false;
+            playButton.checked = false;
+            mediaControls.setTime(mediaControls.duration);
             GroupTile.root.tile.remove();
             GroupTile.root = new GroupTile(false);
             display.appendChild(GroupTile.root.tile);
@@ -243,6 +246,7 @@ function createTileSource(tileClass, img, alt) {
         const rect = source.getBoundingClientRect();
         drag.dragX = e.clientX - rect.left;
         drag.dragY = 5;
+        drag.tile.tile.querySelector('.tileDrag').style.opacity = 1;
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
         drag.container.style.width = rect.width + 'px';
@@ -262,7 +266,6 @@ createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel 
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // tree editor
-// edit flex grow of group tiles
 
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
@@ -303,5 +306,3 @@ document.addEventListener('keydown', (e) => {
             break;
     }
 });
-
-// display welcome screen on first visit
