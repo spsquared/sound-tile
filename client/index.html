@@ -134,14 +134,18 @@
             </div>
             <input type="button" id="exportButton" title="Export video (really bad)" disabled>
         </div>
+        <div id="modeControls">
+            <input type="button" id="tileMode" title="Tile edit mode">
+            <input type="button" id="treeMode" title="Tree edit mode">
+            <div id="modeSelectSlider"></div>
+            <div id="tileModeImage"></div>
+            <div id="treeModeImage"></div>
+        </div>
         <div id="tileSource"></div>
         <label id="dropdownTab" for="dropdownTabCheckbox"></label>
     </div>
     <div id="draggingContainer"></div>
     <div id="draggingLayoutPreview"></div>
-    <div id="treeEditor">
-        <!-- tree editor i guess -->
-    </div>
     <div id="exportContainer">
         <canvas id="renderCanvas"></canvas>
         <!-- use render canvas as preview canvas since it will be rendered as if it were visible anyways -->
@@ -213,6 +217,22 @@
             </div>
         </div>
     </div>
+    <template id="groupTileTemplate">
+        <div class="tileGroup">
+            <div class="tileGroupSelf">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileControls">
+                    <label>
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                </div>
+            </div>
+            <div class="tileGroupChildren tileGroup"></div>
+        </div>
+    </template>
     <template id="visualizerTileTemplate">
         <div class="tile">
             <div class="tileDrag">
@@ -229,15 +249,15 @@
             </div>
             <div class="tileControls">
                 <span class="tileVisualizerControls"></span>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
-                <label>
+                <label title="Visualizer color">
                     Visualizer:
                     <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
                 </label>
@@ -275,19 +295,23 @@
                     <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
                 <span class="tileVisualizerControls"></span>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Smooth image rendering">
                     Smoothing:
                     <input class="tileImgSmoothing checkBox" type="checkbox" checked>
                 </label>
-                <label>
+                <label title="Use image as visualizer backdrop">
+                    Image BG:
+                    <input class="tileImgSmoothing checkBox" type="checkbox" checked>
+                </label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
-                <label>
+                <label title="Visualizer color">
                     Visualizer:
                     <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
                 </label>
@@ -319,11 +343,11 @@
                     <input class="tileTextEdit button" type="button">
                 </label>
                 <span class="tileVisualizerControls"></span>
-                <label>
+                <label title="Font size">
                     Font:
                     <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
                 </label>
-                <label>
+                <label title="Text align">
                     Align:
                     <select class="tileTextAlign selectBox">
                         <option value="0">Left</option>
@@ -331,19 +355,19 @@
                         <option value="1">Right</option>
                     </select>
                 </label>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
-                <label>
+                <label title="Visualizer color">
                     Visualizer:
                     <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
                 </label>
-                <label>
+                <label title="Text color">
                     Text:
                     <input type="color" class="tileTextColor colorBox" value="#ffffff">
                 </label>
@@ -369,14 +393,15 @@
                     Replace Source
                     <input class="tileAudioReplace button" type="file" accept="audio/*">
                 </label>
-                <span>
+                <label title="Volume">
+                    Volume:
                     <div class="tileVisualizerVolumeBody">
                         <input class="tileVisualizerVolumeInput" type="range" min="0" max="120" step="2" value="100" title="100%">
                         <div class="tileVisualizerVolumeTrack"></div>
                         <div class="tileVisualizerVolumeThumb"></div>
                     </div>
-                </span>
-                <label>
+                </label>
+                <label title="Number of channels to sample">
                     Channels:
                     <select class="tileChannelPeakChannels selectBox">
                         <option value="1">1</option>
@@ -389,35 +414,39 @@
                         <option value="8">8</option>
                     </select>
                 </label>
-                <label>
+                <label title="Percentage width of bars">
                     Width:
                     <input class="tileChannelPeakBarWidth numberBox" type="number" min="5" max="100" step="5" value="80">
                 </label>
-                <label>
+                <label title="Smoothing factor">
                     Smooth:
                     <input class="tileChannelPeakSmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.8">
                 </label>
-                <label>
+                <label title="Scale of volume drawn">
+                    Vol %:
+                    <input class="tileChannelPeakVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
+                </label>
+                <label title="Flip in x-direction">
                     Flip X:
                     <input class="tileVisualizerFlip checkBox" type="checkbox">
                 </label>
-                <label>
+                <label title="Flip in y-direction">
                     Flip Y:
                     <input class="tileVisualizerFlip2 checkBox" type="checkbox">
                 </label>
-                <label>
+                <label title="Rotate 90&deg;">
                     Rotate:
                     <input class="tileVisualizerRotate checkBox" type="checkbox">
                 </label>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
-                <label>
+                <label title="Visualizer color">
                     Visualizer:
                     <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
                 </label>
@@ -443,15 +472,15 @@
                     <span class="tileImgReplaceLabelText">Change Image</span>
                     <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
                 </label>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Smooth image rendering">
                     Smoothing:
                     <input class="tileImgSmoothing checkBox" type="checkbox" checked>
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
@@ -475,11 +504,11 @@
                     Edit
                     <input class="tileTextEdit button" type="button">
                 </label>
-                <label>
+                <label title="Font size">
                     Font:
                     <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
                 </label>
-                <label>
+                <label title="Text align">
                     Align:
                     <select class="tileTextAlign selectBox">
                         <option value="0">Left</option>
@@ -487,15 +516,18 @@
                         <option value="1">Right</option>
                     </select>
                 </label>
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
-                <input type="color" class="tileTextColor colorBox" value="#ffffff">
+                <label title="Text color">
+                    Text:
+                    <input type="color" class="tileTextColor colorBox" value="#ffffff">
+                </label>
             </div>
         </div>
     </template>
@@ -505,32 +537,33 @@
                 <div class="tileRemove"></div>
             </div>
             <div class="tileControls">
-                <label>
+                <label title="Ratio of size relative to other tiles">
                     Size:
                     <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                 </label>
-                <label>
+                <label title="Background color">
                     Background:
                     <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                 </label>
             </div>
         </div>
     </template>
-    <!-- gradient color options -->
+    <!-- gradient/image color options?? globalcompositeoperation the image onto the visualizer lol -->
     <template id="visualizerOptionsTemplate">
         <span>
             <label class="tileAudioReplaceLabel buttonLabel">
                 Replace Source
                 <input class="tileAudioReplace button" type="file" accept="audio/*">
             </label>
-            <span>
+            <label title="Volume">
+                Volume:
                 <div class="tileVisualizerVolumeBody">
                     <input class="tileVisualizerVolumeInput" type="range" min="0" max="120" step="2" value="100" title="100%">
                     <div class="tileVisualizerVolumeTrack"></div>
                     <div class="tileVisualizerVolumeThumb"></div>
                 </div>
-            </span>
-            <select class="tileVisualizerMode selectBox">
+            </label>
+            <select class="tileVisualizerMode selectBox" title="Style of visualizer">
                 <option value="0">Freq (1x Bar)</option>
                 <option value="1">Freq (2x Bar)</option>
                 <option value="2">Freq (1x Line)</option>
@@ -538,9 +571,11 @@
                 <option value="5">Freq (2x Smooth)</option>
                 <option value="4">Wave (Line)</option>
             </select>
-            <label>
+            <label title="FFT Size (higher = more resolution)">
                 FFT:
                 <select class="tileVisualizerFFTSize selectBox">
+                    <option value="32">32</option>
+                    <option value="64">64</option>
                     <option value="128">128</option>
                     <option value="256">256</option>
                     <option value="512" selected>512</option>
@@ -551,48 +586,48 @@
                     <option value="16384">16384</option>
                 </select>
             </label>
-            <span class="tileVisualizerBarOptions">
+            <span class="tileVisualizerBarOptions" title="Percentage width of bars">
                 <label>
                     Width:
-                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="100" step="5" value="80">
+                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="105" step="5" value="80">
                 </label>
             </span>
-            <span class="tileVisualizerLineOptions">
+            <span class="tileVisualizerLineOptions" title="Thickness of lines">
                 <label>
-                    Line W:
+                    Thickness:
                     <input class="tileVisualizerLineWidth numberBox" type="number" min="1" max="8" step="1" value="2">
                 </label>
             </span>
             <span class="tileVisualizerFrequencyOptions">
-                <label>
+                <label title="Percentage of frequencies to be displayed">
                     Freq %:
                     <input class="tileVisualizerFrequencyFrequencyCrop numberBox" type="number" min="25" max="100" step="12.5" value="100">
                     (<span class="tileVisualizerFrequencyFrequencyCropDisplay">0</span>Hz)
                 </label>
-                <label>
+                <label title="Scale of volume drawn">
                     Vol %:
                     <input class="tileVisualizerFrequencyVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
                 </label>
-                <label>
+                <label title="Smoothing factor">
                     Smooth:
                     <input class="tileVisualizerFrequencySmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.8">
                 </label>
             </span>
-            <span class="tileVisualizerWaveformOptions">
+            <span class="tileVisualizerWaveformOptions" title="Vertical scale of waveform">
                 <label>
                     Scale:
                     <input class="tileVisualizerWaveformScale numberBox" type="number" min="0.1" max="10" step="0.1" value="1">
                 </label>
             </span>
-            <label>
+            <label title="Flip in x-direction">
                 Flip X:
                 <input class="tileVisualizerFlip checkBox" type="checkbox">
             </label>
-            <label>
+            <label title="Flip in y-direction">
                 Flip Y:
                 <input class="tileVisualizerFlip2 checkBox" type="checkbox">
             </label>
-            <label>
+            <label title="Rotate 90&deg;">
                 Rotate:
                 <input class="tileVisualizerRotate checkBox" type="checkbox">
             </label>

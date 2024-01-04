@@ -135,7 +135,7 @@ class VisualizerWorker {
             let barSpace = (width / peaks.length);
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256;
+            let yScale = height / 256 * this.barScale;
             for (let i = 0; i < peaks.length; i++) {
                 let barHeight = (peaks[i] + 1) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);

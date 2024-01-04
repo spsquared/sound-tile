@@ -20,18 +20,6 @@ img {
     user-select: none;
 }
 
-#display {
-    display: flex;
-    align-items: stretch;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    width: calc(100vw - 4px);
-    height: calc(100vh - 4px);
-    border: 2px solid white;
-    overflow: hidden;
-}
-
 /* shared styles */
 
 .hidden {
@@ -139,7 +127,7 @@ img {
     background-image: url(./assets/loop.svg);
 }
 .toggleInput:checked + .toggleSlider {
-    background-color: #00AA00;
+    background-color: #090;
 }
 .toggleInput:checked + .toggleSlider::before {
     transform: translateX(12px);
@@ -191,7 +179,7 @@ img {
 
 #fileControls {
     display: grid;
-    grid-template-rows: 50% 50%;
+    grid-template-rows: 60px 60px;
     grid-auto-flow: column;
     border-left: 4px solid white;
 }
@@ -232,11 +220,9 @@ img {
 #mediaControls {
     display: grid;
     grid-template-columns: min-content min-content min-content min-content 1fr;
-    grid-template-rows: 50% 50%;
+    grid-template-rows: 62px 58px;
     border-left: 4px solid white;
-    border-right: 4px solid white;
 }
-
 #volumeBody {
     grid-row: 1 / 3;
     grid-column: 1;
@@ -309,7 +295,7 @@ img {
     top: 0px;
     left: calc((100% - 20px) * var(--progress));
     width: 20px;
-    height: 56px;
+    height: 58px;
     background-color: lightgray;
     pointer-events: none;
     --progress: 0;
@@ -320,7 +306,7 @@ img {
     top: 0px;
     right: 20px;
     width: 100vw;
-    height: 56px;
+    height: 58px;
     background-color: #555;
     pointer-events: none;
 }
@@ -345,6 +331,8 @@ img {
 #playButtonLabel {
     grid-row: 2;
     grid-column: 2;
+    width: 58px;
+    height: 58px;
     background-color: #A00;
     border-left: 4px solid white;
     border-right: 4px solid white;
@@ -353,7 +341,6 @@ img {
     background-size: 50% 50%;
     background-image: url(./assets/play.svg);
     transition: 100ms linear background-color;
-    aspect-ratio: 1;
     cursor: pointer;
 }
 #playButton {
@@ -375,7 +362,7 @@ img {
     display: grid;
     grid-auto-flow: column;
     grid-template-rows: 1fr 1fr;
-    min-width: 50px;
+    width: 56px;
     border-right: 4px solid white;
     text-align: center;
     align-items: center;
@@ -389,8 +376,8 @@ img {
 #exportButton {
     grid-row: 2;
     grid-column: 4;
-    width: 64px;
-    height: 60px;
+    width: 62px;
+    height: 58px;
     margin-right: -4px;
     border: none;
     border-right: 4px solid white;
@@ -409,6 +396,86 @@ img {
 }
 #exportButton:hover {
     background-color: rgb(60, 158, 255);
+}
+
+/* controls 3 - grian hasn't named it yet */
+
+#modeControls {
+    display: grid;
+    grid-template-rows: 60px 60px;
+    border-left: 4px solid white;
+    border-right: 4px solid white;
+}
+#tileMode, #treeMode {
+    grid-column: 1;
+    width: 58px;
+    height: 60px;
+    border: none;
+    background-color: #333;
+    cursor: pointer;
+}
+#tileMode:hover, #treeMode:hover {
+    background-color: #444;
+}
+#tileMode:disabled, #treeMode:disabled {
+    cursor: default;
+    background-color: #333;
+}
+#tileMode {
+    grid-row: 1;
+    border-bottom: 2px solid white;
+}
+#treeMode {
+    grid-row: 2;
+    border-top: 2px solid white;
+}
+/* jank time */
+#modeSelectSlider {
+    grid-row: 1;
+    grid-column: 1;
+    width: 58px;
+    height: 58px;
+    background-color: #070;
+    pointer-events: none;
+    transition: 100ms linear transform;
+    transform: translateY(0px);
+}
+#treeMode:disabled + #modeSelectSlider {
+    transform: translateY(62px);
+}
+#modeSelectSlider::after {
+    content: '';
+    position: absolute;
+    top: 58px;
+    left: 0px;
+    width: 58px;
+    height: 4px;
+    background-color: white;
+    transition: 100ms linear transform;
+    transform: translateY(0px);
+}
+#treeMode:disabled + #modeSelectSlider::after {
+    transform: translateY(-62px);
+}
+#tileModeImage, #treeModeImage {
+    position: relative;
+    grid-column: 1;
+    width: 58px;
+    height: 58px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    pointer-events: none;
+}
+#tileModeImage {
+    grid-row: 1;
+    margin-bottom: 2px;
+    background-image: url(./assets/tilemode.png);
+}
+#treeModeImage {
+    grid-row: 2;
+    margin-top: 2px;
+    background-image: url(./assets/treemode.png);
 }
 
 /* tile source */
@@ -479,18 +546,56 @@ img {
     opacity: 1;
 }
 
-/* tile styles */
+/* actual tile stuff */
+
+#display {
+    display: flex;
+    align-items: stretch;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: calc(100vw - 4px);
+    height: calc(100vh - 4px);
+    border: 2px solid white;
+    overflow: hidden;
+}
+.treeModeDisplay {
+    overflow: scroll !important;
+}
+#display::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
 
 .tileGroup {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
     flex-grow: 1;
 }
+.tileGroupSelf {
+    position: relative;
+    display: none;
+    height: 60px;
+    border: 2px solid white;
+}
+.treeModeDisplay .tileGroupSelf {
+    display: block;
+}
+.tileGroupChildren {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
 .tileGroupVertical {
     flex-direction: column;
 }
+.treeModeDisplay .tileGroupVertical {
+    flex-direction: row;
+}
+
 .tile {
     display: flex;
     justify-content: center;
@@ -501,6 +606,10 @@ img {
     border: 2px solid white;
     box-sizing: border-box;
 }
+.treeModeDisplay .tile {
+    width: 200px;
+    height: 200px;
+}
 
 .tileDrag {
     position: absolute;
@@ -508,7 +617,7 @@ img {
     left: 0px;
     width: 100%;
     height: 20px;
-    background-color: #FFF5;
+    background-color: #555;
     transition: 200ms linear opacity;
     opacity: 0;
     cursor: grab;
@@ -580,7 +689,7 @@ img {
     height: 100%;
 }
 .tileCanvas, .tileCanvas2, .tileImg, .tileTextEditContainer {
-    position: fixed;
+    position: absolute;
 }
 
 .tileTextEditContainer {

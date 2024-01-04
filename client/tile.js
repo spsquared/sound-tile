@@ -8,7 +8,8 @@ function setDefaultTileControls() {
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.oninput = (e) => {
-        this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
+        if (GroupTile.treeMode) this.tile.style.flexGrow = 1;
+        else this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
         if (this.parent !== null) this.parent.refresh();
     };
 };
@@ -169,17 +170,35 @@ function applyVisualizerControls(tile, data) {
 };
 
 class GroupTile {
+    static #template = document.getElementById('groupTileTemplate');
     static root = new GroupTile(false);
+    static #treeMode = false;
 
     parent = null;
     children = [];
     orientation = 0;
     tile = null;
+    childBox = null; // uhhh
+    controls = {
+        dragBar: null,
+        controls: null,
+        flexGrow: null
+    };
     constructor(orientation = false) {
+        this.tile = GroupTile.#template.content.cloneNode(true).children[0];
+        this.childBox = this.tile.querySelector('.tileGroupChildren');
         this.orientation = orientation;
-        this.tile = document.createElement('div');
-        this.tile.classList.add('tileGroup');
-        if (orientation) this.tile.classList.add('tileGroupVertical');
+        if (orientation) this.childBox.classList.add('tileGroupVertical');
+        this.controls.dragBar = this.tile.querySelector('.tileDrag');
+        this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+        this.controls.controls = this.tile.querySelector('.tileControls');
+        this.controls.flexGrow = this.tile.querySelector('.tileFlex');
+        this.controls.flexGrow.oninput = (e) => {
+            if (GroupTile.treeMode) this.tile.style.flexGrow = 1;
+            else this.tile.style.flexGrow = parseFloat(this.controls.flexGrow.value);
+            if (this.parent !== null) this.parent.refresh();
+        };
     }
 
     addChild(child, index = this.children.length) {
@@ -187,8 +206,8 @@ class GroupTile {
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
         if (child.parent !== null) child.parent.removeChild(child);
-        if (index === this.children.length) this.tile.appendChild(child.tile);
-        else this.tile.insertBefore(child.tile, this.children[index].tile);
+        if (index === this.children.length) this.childBox.appendChild(child.tile);
+        else this.childBox.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
         child.parent = this;
         GroupTile.root.refresh();
@@ -239,10 +258,32 @@ class GroupTile {
         }
     }
 
+
+    getData() {
+        return {
+            orientation: this.orientation,
+            flex: this.tile.querySelector('.tileFlex').value
+        };
+    }
+    static fromData(data) {
+        const tile = new GroupTile(data.orientation);
+        tile.controls.flexGrow.value = data.flex ?? (data.flexGrow == '' ? 1 : data.flexGrow) ?? 1;
+        tile.tile.style.flexGrow = data.flex ?? data.flexGrow ?? 1;
+        return tile;
+    };
     destroy() {
         for (const child of this.children) child.destroy();
         if (this.parent) this.parent.removeChild(this);
     }
+
+    static set treeMode(tmode) {
+        if (tmode == this.#treeMode) return;
+        this.#treeMode = tmode;
+        if (this.#treeMode) display.classList.add('treeModeDisplay');
+        else display.classList.remove('treeModeDisplay');
+        GroupTile.root.refresh();
+    }
+    static get treeMode() { return this.#treeMode; }
 }
 class VisualizerTile {
     static #template = document.getElementById('visualizerTileTemplate');
@@ -451,10 +492,11 @@ class VisualizerTextTile {
             this.ctx2.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
+            let size = parseInt(fontSize.value) + 2;
             let x = this.canvas2.width * parseFloat(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
-                this.ctx2.fillText(text[i], x, (i + 0.5) * parseInt(fontSize.value));
+                this.ctx2.fillText(text[i], x, (i + 0.5) * size);
             }
         };
         fontSize.addEventListener('input', (e) => this.refresh());
@@ -463,7 +505,7 @@ class VisualizerTextTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const editContainer = this.tile.querySelector('.tileTextEditContainer');
         this.#resize = () => {
-            let textHeight = this.text.split('\n').length * parseInt(fontSize.value) + 2;
+            let textHeight = this.text.split('\n').length * (parseInt(fontSize.value) + 2) + 4;
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
@@ -479,7 +521,7 @@ class VisualizerTextTile {
             this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
-            this.canvas2.style.bottom = (window.innerHeight - rect.bottom) + 4 + 'px';
+            this.canvas2.style.bottom = (window.innerHeight - rect.bottom) + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
@@ -575,6 +617,10 @@ class ChannelPeakTile {
         // visualizer options
         const colorSelect = this.tile.querySelector('.tileVisualizerColor');
         colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+        const channelPeakVolumeCrop = this.tile.querySelector('.tileChannelPeakVolumeCrop');
+        channelPeakVolumeCrop.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barScale = parseFloat(channelPeakVolumeCrop.value) / 100;
+        });
         // actual options that arent copied from somewhere else
         const channelPeakChannels = this.tile.querySelector('.tileChannelPeakChannels');
         channelPeakChannels.addEventListener('input', (e) => {
@@ -636,6 +682,7 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
             tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
             tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
+            tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
             tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
             tile.tile.querySelector('.tileSourceUploadCover').remove();
         }
@@ -769,10 +816,11 @@ class TextTile {
             this.ctx.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
+            let size = parseInt(fontSize.value) + 2;
             let x = this.canvas.width * parseFloat(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
-                this.ctx.fillText(text[i], x, (this.canvas.height / 2) - (((text.length / 2) - i - 0.5) * parseInt(fontSize.value)));
+                this.ctx.fillText(text[i], x, (this.canvas.height / 2) - (((text.length / 2) - i - 0.5) * size));
             }
         };
         fontSize.addEventListener('input', (e) => draw());
@@ -975,6 +1023,7 @@ document.addEventListener('mousemove', (e) => {
                 let halfWidth = rect.width / 2;
                 let halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
+                    // uhhh doesnt work when orientation is horizontal??
                     if (parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {

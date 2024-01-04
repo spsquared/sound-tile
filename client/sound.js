@@ -83,7 +83,7 @@ class Visualizer {
         this.playingSource.buffer = this.buffer;
         this.playingSource.connect(this.gain);
         this.playingSource.onended = this.playingSource.disconnect;
-        this.playingSource.start(audioContext.currentTime, time);
+        this.playingSource.start(audioContext.currentTime, Math.max(time, 0));
     }
     stop() {
         if (this.playingSource !== null) {
@@ -282,6 +282,7 @@ class ChannelPeakVisualizer extends Visualizer {
             color: this.color,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
+            barScale: this.barScale,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated

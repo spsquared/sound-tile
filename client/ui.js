@@ -46,10 +46,9 @@ uploadButton.oninput = (e) => {
             GroupTile.root.tile.remove();
             GroupTile.root = new GroupTile(false);
             display.appendChild(GroupTile.root.tile);
-            function dfs(treenode) {
+            let dfs = (treenode) => {
                 if (treenode.children !== undefined) {
-                    let node = new GroupTile(treenode.orientation);
-                    node.tile.style.flexGrow = treenode.flexGrow ?? 1;
+                    let node = GroupTile.fromData(treenode);
                     for (let child of treenode.children) {
                         node.addChild(dfs(child));
                     }
@@ -92,15 +91,10 @@ downloadButton.onclick = async (e) => {
     if (downloadButton.disabled) return;
     downloadButton.disabled = true;
     uploadButton.disabled = true;
-    const tree = {
-        version: 1,
-        root: dfs(GroupTile.root)
-    };
-    function dfs(node) {
+    let dfs = (node) => {
         if (node.children !== undefined) {
             let treenode = {
-                orientation: node.orientation,
-                flexGrow: node.tile.style.flexGrow,
+                ...node.getData(),
                 children: []
             };
             for (let child of node.children) {
@@ -108,6 +102,10 @@ downloadButton.onclick = async (e) => {
             }
             return treenode;
         } else return node.getData();
+    };
+    const tree = {
+        version: 1,
+        root: dfs(GroupTile.root)
     };
     let promises = []
     let curr;
@@ -189,7 +187,7 @@ Visualizer.onUpdate = () => {
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
 };
 function getTime(s) {
-    return `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.floor(s) % 60}`;
+    return `${Math.trunc(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.trunc(s) % 60}`;
 };
 setInterval(() => {
     let now = performance.now();
@@ -234,6 +232,9 @@ loopToggle.checked = mediaControls.loop;
 // tile source
 const tileSourceTemplate = document.getElementById('tileSourceTemplate');
 const tileSourceContainer = document.getElementById('tileSource');
+tileSourceContainer.addEventListener('wheel', (e) => {
+    tileSourceContainer.scrollBy(e.deltaY, 0);
+});
 function createTileSource(tileClass, img, alt) {
     const source = tileSourceTemplate.content.cloneNode(true).children[0];
     source.querySelector('.tileSourceImg').src = img;
@@ -266,6 +267,19 @@ createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel 
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 
 // tree editor
+const tileModeButton = document.getElementById('tileMode');
+const treeModeButton = document.getElementById('treeMode');
+tileModeButton.onclick = (e) => {
+    tileModeButton.disabled = true;
+    treeModeButton.disabled = false;
+    GroupTile.treeMode = false;
+};
+treeModeButton.onclick = (e) => {
+    tileModeButton.disabled = false;
+    treeModeButton.disabled = true;
+    GroupTile.treeMode = true;
+};
+tileModeButton.disabled = true;
 
 // keys and stuff
 const dropdownButton = document.getElementById('dropdownTab');
@@ -275,19 +289,23 @@ document.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     switch (key) {
         case 'arrowleft':
+            if (e.ctrlKey) break;
             e.preventDefault();
             mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
             break;
         case 'arrowright':
+            if (e.ctrlKey) break;
             e.preventDefault();
             mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
             break;
         case ' ':
         case 'p':
+            if (e.ctrlKey) break;
             e.preventDefault();
             playButton.click();
             break;
         case 'h':
+            if (e.ctrlKey) break;
             e.preventDefault();
             dropdownButton.click();
             if (e.shiftKey) dropdownButton.classList.toggle('hidden');
