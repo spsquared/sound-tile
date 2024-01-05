@@ -310,6 +310,12 @@ document.addEventListener('keydown', (e) => {
             dropdownButton.click();
             if (e.shiftKey) dropdownButton.classList.toggle('hidden');
             break;
+        case 't':
+            if (e.ctrlKey) break;
+            e.preventDefault();
+            if (GroupTile.treeMode) tileModeButton.click();
+            else treeModeButton.click();
+            break;
         case 's':
             if (e.ctrlKey) {
                 e.preventDefault();

@@ -228,6 +228,10 @@
                         Size:
                         <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                     </label>
+                    <label title="Change to vertical layout">
+                        Vertical:
+                        <input class="tileGroupVertical checkBox" type="checkbox">
+                    </label>
                 </div>
             </div>
             <div class="tileGroupChildren tileGroup"></div>
@@ -235,316 +239,330 @@
     </template>
     <template id="visualizerTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileCanvasContainer">
-                <canvas class="tileCanvas"></canvas>
-            </div>
-            <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel buttonLabel">
-                    Upload Audio Source
-                    <input class="tileSourceUpload button" type="file" accept="audio/*">
-                </label>
-            </div>
-            <div class="tileControls">
-                <span class="tileVisualizerControls"></span>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
-                <label title="Visualizer color">
-                    Visualizer:
-                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileCanvasContainer">
+                    <canvas class="tileCanvas"></canvas>
+                </div>
+                <div class="tileSourceUploadCover">
+                    <label class="tileSourceUploadLabel buttonLabel">
+                        Upload Audio Source
+                        <input class="tileSourceUpload button" type="file" accept="audio/*">
+                    </label>
+                </div>
+                <div class="tileControls">
+                    <span class="tileVisualizerControls"></span>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                    <label title="Visualizer color">
+                        Visualizer:
+                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="visualizerImageTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileDisplay">
-                <div class="tileCanvasContainer">
-                    <canvas class="tileCanvas"></canvas>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
                 </div>
-                <div class="tileImgContainer">
-                    <img class="tileImg">
+                <div class="tileDisplay">
+                    <div class="tileCanvasContainer">
+                        <canvas class="tileCanvas"></canvas>
+                    </div>
+                    <div class="tileImgContainer">
+                        <img class="tileImg">
+                    </div>
                 </div>
-            </div>
-            <div class="tileImgUploadCoverSmall">
-                <label class="tileImgUploadLabel buttonLabel">
-                    Upload Image
-                    <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
-                </label>
-            </div>
-            <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel buttonLabel">
-                    Upload Audio Source
-                    <input class="tileSourceUpload button" type="file" accept="audio/*">
-                </label>
-            </div>
-            <div class="tileControls">
-                <label class="tileImgReplaceLabel buttonLabel">
-                    <span class="tileImgReplaceLabelText">Upload Image</span>
-                    <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
-                </label>
-                <span class="tileVisualizerControls"></span>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Smooth image rendering">
-                    Smoothing:
-                    <input class="tileImgSmoothing checkBox" type="checkbox" checked>
-                </label>
-                <label title="Use image as visualizer backdrop">
-                    Image BG:
-                    <input class="tileImgSmoothing checkBox" type="checkbox" checked>
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
-                <label title="Visualizer color">
-                    Visualizer:
-                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                </label>
+                <div class="tileImgUploadCoverSmall">
+                    <label class="tileImgUploadLabel buttonLabel">
+                        Upload Image
+                        <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    </label>
+                </div>
+                <div class="tileSourceUploadCover">
+                    <label class="tileSourceUploadLabel buttonLabel">
+                        Upload Audio Source
+                        <input class="tileSourceUpload button" type="file" accept="audio/*">
+                    </label>
+                </div>
+                <div class="tileControls">
+                    <label class="tileImgReplaceLabel buttonLabel">
+                        <span class="tileImgReplaceLabelText">Upload Image</span>
+                        <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    </label>
+                    <span class="tileVisualizerControls"></span>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Smooth image rendering">
+                        Smoothing:
+                        <input class="tileImgSmoothing checkBox" type="checkbox" checked>
+                    </label>
+                    <label title="Use image as visualizer backdrop">
+                        Image BG:
+                        <input class="tileImgSmoothing checkBox" type="checkbox" checked>
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                    <label title="Visualizer color">
+                        Visualizer:
+                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="visualizerTextTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileCanvasContainer">
-                <canvas class="tileCanvas"></canvas>
-                <canvas class="tileCanvas2"></canvas>
-            </div>
-            <div class="tileTextEditContainer hidden">
-                <textarea class="tileText">Text Here</textarea>
-                <button class="tileTextEditDoneButton">Done</button>
-            </div>
-            <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel buttonLabel">
-                    Upload Audio Source
-                    <input class="tileSourceUpload button" type="file" accept="audio/*">
-                </label>
-            </div>
-            <div class="tileControls">
-                <label class="tileTextEditLabel buttonLabel">
-                    Edit Text
-                    <input class="tileTextEdit button" type="button">
-                </label>
-                <span class="tileVisualizerControls"></span>
-                <label title="Font size">
-                    Font:
-                    <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
-                </label>
-                <label title="Text align">
-                    Align:
-                    <select class="tileTextAlign selectBox">
-                        <option value="0">Left</option>
-                        <option value="0.5" selected>Center</option>
-                        <option value="1">Right</option>
-                    </select>
-                </label>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
-                <label title="Visualizer color">
-                    Visualizer:
-                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                </label>
-                <label title="Text color">
-                    Text:
-                    <input type="color" class="tileTextColor colorBox" value="#ffffff">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileCanvasContainer">
+                    <canvas class="tileCanvas"></canvas>
+                    <canvas class="tileCanvas2"></canvas>
+                </div>
+                <div class="tileTextEditContainer hidden">
+                    <textarea class="tileText">Text Here</textarea>
+                    <button class="tileTextEditDoneButton">Done</button>
+                </div>
+                <div class="tileSourceUploadCover">
+                    <label class="tileSourceUploadLabel buttonLabel">
+                        Upload Audio Source
+                        <input class="tileSourceUpload button" type="file" accept="audio/*">
+                    </label>
+                </div>
+                <div class="tileControls">
+                    <label class="tileTextEditLabel buttonLabel">
+                        Edit Text
+                        <input class="tileTextEdit button" type="button">
+                    </label>
+                    <span class="tileVisualizerControls"></span>
+                    <label title="Font size">
+                        Font:
+                        <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                    </label>
+                    <label title="Text align">
+                        Align:
+                        <select class="tileTextAlign selectBox">
+                            <option value="0">Left</option>
+                            <option value="0.5" selected>Center</option>
+                            <option value="1">Right</option>
+                        </select>
+                    </label>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                    <label title="Visualizer color">
+                        Visualizer:
+                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                    </label>
+                    <label title="Text color">
+                        Text:
+                        <input type="color" class="tileTextColor colorBox" value="#ffffff">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="channelPeakTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileCanvasContainer">
-                <canvas class="tileCanvas"></canvas>
-            </div>
-            <div class="tileSourceUploadCover">
-                <label class="tileSourceUploadLabel buttonLabel">
-                    Upload Audio Source
-                    <input class="tileSourceUpload button" type="file" accept="audio/*">
-                </label>
-            </div>
-            <div class="tileControls">
-                <label class="tileAudioReplaceLabel buttonLabel">
-                    Replace Source
-                    <input class="tileAudioReplace button" type="file" accept="audio/*">
-                </label>
-                <label title="Volume">
-                    Volume:
-                    <div class="tileVisualizerVolumeBody">
-                        <input class="tileVisualizerVolumeInput" type="range" min="0" max="120" step="2" value="100" title="100%">
-                        <div class="tileVisualizerVolumeTrack"></div>
-                        <div class="tileVisualizerVolumeThumb"></div>
-                    </div>
-                </label>
-                <label title="Number of channels to sample">
-                    Channels:
-                    <select class="tileChannelPeakChannels selectBox">
-                        <option value="1">1</option>
-                        <option value="2" selected>2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                    </select>
-                </label>
-                <label title="Percentage width of bars">
-                    Width:
-                    <input class="tileChannelPeakBarWidth numberBox" type="number" min="5" max="100" step="5" value="80">
-                </label>
-                <label title="Smoothing factor">
-                    Smooth:
-                    <input class="tileChannelPeakSmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.5">
-                </label>
-                <label title="Scale of volume drawn">
-                    Vol %:
-                    <input class="tileChannelPeakVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
-                </label>
-                <label title="Flip in x-direction">
-                    Flip X:
-                    <input class="tileVisualizerFlip checkBox" type="checkbox">
-                </label>
-                <label title="Flip in y-direction">
-                    Flip Y:
-                    <input class="tileVisualizerFlip2 checkBox" type="checkbox">
-                </label>
-                <label title="Rotate 90&deg;">
-                    Rotate:
-                    <input class="tileVisualizerRotate checkBox" type="checkbox">
-                </label>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
-                <label title="Visualizer color">
-                    Visualizer:
-                    <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileCanvasContainer">
+                    <canvas class="tileCanvas"></canvas>
+                </div>
+                <div class="tileSourceUploadCover">
+                    <label class="tileSourceUploadLabel buttonLabel">
+                        Upload Audio Source
+                        <input class="tileSourceUpload button" type="file" accept="audio/*">
+                    </label>
+                </div>
+                <div class="tileControls">
+                    <label class="tileAudioReplaceLabel buttonLabel">
+                        Replace Source
+                        <input class="tileAudioReplace button" type="file" accept="audio/*">
+                    </label>
+                    <label title="Volume">
+                        Volume:
+                        <div class="tileVisualizerVolumeBody">
+                            <input class="tileVisualizerVolumeInput" type="range" min="0" max="120" step="2" value="100" title="100%">
+                            <div class="tileVisualizerVolumeTrack"></div>
+                            <div class="tileVisualizerVolumeThumb"></div>
+                        </div>
+                    </label>
+                    <label title="Number of channels to sample">
+                        Channels:
+                        <select class="tileChannelPeakChannels selectBox">
+                            <option value="1">1</option>
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </label>
+                    <label title="Percentage width of bars">
+                        Width:
+                        <input class="tileChannelPeakBarWidth numberBox" type="number" min="5" max="100" step="5" value="80">
+                    </label>
+                    <label title="Smoothing factor">
+                        Smooth:
+                        <input class="tileChannelPeakSmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.5">
+                    </label>
+                    <label title="Scale of volume drawn">
+                        Vol %:
+                        <input class="tileChannelPeakVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
+                    </label>
+                    <label title="Flip in x-direction">
+                        Flip X:
+                        <input class="tileVisualizerFlip checkBox" type="checkbox">
+                    </label>
+                    <label title="Flip in y-direction">
+                        Flip Y:
+                        <input class="tileVisualizerFlip2 checkBox" type="checkbox">
+                    </label>
+                    <label title="Rotate 90&deg;">
+                        Rotate:
+                        <input class="tileVisualizerRotate checkBox" type="checkbox">
+                    </label>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                    <label title="Visualizer color">
+                        Visualizer:
+                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="imageTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileImgContainer">
-                <img class="tileImg">
-            </div>
-            <div class="tileImgUploadCover">
-                <label class="tileImgUploadLabel buttonLabel">
-                    Upload Image
-                    <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
-                </label>
-            </div>
-            <div class="tileControls">
-                <label class="tileImgReplaceLabel buttonLabel">
-                    <span class="tileImgReplaceLabelText">Change Image</span>
-                    <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
-                </label>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Smooth image rendering">
-                    Smoothing:
-                    <input class="tileImgSmoothing checkBox" type="checkbox" checked>
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileImgContainer">
+                    <img class="tileImg">
+                </div>
+                <div class="tileImgUploadCover">
+                    <label class="tileImgUploadLabel buttonLabel">
+                        Upload Image
+                        <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    </label>
+                </div>
+                <div class="tileControls">
+                    <label class="tileImgReplaceLabel buttonLabel">
+                        <span class="tileImgReplaceLabelText">Change Image</span>
+                        <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                    </label>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Smooth image rendering">
+                        Smoothing:
+                        <input class="tileImgSmoothing checkBox" type="checkbox" checked>
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="textTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileCanvasContainer">
-                <canvas class="tileCanvas"></canvas>
-            </div>
-            <div class="tileTextEditContainer hidden">
-                <textarea class="tileText">Text Here</textarea>
-                <button class="tileTextEditDoneButton">Done</button>
-            </div>
-            <div class="tileControls">
-                <label class="tileTextEditLabel buttonLabel">
-                    Edit
-                    <input class="tileTextEdit button" type="button">
-                </label>
-                <label title="Font size">
-                    Font:
-                    <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
-                </label>
-                <label title="Text align">
-                    Align:
-                    <select class="tileTextAlign selectBox">
-                        <option value="0">Left</option>
-                        <option value="0.5" selected>Center</option>
-                        <option value="1">Right</option>
-                    </select>
-                </label>
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
-                <label title="Text color">
-                    Text:
-                    <input type="color" class="tileTextColor colorBox" value="#ffffff">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileCanvasContainer">
+                    <canvas class="tileCanvas"></canvas>
+                </div>
+                <div class="tileTextEditContainer hidden">
+                    <textarea class="tileText">Text Here</textarea>
+                    <button class="tileTextEditDoneButton">Done</button>
+                </div>
+                <div class="tileControls">
+                    <label class="tileTextEditLabel buttonLabel">
+                        Edit
+                        <input class="tileTextEdit button" type="button">
+                    </label>
+                    <label title="Font size">
+                        Font:
+                        <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                    </label>
+                    <label title="Text align">
+                        Align:
+                        <select class="tileTextAlign selectBox">
+                            <option value="0">Left</option>
+                            <option value="0.5" selected>Center</option>
+                            <option value="1">Right</option>
+                        </select>
+                    </label>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                    <label title="Text color">
+                        Text:
+                        <input type="color" class="tileTextColor colorBox" value="#ffffff">
+                    </label>
+                </div>
             </div>
         </div>
     </template>
     <template id="blankTileTemplate">
         <div class="tile">
-            <div class="tileDrag">
-                <div class="tileRemove"></div>
-            </div>
-            <div class="tileControls">
-                <label title="Ratio of size relative to other tiles">
-                    Size:
-                    <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                </label>
-                <label title="Background color">
-                    Background:
-                    <input type="color" class="tileBackgroundColor colorBox" value="#000000">
-                </label>
+            <div class="tileContents">
+                <div class="tileDrag">
+                    <div class="tileRemove"></div>
+                </div>
+                <div class="tileControls">
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
+                    <label title="Background color">
+                        Background:
+                        <input type="color" class="tileBackgroundColor colorBox" value="#000000">
+                    </label>
+                </div>
             </div>
         </div>
     </template>

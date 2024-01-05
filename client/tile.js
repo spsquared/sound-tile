@@ -182,7 +182,8 @@ class GroupTile {
     controls = {
         dragBar: null,
         controls: null,
-        flexGrow: null
+        flexGrow: null,
+        vertical: null
     };
     constructor(orientation = false) {
         this.tile = GroupTile.#template.content.cloneNode(true).children[0];
@@ -191,14 +192,21 @@ class GroupTile {
         if (orientation) this.childBox.classList.add('tileGroupVertical');
         this.controls.dragBar = this.tile.querySelector('.tileDrag');
         this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
-        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
         this.controls.flexGrow.oninput = (e) => {
-            if (GroupTile.treeMode) this.tile.style.flexGrow = 1;
-            else this.tile.style.flexGrow = parseFloat(this.controls.flexGrow.value);
+            this.tile.style.flexGrow = parseFloat(this.controls.flexGrow.value);
             if (this.parent !== null) this.parent.refresh();
         };
+        this.controls.vertical = this.tile.querySelector('.tileGroupVertical');
+        this.controls.vertical.onclick = (e) => {
+            this.orientation = this.controls.vertical.checked;
+            if (this.orientation) this.childBox.classList.add('tileGroupVertical');
+            else this.childBox.classList.remove('tileGroupVertical');
+            if (this.parent !== null) this.parent.refresh();
+        };
+        this.controls.vertical.checked = this.orientation;
     }
 
     addChild(child, index = this.children.length) {
@@ -210,7 +218,7 @@ class GroupTile {
         else this.childBox.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
         child.parent = this;
-        GroupTile.root.refresh();
+        this.refresh();
     }
     replaceChild(child, replacement) {
         if (!this.children.includes(child)) return false;
@@ -221,7 +229,7 @@ class GroupTile {
         removed.parent = null;
         removed.tile.remove();
         this.addChild(replacement, index);
-        GroupTile.root.refresh();
+        this.refresh();
         return removed;
     }
     removeChild(child) {
@@ -232,7 +240,7 @@ class GroupTile {
         const removed = this.children.splice(index, 1)[0];
         removed.parent = null;
         removed.tile.remove();
-        GroupTile.root.refresh();
+        this.refresh();
         this.checkObsolescence();
         return removed;
     }
@@ -969,7 +977,28 @@ document.addEventListener('mousemove', (e) => {
             foundDrop = true;
         };
         let simulateLayout = () => {
-            let rec = (group, div) => {
+            const ddiv = document.createElement('div');
+            ddiv.classList.add('pTileDrop');
+            ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
+            if (drag.tile instanceof GroupTile) {
+                ddiv.classList.add('pGroupTile');
+                if (drag.tile.orientation) ddiv.classList.add('pGroupTileVertical');
+                let dfs = (group, div) => {
+                    for (const child of group.children) {
+                        const tdiv = document.createElement('div');
+                        if (child.children !== undefined) tdiv.classList.add('pGroupTile');
+                        else tdiv.classList.add('pTile');
+                        tdiv.style.flexGrow = child.tile.style.flexGrow;
+                        if (child.children !== undefined) {
+                            if (child.orientation) tdiv.classList.add('pGroupTileVertical');
+                            dfs(child, tdiv);
+                        }
+                        div.appendChild(tdiv);
+                    }
+                };
+                dfs(drag.tile, ddiv);
+            } else ddiv.classList.add('pTile');
+            let dfs = (group, div) => {
                 for (let i in group.children) {
                     const child = group.children[i];
                     const tdiv = document.createElement('div');
@@ -977,25 +1006,17 @@ document.addEventListener('mousemove', (e) => {
                     else tdiv.classList.add('pTile');
                     tdiv.style.flexGrow = child.tile.style.flexGrow;
                     if (group === drag.drop.tile && !drag.drop.createGroup && i == drag.drop.index) {
-                        const ddiv = document.createElement('div');
-                        ddiv.classList.add('pTile');
-                        ddiv.classList.add('pTileDrop');
-                        ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
                         div.appendChild(ddiv);
                     }
                     if (child.children !== undefined) {
                         if (child.orientation) tdiv.classList.add('pGroupTileVertical');
-                        rec(child, tdiv);
+                        dfs(child, tdiv);
                     }
                     if (drag.drop.createGroup && child === drag.drop.tile) {
                         const gdiv = document.createElement('div');
                         gdiv.classList.add('pGroupTile');
                         if (drag.drop.groupOrientation) gdiv.classList.add('pGroupTileVertical');
                         if (drag.drop.index == 1) gdiv.appendChild(tdiv);
-                        const ddiv = document.createElement('div');
-                        ddiv.classList.add('pTile');
-                        ddiv.classList.add('pTileDrop');
-                        ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
                         if (drag.drop.index == 1) gdiv.appendChild(tdiv);
                         gdiv.appendChild(ddiv);
                         if (drag.drop.index == 0) gdiv.appendChild(tdiv);
@@ -1003,16 +1024,12 @@ document.addEventListener('mousemove', (e) => {
                     } else div.appendChild(tdiv);
                 }
                 if (group == drag.drop.tile && !drag.drop.createGroup && drag.drop.index == group.children.length) {
-                    const ddiv = document.createElement('div');
-                    ddiv.classList.add('pTile');
-                    ddiv.classList.add('pTileDrop');
-                    ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
                     div.appendChild(ddiv);
                 }
             };
             drag.layoutPreview.innerHTML = '';
             drag.layoutPreview.style.opacity = '1';
-            rec(GroupTile.root, drag.layoutPreview);
+            dfs(GroupTile.root, drag.layoutPreview);
         };
         traverse: while (true) {
             const rect = currTile.tile.getBoundingClientRect();
