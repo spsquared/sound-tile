@@ -20,7 +20,9 @@ if (navigator.userActivation) {
 
 class Visualizer {
     static #list = new Set();
+    static #persistenceIdCounter = 0;
 
+    #persistenceId = 0;
     rawBuffer = null;
     buffer = null;
     canvas = null;
@@ -42,10 +44,11 @@ class Visualizer {
     rotated = false;
     ready = false;
     drawing = false;
-    loadPromise = new Promise(() => {});
+    loadPromise = new Promise(() => { });
     constructor(arrbuf, canvas, oncreate) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
+        this.#persistenceId = Visualizer.#persistenceIdCounter++;
         this.rawBuffer = new Uint8Array(new Uint8Array(arrbuf)).buffer;
         // create new canvas instead to prevent bugs
         this.canvas = canvas;
@@ -129,6 +132,7 @@ class Visualizer {
     }
     get #workerData() {
         return {
+            persistenceId: this.#persistenceId,
             color: this.color,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
@@ -140,6 +144,10 @@ class Visualizer {
             flippedY: this.flippedY,
             rotated: this.rotated
         };
+    }
+
+    get persistenceId() {
+        return this.#persistenceId;
     }
 
     set smoothingTimeConstant(c) {
@@ -241,6 +249,7 @@ class Visualizer {
 class ChannelPeakVisualizer extends Visualizer {
     splitter = audioContext.createChannelSplitter(2);
     analyzers = [];
+    smoothing = 0.5;
 
     constructor(arrbuf, canvas, oncreate) {
         super(arrbuf, canvas, oncreate);
@@ -248,6 +257,7 @@ class ChannelPeakVisualizer extends Visualizer {
         delete this.barCrop;
         delete this.scale;
         delete this.lineWidth;
+        delete this.smoothingTimeConstant;
         this.analyzer.disconnect();
         delete this.analyzer;
         this.channelCount = 2;
@@ -269,7 +279,7 @@ class ChannelPeakVisualizer extends Visualizer {
                 const dataArr = [];
                 for (let i = 0; i < this.analyzers.length; i++) {
                     const data = new Uint8Array(this.analyzers[i].frequencyBinCount);
-                    this.analyzers[i].getByteFrequencyData(data);
+                    this.analyzers[i].getByteTimeDomainData(data);
                     dataArr.push(data);
                 }
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, dataArr], [...dataArr.map(arr => arr.buffer)]);
@@ -279,10 +289,12 @@ class ChannelPeakVisualizer extends Visualizer {
     }
     get #workerData() {
         return {
+            persistenceId: this.persistenceId,
             color: this.color,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barScale: this.barScale,
+            smoothing: this.smoothing,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated
@@ -292,12 +304,10 @@ class ChannelPeakVisualizer extends Visualizer {
     set channelCount(c) {
         this.splitter.disconnect();
         this.splitter = audioContext.createChannelSplitter(c);
-        let smoothing = this.analyzers.length ? this.analyzers[0].smoothingTimeConstant : 0.8;
         for (let a of this.analyzers) a.disconnect();
         this.analyzers = [];
         for (let i = 0; i < c; i++) {
             const analyzer = audioContext.createAnalyser();
-            analyzer.smoothingTimeConstant = smoothing;
             analyzer.fftSize = 1024;
             this.splitter.connect(analyzer, i);
             this.analyzers.push(analyzer);
@@ -307,20 +317,16 @@ class ChannelPeakVisualizer extends Visualizer {
     get channelCount() {
         return this.analyzers.length;
     }
-    set smoothingTimeConstant(c) {
-        for (let a of this.analyzers) a.smoothingTimeConstant = c;
-    }
-    get smoothingTimeConstant() {
-        return this.analyzers[0].smoothingTimeConstant;
-    }
     set fftSize(size) { }
     get fftSize() { }
+    set smoothingTimeConstant(c) { }
+    get smoothingTimeConstant() { }
 
     getData() {
         return {
             buffer: this.rawBuffer,
             color: this.color,
-            smoothing: this.smoothingTimeConstant,
+            smoothing: this.smoothing,
             channelCount: this.channelCount,
             barWidthPercent: this.barWidthPercent,
             flippedX: this.flippedX,
@@ -332,7 +338,7 @@ class ChannelPeakVisualizer extends Visualizer {
     static fromData(data, canvas) {
         const visualizer = new ChannelPeakVisualizer(data.buffer, canvas);
         visualizer.color = data.color;
-        visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
+        visualizer.smoothing = data.smoothing ?? 3;
         visualizer.channelCount = data.channelCount;
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.flippedX = data.flippedX ?? false;

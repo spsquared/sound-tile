@@ -504,6 +504,8 @@ class VisualizerTextTile {
         textColor.addEventListener('input', (e) => draw());
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const editContainer = this.tile.querySelector('.tileTextEditContainer');
+        this.canvas.style.top = '0px';
+        this.canvas2.style.bottom = '0px';
         this.#resize = () => {
             let textHeight = this.text.split('\n').length * (parseInt(fontSize.value) + 2) + 4;
             const rect = canvasContainer.getBoundingClientRect();
@@ -516,12 +518,10 @@ class VisualizerTextTile {
                 this.canvas.style.width = rect.width + 'px';
                 this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
             }
-            this.canvas.style.top = rect.top + 'px';
             this.canvas2.width = Math.round(rect.width * scale);
             this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
             this.canvas2.style.height = textHeight + 'px';
-            this.canvas2.style.bottom = (window.innerHeight - rect.bottom) + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
@@ -596,7 +596,7 @@ class ChannelPeakTile {
                 this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
                 this.visualizer.channelCount = parseInt(channelPeakChannels.value);
                 this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
-                this.visualizer.smoothingTimeConstant = parseInt(channelPeakSmoothing.value) / 100;
+                this.visualizer.smoothing = parseFloat(channelPeakSmoothing.value);
                 this.visualizer.color = colorSelect.value;
                 this.visualizer.volume = parseInt(volumeInput.value) / 100;
                 audioReplace.value = '';
@@ -633,7 +633,7 @@ class ChannelPeakTile {
         });
         const channelPeakSmoothing = this.tile.querySelector('.tileChannelPeakSmoothing');
         channelPeakSmoothing.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseInt(channelPeakSmoothing.value) / 100;
+            if (this.visualizer !== null) this.visualizer.smoothing = parseFloat(channelPeakSmoothing.value);
         });
         // more visualizer options
         const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
@@ -941,9 +941,11 @@ function startDrag(e) {
     drag.layoutPreview.innerHTML = '';
     drag.layoutPreview.style.display = 'flex';
     drag.dragging = true;
+    drag.drop.tile = null;
 };
 document.addEventListener('mousemove', (e) => {
     if (drag.dragging) {
+        // scroll when mouse at edge of screen in tree mode
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
         drag.tile.refresh();
@@ -1024,34 +1026,34 @@ document.addEventListener('mousemove', (e) => {
                 let halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     // uhhh doesnt work when orientation is horizontal??
-                    if (parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
+                    if (parent != null && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 1);
                     }
                 } else if (relY > rect.height - halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
-                    if (parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
+                    if (parent != null && parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 1);
                     }
                 } else if (relX < halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
+                    if (parent != null && parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 0);
                     }
                 } else if (relX > rect.width - halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
+                    if (parent != null && parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 0);
                     }
-                } else if (parent != GroupTile.root && (currTile instanceof GroupTile ? currTile.children.every(v => visited.has(v)) : true)) {
+                } else if (parent != null && (currTile instanceof GroupTile ? currTile.children.every(v => visited.has(v)) : true)) {
                     currTile = parent;
                     continue traverse;
                 }
-            } else if (parent != GroupTile.root) {
+            } else if (currTile.parent != null) {
                 currTile = currTile.parent;
                 continue traverse;
             }

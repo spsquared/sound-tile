@@ -1,6 +1,8 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
 class VisualizerWorker {
+    static #persistentData = new Map();
+
     static draw(data) {
         let width = this.canvas.width;
         let height = this.canvas.height;
@@ -122,22 +124,24 @@ class VisualizerWorker {
             this.ctx.stroke();
         } else if (this.mode == 6) {
             let peaks = [];
-            // find true peak?
             for (let channel of data) {
-                // oof slow
                 let max = 0;
                 for (let i = 0; i < channel.length; i++) {
-                    if (channel[i] > max) max = channel[i];
+                    let v = Math.abs(channel[i] - 128);
+                    if (v > max) max = v;
                 }
-                peaks.push(max);
+                let last = VisualizerWorker.#persistentData.get(this.persistenceId) ?? max;
+                let smoothed = max * (1 - this.smoothing) + last * this.smoothing;
+                peaks.push(smoothed);
+                VisualizerWorker.#persistentData.set(this.persistenceId, smoothed);
             }
             this.ctx.fillStyle = this.color;
             let barSpace = (width / peaks.length);
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256 * this.barScale;
+            let yScale = height / 127 * this.barScale;
             for (let i = 0; i < peaks.length; i++) {
-                let barHeight = (peaks[i] + 1) * yScale;
+                let barHeight = peaks[i] * yScale + 1;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
             }
         } else {

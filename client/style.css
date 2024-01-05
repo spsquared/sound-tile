@@ -561,6 +561,12 @@ img {
 }
 .treeModeDisplay {
     overflow: scroll !important;
+    width: unset !important;
+    height: unset !important;
+    max-width: calc(100vw - 4px);
+    max-height: calc(100vh - 4px);
+    border: none !important;
+    padding: 2px 2px;
 }
 #display::-webkit-scrollbar {
     width: 0px;
@@ -578,7 +584,8 @@ img {
     position: relative;
     display: none;
     height: 60px;
-    border: 2px solid white;
+    border: 4px solid white;
+    margin: -2px -2px;
 }
 .treeModeDisplay .tileGroupSelf {
     display: block;
@@ -609,6 +616,8 @@ img {
 .treeModeDisplay .tile {
     width: 200px;
     height: 200px;
+    border: 4px solid white;
+    margin: -2px -2px;
 }
 
 .tileDrag {
@@ -669,10 +678,11 @@ img {
 }
 .tileSourceUploadLabel, .tileImgUploadLabel {
     height: 20%;
-    max-height: 24px;
+    max-height: 28px;
     box-sizing: border-box;
     padding: 0px 4%;
     font-size: 100%;
+    vertical-align: middle;
 }
 
 .tileDisplay {
@@ -682,6 +692,7 @@ img {
     height: 100%;
 }
 .tileCanvasContainer, .tileCanvasContainer2, .tileImgContainer {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -849,14 +860,6 @@ img {
 }
 .pTileDrop {
     background-color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* tree editor */
-#treeEditor {
-    display: none;
-    position: absolute;
-    top: 0px;
-    left: 0px;
 }
 
 /* export */
