@@ -278,7 +278,7 @@ class GroupTile {
         tile.controls.flexGrow.value = data.flex ?? (data.flexGrow == '' ? 1 : data.flexGrow) ?? 1;
         tile.tile.style.flexGrow = data.flex ?? data.flexGrow ?? 1;
         return tile;
-    };
+    }
     destroy() {
         for (const child of this.children) child.destroy();
         if (this.parent) this.parent.removeChild(this);
