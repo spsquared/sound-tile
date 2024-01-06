@@ -8,8 +8,7 @@ function setDefaultTileControls() {
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.oninput = (e) => {
-        if (GroupTile.treeMode) this.tile.style.flexGrow = 1;
-        else this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
+        this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
         if (this.parent !== null) this.parent.refresh();
     };
 };
@@ -109,6 +108,10 @@ function setVisualizerControls() {
     visualizerVolumeCrop.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
     });
+    const visualizerSymmetry = this.tile.querySelector('.tileVisualizerFrequencySymmetry');
+    visualizerSymmetry.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.symmetry = parseInt(visualizerSymmetry.value);
+    });
     const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
     visualizerSmoothing.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
@@ -158,6 +161,7 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
+    tile.tile.querySelector('.tileVisualizerFrequencySymmetry').value = data.visualizer.symmetry ?? 0;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;

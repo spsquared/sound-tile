@@ -37,6 +37,7 @@ class Visualizer {
     barWidthPercent = 0.80;
     barCrop = 1;
     barScale = 1;
+    symmetry = 0;
     scale = 1;
     lineWidth = 2;
     flippedX = false;
@@ -138,6 +139,7 @@ class Visualizer {
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
+            symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
             flippedX: this.flippedX,
@@ -182,6 +184,7 @@ class Visualizer {
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
+            symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
             flippedX: this.flippedX,
@@ -199,6 +202,7 @@ class Visualizer {
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.barCrop = data.barCrop;
         visualizer.barScale = data.barScale ?? 1;
+        visualizer.symmetry = data.symmetry ?? 0;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
         visualizer.flippedX = data.flippedX ?? false;
