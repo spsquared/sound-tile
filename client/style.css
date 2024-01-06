@@ -596,9 +596,6 @@ img {
     flex-wrap: nowrap;
     align-items: stretch;
 }
-.treeModeDisplay .tileGroupChildren {
-    margin: -2px -2px;
-}
 .tileGroupVertical {
     flex-direction: column;
 }

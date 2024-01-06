@@ -321,6 +321,13 @@ class ChannelPeakVisualizer extends Visualizer {
     get fftSize() { }
     set smoothingTimeConstant(c) { }
     get smoothingTimeConstant() { }
+    set muteOutput(mute) {
+        if (mute) this.gain.disconnect(globalVolume);
+        else this.gain.connect(globalVolume);
+    }
+    get muteOutput() {
+        return this.gain.numberOfOutputs == 1;
+    }
 
     getData() {
         return {
@@ -332,7 +339,8 @@ class ChannelPeakVisualizer extends Visualizer {
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated,
-            volume: this.gain.gain.value
+            volume: this.gain.gain.value,
+            muteOutput: this.muteOutput
         };
     }
     static fromData(data, canvas) {
@@ -345,6 +353,7 @@ class ChannelPeakVisualizer extends Visualizer {
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;
         visualizer.volume = data.volume ?? 1;
+        visualizer.muteOutput = data.muteOutput ?? false;
         return visualizer;
     }
     destroy() {

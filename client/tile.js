@@ -519,13 +519,8 @@ class VisualizerTextTile {
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
-            if (this.visualizer !== null && this.visualizer.rotated) {
-                this.canvas.style.width = (rect.height - textHeight - 2) + 'px';
-                this.canvas.style.height = rect.width + 'px';
-            } else {
-                this.canvas.style.width = rect.width + 'px';
-                this.canvas.style.height = (rect.height - textHeight - 2) + 'px';
-            }
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = (rect.height - textHeight - 4) + 'px';
             this.canvas2.width = Math.round(rect.width * scale);
             this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
@@ -643,6 +638,10 @@ class ChannelPeakTile {
         channelPeakSmoothing.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.smoothing = parseFloat(channelPeakSmoothing.value);
         });
+        const channelPeakMute = this.tile.querySelector('.tileChannelPeakMute');
+        channelPeakMute.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.muteOutput = channelPeakMute.checked;
+        });
         // more visualizer options
         const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
         visualizerFlip.addEventListener('click', (e) => {
@@ -687,10 +686,11 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileChannelPeakChannels').value = data.visualizer.channelCount;
             tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
             tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
+            tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
             tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
             tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
             tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
-            tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
+            tile.tile.querySelector('.tileChannelPeakMute').checked = data.visualizer.muteOutput ?? false;
             tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
             tile.tile.querySelector('.tileSourceUploadCover').remove();
         }
@@ -953,10 +953,20 @@ function startDrag(e) {
 };
 document.addEventListener('mousemove', (e) => {
     if (drag.dragging) {
-        // scroll when mouse at edge of screen in tree mode
+        if (GroupTile.treeMode) {
+            if (e.clientX < window.innerWidth * 0.01) {
+                display.scrollBy(-8, 0);
+            } else if (e.clientX > window.innerWidth * 0.99) {
+                display.scrollBy(8, 0);
+            }
+            if (e.clientY < window.innerHeight * 0.01) {
+                display.scrollBy(0, -8);
+            } else if (e.clientY > window.innerHeight * 0.99) {
+                display.scrollBy(0, 8);
+            }
+        }
         drag.container.style.top = e.clientY - drag.dragY + 'px';
         drag.container.style.left = e.clientX - drag.dragX + 'px';
-        drag.tile.refresh();
         const visited = new Set();
         let currTile = GroupTile.root;
         visited.add(currTile);
@@ -1043,25 +1053,25 @@ document.addEventListener('mousemove', (e) => {
                 let halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     // uhhh doesnt work when orientation is horizontal??
-                    if (parent != null && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
+                    if (parent != null && parent != GroupTile.root && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 1);
                     }
                 } else if (relY > rect.height - halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
-                    if (parent != null && parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
+                    if (parent != null && parent != GroupTile.root && parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 1);
                     }
                 } else if (relX < halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent != null && parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
+                    if (parent != null && parent != GroupTile.root && parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 0);
                     }
                 } else if (relX > rect.width - halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent != null && parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
+                    if (parent != null && parent != GroupTile.root && parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 0);
