@@ -127,6 +127,56 @@ class VisualizerWorker {
                     break;
             }
             this.ctx.stroke();
+        } else if (this.mode == 7) {
+            this.ctx.strokeStyle = this.color;
+            this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'round';
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
+            let xStep = width / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
+            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, height / 2);
+            switch (this.symmetry) {
+                default:
+                    case 0:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.lineTo(i * xStep, (height - (data[i] * yScale)) / 2);
+                    }
+                    for (let i = croppedFreq - 1; i >= 0; i--) {
+                        this.ctx.lineTo(i * xStep, (height + (data[i] * yScale)) / 2);
+                    }
+                    break;
+                case 1:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.lineTo(i * xStep, (height - (data[croppedFreq - i - 1] * yScale)) / 2);
+                    }
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.lineTo((croppedFreq + i) * xStep, (height - (data[i] * yScale)) / 2);
+                    }
+                    for (let i = croppedFreq - 1; i >= 0; i--) {
+                        this.ctx.lineTo((croppedFreq + i) * xStep, (height + (data[i] * yScale)) / 2);
+                    }
+                    for (let i = croppedFreq - 1; i >= 0; i--) {
+                        this.ctx.lineTo(i * xStep, (height + (data[croppedFreq - i - 1] * yScale)) / 2);
+                    }
+                    break;
+                case 2:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.lineTo(i * xStep, (height - (data[i] * yScale)) / 2);
+                    }
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.lineTo((croppedFreq + i) * xStep, (height - (data[croppedFreq - i - 1] * yScale)) / 2);
+                    }
+                    for (let i = croppedFreq - 1; i >= 0; i--) {
+                        this.ctx.lineTo((croppedFreq + i) * xStep, (height + (data[croppedFreq - i - 1] * yScale)) / 2);
+                    }
+                    for (let i = croppedFreq - 1; i >= 0; i--) {
+                        this.ctx.lineTo(i * xStep, (height + (data[i] * yScale)) / 2);
+                    }
+                    break;
+            }
+            this.ctx.lineTo(0, height / 2);
+            this.ctx.stroke();
         } else if (this.mode == 3) {
             this.ctx.strokeStyle = this.color;
             this.ctx.fillStyle = this.color;

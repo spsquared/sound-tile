@@ -67,7 +67,7 @@ function setVisualizerControls() {
     visualizerMode.addEventListener('input', (e) => {
         let mode = parseInt(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
-        if (mode <= 3 || mode == 5) {
+        if (mode <= 3 || mode == 5 || mode == 7) {
             visualizerFrequencyOptions.classList.remove('hidden');
             visualizerWaveformOptions.classList.add('hidden');
         } else {
@@ -145,7 +145,7 @@ function applyDefaultTileControls(tile, data) {
 function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5) {
+    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
