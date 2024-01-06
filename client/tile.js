@@ -33,6 +33,7 @@ function setVisualizerControls() {
             this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
             this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
             this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
+            this.visualizer.symmetry = parseInt(visualizerSymmetry.value);
             this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
             this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
             this.visualizer.flippedX = visualizerFlip.checked;

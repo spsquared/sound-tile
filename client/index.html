@@ -571,6 +571,10 @@
         </div>
     </template>
     <!-- gradient/image color options?? globalcompositeoperation the image onto the visualizer lol -->
+    <!-- also add fill color separately for the line fill ones -->
+    <!-- also more styles like discrete LED bars and luminance bars (bars are always drawn the same but with different opacities) -->
+    <!-- oh and radial style -->
+    <!-- stereo analyzer??? -->
     <template id="visualizerOptionsTemplate">
         <span>
             <label class="tileAudioReplaceLabel buttonLabel">
@@ -589,8 +593,8 @@
                 <option value="0">Freq (1x Bar)</option>
                 <option value="1">Freq (2x Bar)</option>
                 <option value="2">Freq (1x Line)</option>
-                <option value="3">Freq (1x Smooth)</option>
-                <option value="5">Freq (2x Smooth)</option>
+                <option value="3">Freq (1x Fill)</option>
+                <option value="5">Freq (2x Fill)</option>
                 <option value="4">Wave (Line)</option>
             </select>
             <label title="FFT Size (higher = more resolution)">
@@ -611,7 +615,7 @@
             <span class="tileVisualizerBarOptions" title="Percentage width of bars">
                 <label>
                     Width:
-                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="105" step="5" value="80">
+                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="120" step="5" value="80">
                 </label>
             </span>
             <span class="tileVisualizerLineOptions" title="Thickness of lines">
@@ -671,5 +675,12 @@
             <div class="tileSourcePopup">Template tile</div>
         </div>
     </template>
+    <div id="superSecretDiv">
+        <div id="superSecretNoise"></div>
+        <div id="superSecretScanlines"></div>
+        <div id="superSecretFlicker"></div>
+        <div id="superSecretRadialElectronBeamBending"></div>
+        <div id="superSecretStroboscopicScanlineEffect"></div>
+    </div>
 </body>
 </html>

@@ -232,17 +232,19 @@ class VisualizerWorker {
             }
             this.ctx.stroke();
         } else if (this.mode == 6) {
+            if (VisualizerWorker.#persistentData.get(this.persistenceId) == undefined) VisualizerWorker.#persistentData.set(this.persistenceId, []);
             let peaks = [];
-            for (let channel of data) {
+            for (let i in data) {
+                let channel = data[i];
                 let max = 0;
                 for (let i = 0; i < channel.length; i++) {
                     let v = Math.abs(channel[i] - 128);
                     if (v > max) max = v;
                 }
-                let last = VisualizerWorker.#persistentData.get(this.persistenceId) ?? max;
+                let last = VisualizerWorker.#persistentData.get(this.persistenceId)[i] ?? max;
                 let smoothed = max * (1 - this.smoothing) + last * this.smoothing;
                 peaks.push(smoothed);
-                VisualizerWorker.#persistentData.set(this.persistenceId, smoothed);
+                VisualizerWorker.#persistentData.get(this.persistenceId)[i] = smoothed;
             }
             this.ctx.fillStyle = this.color;
             let barSpace = (width / peaks.length);

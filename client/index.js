@@ -21,3 +21,8 @@ window.onerror = (e) => {
 
 const display = document.getElementById('display');
 let allowModification = true;
+
+function superSecretScanlines() {
+    document.getElementById('superSecretDiv').style.display = 'block';
+};
+if (new URLSearchParams(window.location.search).get('superSecretScanlines')) superSecretScanlines();
