@@ -934,6 +934,9 @@ img {
     background-color: dodgerblue;
     line-height: 16px;
 }
+.tileImgReplaceLabel:hover, .tileAudioReplaceLabel:hover, .tileTextEditLabel:hover {
+    background-color: #3f9fff;
+}
 
 .tileVisualizerVolumeBody {
     display: inline-block;

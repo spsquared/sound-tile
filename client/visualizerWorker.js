@@ -6,13 +6,18 @@ class VisualizerWorker {
     static setColor(color, target, cid) {
         const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
         if (persistentData.colors === undefined) persistentData.colors = [];
-        if (this.colorChanged || persistentData.colors[cid] === undefined) {
+        if (this.colorChanged || this.resized || persistentData.colors[cid] === undefined) {
             if (color.mode == 0) {
                 persistentData.colors[cid] = color.value;
                 this.ctx[target] = color.value;
             } else if (color.mode == 1) {
                 let width = this.canvas.width;
                 let height = this.canvas.height;
+                if (this.rotated) {
+                    let w = width;
+                    width = height;
+                    height = w;
+                }
                 let angle = color.value.angle * Math.PI / 180;
                 const gradient = color.value.type == 0
                     ? this.ctx.createLinearGradient((Math.sin(angle)) < 0 ? width : 0, (Math.cos(angle)) < 0 ? height : 0, ((Math.sin(angle)) < 0 ? width : 0) + (Math.abs(angle % Math.PI) == Math.PI / 2 ? (angle % (2 * Math.PI) == Math.PI / 2 ? width : -width) : (Math.max(-1, Math.min(1, Math.tan(angle))) * height)), ((Math.cos(angle)) < 0 ? height : 0) + (angle % Math.PI == 0 ? (angle % (2 * Math.PI) == 0 ? height : -height) : (Math.max(-1, Math.min(1, 1 / Math.tan(angle))) * width)))
@@ -243,8 +248,8 @@ class VisualizerWorker {
             }
             this.ctx.lineTo(width, height - yOffset);
             this.ctx.lineTo(0, height - yOffset);
-            this.ctx.stroke();
             this.ctx.fill();
+            this.ctx.stroke();
         } else if (this.mode == 5) {
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             VisualizerWorker.setColor.call(this, this.color2, 'fillStyle', 1);
@@ -295,8 +300,8 @@ class VisualizerWorker {
                     break;
             }
             this.ctx.lineTo(0, height / 2);
-            this.ctx.stroke();
             this.ctx.fill();
+            this.ctx.stroke();
         } else if (this.mode == 4) {
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
@@ -353,13 +358,15 @@ onmessage = (e) => {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
+    let resized = false;
     postMessage([]);
     onmessage = (e) => {
         if (e.data[0] == 0) {
             try {
-                VisualizerWorker.draw.call({ canvas, ctx, ...e.data[1] }, e.data[2]);
+                VisualizerWorker.draw.call({ canvas, ctx, resized, ...e.data[1] }, e.data[2]);
                 const bitmap = canvas.transferToImageBitmap();
                 postMessage([bitmap], [bitmap]);
+                resized = false;
             } catch (err) {
                 console.error(err);
                 postMessage([null]);
@@ -367,6 +374,7 @@ onmessage = (e) => {
         } else if (e.data[0] == 1) {
             canvas.width = e.data[1];
             canvas.height = e.data[2];
+            resized = true;
             postMessage([]);
         }
     };

@@ -162,6 +162,8 @@ class ColorInput {
         item.appendChild(remove);
         this.#inputs.gradient.stops.push([offset, color]);
         this.#stopsContainer.appendChild(item);
+        this.#oninput();
+        this.#refreshBadge();
         return this.#inputs.gradient.stops.at(-1);
     }
     #refreshBadge() {
@@ -176,7 +178,7 @@ class ColorInput {
                     this.#badge.style.background = `radial-gradient(circle ${Number(this.#inputs.gradient.r.value) * 0.2}px at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
                     break;
                 case 2:
-                    this.#badge.style.background = `conic-gradient(from ${90 - Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    this.#badge.style.background = `conic-gradient(from ${90 + Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
                     break;
             }
         }
@@ -278,7 +280,8 @@ function setVisualizerControls() {
             this.visualizer.flippedX = visualizerFlip.checked;
             this.visualizer.flippedY = visualizerFlip2.checked;
             this.visualizer.rotated = visualizerRotate.checked;
-            this.visualizer.color = colorSelect.value;
+            this.visualizer.color = this.colorSelect1.value;
+            this.visualizer.color2 = this.colorSelect2.value;
             this.visualizer.volume = Number(volumeInput.value) / 100;
             audioReplace.value = '';
         }
@@ -788,11 +791,11 @@ class VisualizerTextTile {
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
             this.canvas.style.width = rect.width + 'px';
-            this.canvas.style.height = (rect.height - textHeight - 4) + 'px';
+            this.canvas.style.height = (rect.height - (textHeight / scale) - 4) + 'px';
             this.canvas2.width = Math.round(rect.width * scale);
-            this.canvas2.height = Math.round(textHeight * scale);
+            this.canvas2.height = Math.round(textHeight);
             this.canvas2.style.width = rect.width + 'px';
-            this.canvas2.style.height = textHeight + 'px';
+            this.canvas2.style.height = (textHeight / scale) + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
