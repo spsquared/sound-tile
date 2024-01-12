@@ -143,13 +143,13 @@ downloadButton.onclick = async (e) => {
 const volumeControlInput = document.getElementById('volume');
 const volumeControlThumb = document.getElementById('volumeThumb');
 volumeControlInput.oninput = (e) => {
-    globalVolume.gain.setValueAtTime(parseInt(volumeControlInput.value) / 100, audioContext.currentTime);
-    volumeControlThumb.style.setProperty('--volume', parseInt(volumeControlInput.value) / 100);
+    globalVolume.gain.setValueAtTime(Number(volumeControlInput.value) / 100, audioContext.currentTime);
+    volumeControlThumb.style.setProperty('--volume', Number(volumeControlInput.value) / 100);
     volumeControlInput.title = volumeControlInput.value + '%';
     window.localStorage.setItem('volume', volumeControlInput.value);
 };
 volumeControlInput.addEventListener('wheel', (e) => {
-    volumeControlInput.value = parseInt(volumeControlInput.value) - Math.round(e.deltaY / 20);
+    volumeControlInput.value = Number(volumeControlInput.value) - Math.round(e.deltaY / 20);
     volumeControlInput.oninput();
 }, { passive: true });
 volumeControlInput.value = window.localStorage.getItem('volume') ?? 100;
@@ -169,7 +169,7 @@ const mediaControls = {
     loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false,
     setTime: (t) => {
         if (!allowModification) return;
-        mediaControls.currentTime = parseFloat(t);
+        mediaControls.currentTime = Number(t);
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
         mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);

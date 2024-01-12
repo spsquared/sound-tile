@@ -32,7 +32,9 @@ class Visualizer {
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     gain = audioContext.createGain();
-    color = '#ffffff';
+    #color = { mode: 0, value: '#ffffff' };
+    #color2 = { mode: 0, value: '#ffffff' };
+    colorChanged = false;
     mode = 0;
     barWidthPercent = 0.80;
     barCrop = 1;
@@ -122,6 +124,7 @@ class Visualizer {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, []]);
                 else VisualizerWorker.draw.call(this, data);
             }
+            this.colorChanged = false;
         });
     }
     resize(w, h) {
@@ -134,7 +137,9 @@ class Visualizer {
     get #workerData() {
         return {
             persistenceId: this.#persistenceId,
-            color: this.color,
+            color: this.#color,
+            color2: this.#color2,
+            colorChanged: this.colorChanged,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
@@ -152,6 +157,20 @@ class Visualizer {
         return this.#persistenceId;
     }
 
+    set color(c) {
+        this.#color = c;
+        this.colorChanged = true;
+    }
+    get color() {
+        return this.#color;
+    }
+    set color2(c) {
+        this.#color2 = c;
+        this.colorChanged = true;
+    }
+    get color2() {
+        return this.#color2;
+    }
     set smoothingTimeConstant(c) {
         this.analyzer.smoothingTimeConstant = c;
     }
@@ -180,7 +199,8 @@ class Visualizer {
             mode: this.mode,
             smoothing: this.analyzer.smoothingTimeConstant,
             fftSize: this.analyzer.fftSize,
-            color: this.color,
+            color: this.#color,
+            color2: this.#color2,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
@@ -198,7 +218,19 @@ class Visualizer {
         visualizer.mode = data.mode;
         visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
         visualizer.fftSize = data.fftSize;
-        visualizer.color = data.color;
+        if (typeof data.color == 'string') {
+            visualizer.color = {
+                mode: 0,
+                value: data.color
+            };
+            visualizer.color2 = {
+                mode: 0,
+                value: data.color
+            };
+        } else {
+            visualizer.color = data.color;
+            visualizer.color2 = data.color2;
+        }
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.barCrop = data.barCrop;
         visualizer.barScale = data.barScale ?? 1;
@@ -289,12 +321,14 @@ class ChannelPeakVisualizer extends Visualizer {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, dataArr], [...dataArr.map(arr => arr.buffer)]);
                 else VisualizerWorker.draw.call(this, data);
             }
+            this.colorChanged = false;
         });
     }
     get #workerData() {
         return {
             persistenceId: this.persistenceId,
             color: this.color,
+            colorChanged: this.colorChanged,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barScale: this.barScale,
@@ -349,7 +383,11 @@ class ChannelPeakVisualizer extends Visualizer {
     }
     static fromData(data, canvas) {
         const visualizer = new ChannelPeakVisualizer(data.buffer, canvas);
-        visualizer.color = data.color;
+        if (typeof data.color == 'string') visualizer.color = {
+            mode: 0,
+            value: data.color
+        };
+        else visualizer.color = data.color;
         visualizer.smoothing = data.smoothing ?? 3;
         visualizer.channelCount = data.channelCount;
         visualizer.barWidthPercent = data.barWidthPercent;

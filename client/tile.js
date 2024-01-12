@@ -1,5 +1,244 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
+class ColorInput {
+    static #template = document.getElementById('colorInputTemplate');
+    static #container = document.getElementById('colorInputMasterContainer');
+
+    // store input fields and current state
+    #popup = null;
+    #badge = null;
+    #stopsContainer = null;
+    #controlsParent = null;
+    #inputs = {
+        modeSelectors: [],
+        solid: {
+            input: null,
+        },
+        gradient: {
+            pattern: null,
+            x: null,
+            y: null,
+            r: null,
+            angle: null,
+            stops: []
+        }
+    }
+    #state = {
+        mode: 0,
+    }
+    #oninput = () => { };
+    constructor(container) {
+        if (!(container instanceof Element)) throw new TypeError('Container element must be a DOM element');
+        const cloned = ColorInput.#template.content.cloneNode(true);
+        this.#popup = cloned.children[0];
+        this.#badge = cloned.children[1];
+        container.appendChild(this.#badge);
+        ColorInput.#container.appendChild(this.#popup);
+        for (let curr = container; curr != null && !curr.classList.contains('tileControls'); curr = curr.parentElement, this.#controlsParent = curr); // I hate this
+        // opening/closing
+        this.#badge.onclick = (e) => {
+            this.#popup.classList.toggle('colorInputContainerHidden');
+            if (!this.#popup.classList.contains('colorInputContainerHidden')) {
+                const rect = this.#badge.getBoundingClientRect();
+                if (rect.top < 242) this.#popup.style.bottom = (window.innerHeight - rect.bottom - 242) + 'px';
+                else this.#popup.style.bottom = (window.innerHeight - rect.top - 2) + 'px';
+                this.#popup.style.left = Math.min(window.innerWidth - 244, rect.left) + 'px';
+                if (this.#controlsParent != null) this.#controlsParent.classList.add('tileControlsNoHide');
+            } else {
+                if (this.#controlsParent != null) this.#controlsParent.classList.remove('tileControlsNoHide');
+            }
+        };
+        let hideOnClickOff = (e) => {
+            if (!document.body.contains(container)) {
+                this.#popup.remove();
+                document.removeEventListener('mousedown', hideOnClickOff);
+            }
+            if (!this.#popup.contains(e.target) && e.target != this.#badge && !this.#popup.classList.contains('colorInputContainerHidden')) {
+                this.#popup.classList.add('colorInputContainerHidden');
+                if (this.#controlsParent != null && (!e.target.matches('.colorInputBadge') || !this.#controlsParent.contains(e.target))) this.#controlsParent.classList.remove('tileControlsNoHide');
+            }
+        };
+        document.addEventListener('mousedown', hideOnClickOff);
+        // color type/mode
+        this.#inputs.modeSelectors = [this.#popup.querySelector('.colorInputModeSolid'), this.#popup.querySelector('.colorInputModeGradient')];
+        const modeContainers = [this.#popup.querySelector('.colorInputSolidContainer'), this.#popup.querySelector('.colorInputGradientContainer')];
+        this.#inputs.modeSelectors.forEach((selector, i) => selector.onclick = (e) => {
+            modeContainers.forEach(el => el.style.display = 'none');
+            this.#inputs.modeSelectors.forEach(el => el.classList.remove('colorInputModeSelected'));
+            modeContainers[i].style.display = '';
+            selector.classList.add('colorInputModeSelected');
+            this.#state.mode = i;
+            this.#oninput(e);
+            this.#refreshBadge();
+        });
+        // solid colors
+        this.#inputs.solid.input = this.#popup.querySelector('.colorInputSolidColor');
+        this.#inputs.solid.input.addEventListener('input', (e) => {
+            this.#oninput(e);
+            this.#refreshBadge();
+        });
+        this.#inputs.solid.input.value = '#ffffff';
+        // gradient stuff
+        this.#inputs.gradient.pattern = this.#popup.querySelector('.colorInputGradientPattern');
+        this.#inputs.gradient.pattern.oninput = (e) => {
+            switch (Number(this.#inputs.gradient.pattern.value)) {
+                case 0:
+                    this.#inputs.gradient.x.disabled = true;
+                    this.#inputs.gradient.y.disabled = true;
+                    this.#inputs.gradient.r.disabled = true;
+                    this.#inputs.gradient.angle.disabled = false;
+                    break;
+                case 1:
+                    this.#inputs.gradient.x.disabled = false;
+                    this.#inputs.gradient.y.disabled = false;
+                    this.#inputs.gradient.r.disabled = false;
+                    this.#inputs.gradient.angle.disabled = true;
+                    break;
+                case 2:
+                    this.#inputs.gradient.x.disabled = false;
+                    this.#inputs.gradient.y.disabled = false;
+                    this.#inputs.gradient.r.disabled = true;
+                    this.#inputs.gradient.angle.disabled = false;
+                    break;
+            }
+        };
+        this.#inputs.gradient.x = this.#popup.querySelector('.colorInputGradientX');
+        this.#inputs.gradient.y = this.#popup.querySelector('.colorInputGradientY');
+        this.#inputs.gradient.r = this.#popup.querySelector('.colorInputGradientR');
+        this.#inputs.gradient.angle = this.#popup.querySelector('.colorInputGradientAngle');
+        for (let i in this.#inputs.gradient) {
+            if (this.#inputs.gradient[i] instanceof Element) this.#inputs.gradient[i].addEventListener('input', (e) => {
+                this.#oninput();
+                this.#refreshBadge();
+            });
+        }
+        this.#inputs.gradient.pattern.oninput();
+        this.#stopsContainer = this.#popup.querySelector('.colorInputGradientStops');
+        const addStopButton = this.#popup.querySelector('.colorInputGradientAddStop');
+        addStopButton.onclick = (e) => this.#addGradientColorStop();
+        this.#addGradientColorStop();
+        // disable options that don't do anything
+        this.#inputs.modeSelectors[0].onclick(); // forced reflow oof
+    }
+    #addGradientColorStop() {
+        // maybe should use a template instead
+        const item = document.createElement('div');
+        item.classList.add('colorInputGradientStopContainer');
+        const offset = document.createElement('input');
+        offset.classList.add('numberBox');
+        offset.classList.add('colorInputGradientStopOffset');
+        offset.type = 'number';
+        offset.min = 0;
+        offset.max = 100;
+        offset.step = 1;
+        offset.value = 0;
+        offset.addEventListener('input', (e) => {
+            if (Number(offset.value) < 0 || Number(offset.value) > 100) offset.value = Math.max(0, Math.min(100, Number(offset.value)));
+            this.#oninput();
+            this.#refreshBadge();
+        });
+        const color = document.createElement('input');
+        color.classList.add('colorInputGradientStopColor');
+        color.type = 'color';
+        color.value = '#ffffff';
+        color.addEventListener('input', (e) => {
+            this.#oninput();
+            this.#refreshBadge();
+        });
+        const remove = document.createElement('input');
+        remove.classList.add('colorInputGradientStopRemove');
+        remove.type = 'button';
+        remove.value = 'X';
+        remove.onclick = (e) => {
+            if (this.#inputs.gradient.stops.length > 1) {
+                item.remove();
+                this.#inputs.gradient.stops.splice(this.#inputs.gradient.stops.indexOf(item), 1);
+                this.#oninput();
+                this.#refreshBadge();
+            }
+        };
+        item.appendChild(offset);
+        item.appendChild(color);
+        item.appendChild(remove);
+        this.#inputs.gradient.stops.push([offset, color]);
+        this.#stopsContainer.appendChild(item);
+        return this.#inputs.gradient.stops.at(-1);
+    }
+    #refreshBadge() {
+        if (this.#state.mode == 0) {
+            this.#badge.style.background = this.#inputs.solid.input.value;
+        } else if (this.#state.mode == 1) {
+            switch (Number(this.#inputs.gradient.pattern.value)) {
+                case 0:
+                    this.#badge.style.background = `linear-gradient(${180 - Number(this.#inputs.gradient.angle.value)}deg${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    break;
+                case 1:
+                    this.#badge.style.background = `radial-gradient(circle ${Number(this.#inputs.gradient.r.value) * 0.2}px at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    break;
+                case 2:
+                    this.#badge.style.background = `conic-gradient(from ${90 - Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    break;
+            }
+        }
+    }
+
+    set oninput(cb) {
+        if (typeof cb != 'function') throw new TypeError('Callback function must be a function');
+        this.#oninput = cb;
+    }
+    get oninput() {
+        return this.#oninput;
+    }
+
+    get value() {
+        if (this.#state.mode == 0) {
+            return {
+                mode: 0,
+                value: this.#inputs.solid.input.value
+            };
+        } else if (this.#state.mode == 1) {
+            return {
+                mode: 1,
+                value: {
+                    type: Number(this.#inputs.gradient.pattern.value),
+                    x: Number(this.#inputs.gradient.x.value) / 100,
+                    y: Number(this.#inputs.gradient.y.value) / 100,
+                    r: Number(this.#inputs.gradient.r.value) / 100,
+                    angle: Number(this.#inputs.gradient.angle.value),
+                    stops: this.#inputs.gradient.stops.map(inputs => [Number(inputs[0].value) / 100, inputs[1].value])
+                }
+            };
+        }
+    }
+    set value(v) {
+        (this.#inputs.modeSelectors[v.mode] ?? this.#inputs.modeSelectors[0]).onclick();
+        switch (v.mode) {
+            case 0:
+                this.#inputs.solid.input.value = v.value;
+                this.#oninput();
+                this.#refreshBadge();
+                break;
+            case 1:
+                this.#inputs.gradient.pattern.value = v.value.type;
+                this.#inputs.gradient.x.value = v.value.x * 100;
+                this.#inputs.gradient.y.value = v.value.y * 100;
+                this.#inputs.gradient.r.value = v.value.r * 100;
+                this.#inputs.gradient.angle.value = v.value.angle;
+                this.#stopsContainer.innerHTML = '';
+                this.#inputs.gradient.stops = [];
+                for (let stop of v.value.stops) {
+                    const inputs = this.#addGradientColorStop();
+                    inputs[0].value = stop[0] * 100;
+                    inputs[1].value = stop[1];
+                }
+                this.#oninput();
+                this.#refreshBadge();
+                break;
+        }
+    }
+}
+
+// helpers for setup
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
@@ -7,13 +246,12 @@ function setDefaultTileControls() {
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
-    flexGrowInput.oninput = (e) => {
-        this.tile.style.flexGrow = parseFloat(flexGrowInput.value);
+    flexGrowInput.addEventListener('input', (e) => {
+        this.tile.style.flexGrow = Number(flexGrowInput.value);
         if (this.parent !== null) this.parent.refresh();
-    };
+    });
 };
 function setVisualizerControls() {
-    // add options from template here
     this.tile.querySelector('.tileVisualizerControls').appendChild(visualizerOptionsTemplate.content.cloneNode(true).children[0]);
     // audio controls
     const audioUpload = this.tile.querySelector('.tileSourceUpload');
@@ -21,6 +259,7 @@ function setVisualizerControls() {
         if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
             this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.tile.querySelector('.tileSourceUploadCover').remove();
+            this.visualizer.loadPromise.then(() => visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * (Number(visualizerFrequencyCrop.value) / 100));
         }
     });
     const audioReplace = this.tile.querySelector('.tileAudioReplace');
@@ -28,19 +267,19 @@ function setVisualizerControls() {
         if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
             this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
-            this.visualizer.mode = parseInt(visualizerMode.value);
-            this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
-            this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
-            this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
-            this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
-            this.visualizer.symmetry = parseInt(visualizerSymmetry.value);
-            this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
-            this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
+            this.visualizer.mode = Number(visualizerMode.value);
+            this.visualizer.fftSize = Number(visualizerFFTSize.value);
+            this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
+            this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
+            this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
+            this.visualizer.symmetry = Number(visualizerSymmetry.value);
+            this.visualizer.scale = Number(visualizerWaveformScale.value);
+            this.visualizer.lineWidth = Number(visualizerLineWidth.value);
             this.visualizer.flippedX = visualizerFlip.checked;
             this.visualizer.flippedY = visualizerFlip2.checked;
             this.visualizer.rotated = visualizerRotate.checked;
             this.visualizer.color = colorSelect.value;
-            this.visualizer.volume = parseInt(volumeInput.value) / 100;
+            this.visualizer.volume = Number(volumeInput.value) / 100;
             audioReplace.value = '';
         }
     });
@@ -48,24 +287,30 @@ function setVisualizerControls() {
     const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
     const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
     volumeInput.oninput = (e) => {
-        if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
-        volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 120);
+        if (this.visualizer !== null) this.visualizer.volume = Number(volumeInput.value) / 100;
+        volumeThumb.style.setProperty('--volume', Number(volumeInput.value) / 120);
         volumeInput.title = volumeInput.value + '%';
     };
     volumeInput.addEventListener('wheel', (e) => {
-        volumeInput.value = parseInt(volumeInput.value) - Math.round(e.deltaY / 20);
+        volumeInput.value = Number(volumeInput.value) - Math.round(e.deltaY / 20);
         volumeInput.oninput();
     }, { passive: true });
     // visualizer options
-    const colorSelect = this.tile.querySelector('.tileVisualizerColor');
-    colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+    this.colorSelect1 = new ColorInput(this.tile.querySelector('.tileVisualizerColor1'));
+    this.colorSelect2 = new ColorInput(this.tile.querySelector('.tileVisualizerColor2'));
+    this.colorSelect1.oninput = (e) => {
+        if (this.visualizer !== null) this.visualizer.color = this.colorSelect1.value;
+    };
+    this.colorSelect2.oninput = (e) => {
+        if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
+    };
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
     const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     visualizerMode.addEventListener('input', (e) => {
-        let mode = parseInt(visualizerMode.value);
+        let mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
         if (mode <= 3 || mode == 5 || mode == 7) {
             visualizerFrequencyOptions.classList.remove('hidden');
@@ -86,41 +331,41 @@ function setVisualizerControls() {
     visualizerLineOptions.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     visualizerFFTSize.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.fftSize = parseInt(visualizerFFTSize.value);
+        if (this.visualizer !== null) this.visualizer.fftSize = Number(visualizerFFTSize.value);
     });
     // bar options
     const visualizerWidth = this.tile.querySelector('.tileVisualizerBarWidth');
     visualizerWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(visualizerWidth.value) / 100;
+        if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
     });
     // line options
     const visualizerLineWidth = this.tile.querySelector('.tileVisualizerLineWidth');
     visualizerLineWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.lineWidth = parseInt(visualizerLineWidth.value);
+        if (this.visualizer !== null) this.visualizer.lineWidth = Number(visualizerLineWidth.value);
     });
     // frequency mode options
     const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
     const visualizerFrequencyCropDisplay = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay');
     visualizerFrequencyCrop.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barCrop = parseFloat(visualizerFrequencyCrop.value) / 100;
+        if (this.visualizer !== null) this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
         visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * this.visualizer.barCrop;
     });
     const visualizerVolumeCrop = this.tile.querySelector('.tileVisualizerFrequencyVolumeCrop');
     visualizerVolumeCrop.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barScale = parseFloat(visualizerVolumeCrop.value) / 100;
+        if (this.visualizer !== null) this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
     });
     const visualizerSymmetry = this.tile.querySelector('.tileVisualizerFrequencySymmetry');
     visualizerSymmetry.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.symmetry = parseInt(visualizerSymmetry.value);
+        if (this.visualizer !== null) this.visualizer.symmetry = Number(visualizerSymmetry.value);
     });
     const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
     visualizerSmoothing.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = parseFloat(visualizerSmoothing.value);
+        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = Number(visualizerSmoothing.value);
     });
     // waveform mode options
     const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
     visualizerWaveformScale.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.scale = parseFloat(visualizerWaveformScale.value);
+        if (this.visualizer !== null) this.visualizer.scale = Number(visualizerWaveformScale.value);
     });
     // more visualizer options
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
@@ -143,7 +388,19 @@ function applyDefaultTileControls(tile, data) {
     tile.tile.style.flexGrow = data.flex ?? 1;
 };
 function applyVisualizerControls(tile, data) {
-    tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
+    if (typeof data.visualizer.color == 'string') {
+        tile.colorSelect1.value = {
+            mode: 0,
+            value: data.visualizer.color
+        };
+        tile.colorSelect2.value = {
+            mode: 0,
+            value: data.visualizer.color
+        };
+    } else {
+        tile.colorSelect1.value = data.visualizer.color;
+        tile.colorSelect2.value = data.visualizer.color2;
+    }
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
     if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
@@ -171,7 +428,7 @@ function applyVisualizerControls(tile, data) {
     if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
     tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
-    tile.visualizer.loadPromise.then(() => tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay').innerText = tile.visualizer.sampleRate / 2 * (parseFloat(tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value) / 100));
+    tile.visualizer.loadPromise.then(() => tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay').innerText = tile.visualizer.sampleRate / 2 * (Number(tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value) / 100));
 };
 
 class GroupTile {
@@ -200,10 +457,10 @@ class GroupTile {
         this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
-        this.controls.flexGrow.oninput = (e) => {
-            this.tile.style.flexGrow = parseFloat(this.controls.flexGrow.value);
+        this.controls.flexGrow.addEventListener('input', (e) => {
+            this.tile.style.flexGrow = Number(this.controls.flexGrow.value);
             if (this.parent !== null) this.parent.refresh();
-        };
+        });
         this.controls.vertical = this.tile.querySelector('.tileGroupVertical');
         this.controls.vertical.onclick = (e) => {
             this.orientation = this.controls.vertical.checked;
@@ -294,7 +551,7 @@ class GroupTile {
         this.#treeMode = tmode;
         if (this.#treeMode) display.classList.add('treeModeDisplay');
         else display.classList.remove('treeModeDisplay');
-        GroupTile.root.refresh();
+        setTimeout(() => GroupTile.root.refresh(), 0);
     }
     static get treeMode() { return this.#treeMode; }
 }
@@ -303,6 +560,8 @@ class VisualizerTile {
 
     parent = null;
     tile = null;
+    colorSelect1 = null;
+    colorSelect2 = null;
     canvas = null;
     ctx = null;
     visualizer = null;
@@ -357,6 +616,8 @@ class VisualizerImageTile {
 
     parent = null;
     tile = null;
+    colorSelect1 = null;
+    colorSelect2 = null;
     canvas = null;
     ctx = null;
     img = null;
@@ -469,6 +730,8 @@ class VisualizerTextTile {
 
     parent = null;
     tile = null;
+    colorSelect1 = null;
+    colorSelect2 = null;
     canvas = null;
     ctx = null;
     canvas2 = null;
@@ -502,11 +765,11 @@ class VisualizerTextTile {
         let draw = () => {
             this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
             this.ctx2.font = `${fontSize.value}px Source Code Pro`;
-            this.ctx2.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
+            this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let size = parseInt(fontSize.value) + 2;
-            let x = this.canvas2.width * parseFloat(textAlign.value);
+            let size = Number(fontSize.value) + 2;
+            let x = this.canvas2.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
                 this.ctx2.fillText(text[i], x, (i + 0.5) * size);
@@ -520,7 +783,7 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let textHeight = this.text.split('\n').length * (parseInt(fontSize.value) + 2) + 4;
+            let textHeight = this.text.split('\n').length * (Number(fontSize.value) + 2) + 4;
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
@@ -579,6 +842,7 @@ class ChannelPeakTile {
 
     parent = null;
     tile = null;
+    colorSelect = null;
     canvas = null;
     ctx = null;
     visualizer = null;
@@ -602,11 +866,11 @@ class ChannelPeakTile {
             if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
                 this.visualizer.destroy();
                 this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
-                this.visualizer.channelCount = parseInt(channelPeakChannels.value);
-                this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
-                this.visualizer.smoothing = parseFloat(channelPeakSmoothing.value);
+                this.visualizer.channelCount = Number(channelPeakChannels.value);
+                this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
+                this.visualizer.smoothing = Number(channelPeakSmoothing.value);
                 this.visualizer.color = colorSelect.value;
-                this.visualizer.volume = parseInt(volumeInput.value) / 100;
+                this.visualizer.volume = Number(volumeInput.value) / 100;
                 audioReplace.value = '';
             }
         });
@@ -614,34 +878,36 @@ class ChannelPeakTile {
         const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
         const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
         volumeInput.oninput = (e) => {
-            if (this.visualizer !== null) this.visualizer.volume = parseInt(volumeInput.value) / 100;
-            volumeThumb.style.setProperty('--volume', parseInt(volumeInput.value) / 120);
+            if (this.visualizer !== null) this.visualizer.volume = Number(volumeInput.value) / 100;
+            volumeThumb.style.setProperty('--volume', Number(volumeInput.value) / 120);
             volumeInput.title = volumeInput.value + '%';
         };
         volumeInput.addEventListener('wheel', (e) => {
-            volumeInput.value = parseInt(volumeInput.value) - Math.round(e.deltaY / 20);
+            volumeInput.value = Number(volumeInput.value) - Math.round(e.deltaY / 20);
             volumeInput.oninput();
         }, { passive: true });
         // visualizer options
-        const colorSelect = this.tile.querySelector('.tileVisualizerColor');
-        colorSelect.addEventListener('input', (e) => { if (this.visualizer !== null) this.visualizer.color = colorSelect.value; });
+        this.colorSelect = new ColorInput(this.tile.querySelector('.tileVisualizerColor'));
+        this.colorSelect.oninput = (e) => {
+            if (this.visualizer !== null) this.visualizer.color = this.colorSelect.value;
+        };
         const channelPeakVolumeCrop = this.tile.querySelector('.tileChannelPeakVolumeCrop');
         channelPeakVolumeCrop.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.barScale = parseFloat(channelPeakVolumeCrop.value) / 100;
+            if (this.visualizer !== null) this.visualizer.barScale = Number(channelPeakVolumeCrop.value) / 100;
         });
         // actual options that arent copied from somewhere else
         const channelPeakChannels = this.tile.querySelector('.tileChannelPeakChannels');
         channelPeakChannels.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.channelCount = parseInt(channelPeakChannels.value);
+            if (this.visualizer !== null) this.visualizer.channelCount = Number(channelPeakChannels.value);
         });
         // bar options
         const channelPeakBarWidth = this.tile.querySelector('.tileChannelPeakBarWidth');
         channelPeakBarWidth.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.barWidthPercent = parseInt(channelPeakBarWidth.value) / 100;
+            if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
         });
         const channelPeakSmoothing = this.tile.querySelector('.tileChannelPeakSmoothing');
         channelPeakSmoothing.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.smoothing = parseFloat(channelPeakSmoothing.value);
+            if (this.visualizer !== null) this.visualizer.smoothing = Number(channelPeakSmoothing.value);
         });
         const channelPeakMute = this.tile.querySelector('.tileChannelPeakMute');
         channelPeakMute.addEventListener('input', (e) => {
@@ -692,7 +958,11 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
             tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
             tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
-            tile.tile.querySelector('.tileVisualizerColor').value = data.visualizer.color;
+            if (typeof data.visualizer.color == 'string') tile.colorSelect.value = {
+                mode: 0,
+                value: data.visualizer.color
+            };
+            else tile.colorSelect.value = data.visualizer.color;
             tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
             tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
             tile.tile.querySelector('.tileChannelPeakMute').checked = data.visualizer.muteOutput ?? false;
@@ -826,11 +1096,11 @@ class TextTile {
         let draw = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.font = `${fontSize.value * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
-            this.ctx.textAlign = parseFloat(textAlign.value) == 1 ? 'right' : (parseFloat(textAlign.value) == 0.5 ? 'center' : 'left');
+            this.ctx.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
-            let size = parseInt(fontSize.value) + 2;
-            let x = this.canvas.width * parseFloat(textAlign.value);
+            let size = Number(fontSize.value) + 2;
+            let x = this.canvas.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
                 this.ctx.fillText(text[i], x, (this.canvas.height / 2) - (((text.length / 2) - i - 0.5) * size));
@@ -1107,7 +1377,7 @@ document.addEventListener('mousemove', (e) => {
         //     drag.drop.index = drag.from.index;
         // }
     }
-});
+}, { passive: true });
 document.addEventListener('mouseup', (e) => {
     if (drag.dragging && drag.drop.tile !== null) {
         if (drag.drop.createGroup) {

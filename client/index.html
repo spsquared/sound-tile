@@ -102,6 +102,7 @@
         </style>
     </div>
     <div id="display"></div>
+    <div id="colorInputMasterContainer"></div>
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
@@ -217,6 +218,45 @@
             </div>
         </div>
     </div>
+    <template id="colorInputTemplate">
+        <div class="colorInputContainer colorInputContainerHidden">
+            <input type="button" class="colorInputModeSolid" value="Solid">
+            <input type="button" class="colorInputModeGradient" value="Gradient">
+            <div class="colorInputSolidContainer">
+                <input type="color" class="colorInputSolidColor colorBox" value="#ffffff">
+            </div>
+            <div class="colorInputGradientContainer">
+                <div class="colorInputGradientOptions">
+                    <select class="colorInputGradientPattern selectBox" title="Gradient pattern">
+                        <option value="0" selected>Linear Gradient</option>
+                        <option value="1">Radial Gradient</option>
+                        <option value="2">Conical Gradient</option>
+                    </select>
+                    <label title="X position relative to width">
+                        X
+                        <input class="colorInputGradientX numberBox" type="number" min="0" max="100" step="5" value="50">
+                    </label>
+                    <label title="Y position relative to height">
+                        Y
+                        <input class="colorInputGradientY numberBox" type="number" min="0" max="100" step="5" value="50">
+                    </label>
+                    <label title="End radius (relative)">
+                        R
+                        <input class="colorInputGradientR numberBox" type="number" min="0" max="100" step="5" value="100">
+                    </label>
+                    <label title="Angle offset of gradient">
+                        &theta;
+                        <input class="colorInputGradientAngle numberBox" type="number" min="-360" max="360" step="5" value="0">
+                    </label>
+                </div>
+                <div class="colorInputGradientStops"></div>
+                <input class="colorInputGradientAddStop buttonLabel" type="button" title="Add a color stop" value="+">
+            </div>
+        </div>
+        <div class="colorInputBadge">
+            <!-- a box with an image or something inside -->
+        </div>
+    </template>
     <template id="groupTileTemplate">
         <div class="tileGroup">
             <div class="tileGroupSelf">
@@ -262,10 +302,11 @@
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                     </label>
-                    <label title="Visualizer color">
+                    <span title="Visualizer color">
                         Visualizer:
-                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                    </label>
+                        <span class="tileVisualizerColor1"></span>
+                        <span class="tileVisualizerColor2"></span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -318,10 +359,11 @@
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                     </label>
-                    <label title="Visualizer color">
+                    <span title="Visualizer color">
                         Visualizer:
-                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                    </label>
+                        <span class="tileVisualizerColor1"></span>
+                        <span class="tileVisualizerColor2"></span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -372,10 +414,11 @@
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                     </label>
-                    <label title="Visualizer color">
+                    <span title="Visualizer color">
                         Visualizer:
-                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                    </label>
+                        <span class="tileVisualizerColor1"></span>
+                        <span class="tileVisualizerColor2"></span>
+                    </span>
                     <label title="Text color">
                         Text:
                         <input type="color" class="tileTextColor colorBox" value="#ffffff">
@@ -461,10 +504,10 @@
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
                     </label>
-                    <label title="Visualizer color">
+                    <span title="Visualizer color">
                         Visualizer:
-                        <input type="color" class="tileVisualizerColor colorBox" value="#ffffff">
-                    </label>
+                        <span class="tileVisualizerColor"></span>
+                    </span>
                 </div>
             </div>
         </div>
@@ -570,8 +613,6 @@
             </div>
         </div>
     </template>
-    <!-- gradient/image color options?? globalcompositeoperation the image onto the visualizer lol -->
-    <!-- also add fill color separately for the line fill ones -->
     <!-- also more styles like discrete LED bars and luminance bars (bars are always drawn the same but with different opacities) -->
     <!-- oh and radial style -->
     <!-- stereo analyzer??? -->
