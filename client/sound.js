@@ -34,11 +34,15 @@ class Visualizer {
     gain = audioContext.createGain();
     #color = { mode: 0, value: '#ffffff' };
     #color2 = { mode: 0, value: '#ffffff' };
+    fillAlpha = 100;
     colorChanged = false;
     mode = 0;
-    barWidthPercent = 0.80;
+    barWidthPercent = 0.8;
     barCrop = 1;
     barScale = 1;
+    barLEDEffect = false;
+    barLEDCount = 16;
+    barLEDSize = 0.8;
     symmetry = 0;
     scale = 1;
     lineWidth = 2;
@@ -139,11 +143,15 @@ class Visualizer {
             persistenceId: this.#persistenceId,
             color: this.#color,
             color2: this.#color2,
+            fillAlpha: this.fillAlpha,
             colorChanged: this.colorChanged,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
+            barLEDEffect: this.barLEDEffect,
+            barLEDCount: this.barLEDCount,
+            barLEDSize: this.barLEDSize,
             symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
@@ -201,9 +209,13 @@ class Visualizer {
             fftSize: this.analyzer.fftSize,
             color: this.#color,
             color2: this.#color2,
+            fillAlpha: this.fillAlpha,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
+            barLEDEffect: this.barLEDEffect,
+            barLEDCount: this.barLEDCount,
+            barLEDSize: this.barLEDSize,
             symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
@@ -231,9 +243,13 @@ class Visualizer {
             visualizer.color = data.color;
             visualizer.color2 = data.color2;
         }
+        visualizer.fillAlpha = data.fillAlpha ?? 1;
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.barCrop = data.barCrop;
         visualizer.barScale = data.barScale ?? 1;
+        visualizer.barLEDEffect = data.barLEDEffect ?? false;
+        visualizer.barLEDCount = data.barLEDCount ?? 16;
+        visualizer.barLEDSize = data.barLEDSize ?? 0.8;
         visualizer.symmetry = data.symmetry ?? 0;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
@@ -332,6 +348,9 @@ class ChannelPeakVisualizer extends Visualizer {
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
             barScale: this.barScale,
+            barLEDEffect: this.barLEDEffect,
+            barLEDCount: this.barLEDCount,
+            barLEDSize: this.barLEDSize,
             smoothing: this.smoothing,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
@@ -374,6 +393,9 @@ class ChannelPeakVisualizer extends Visualizer {
             smoothing: this.smoothing,
             channelCount: this.channelCount,
             barWidthPercent: this.barWidthPercent,
+            barLEDEffect: this.barLEDEffect,
+            barLEDCount: this.barLEDCount,
+            barLEDSize: this.barLEDSize,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated,
@@ -391,6 +413,9 @@ class ChannelPeakVisualizer extends Visualizer {
         visualizer.smoothing = data.smoothing ?? 3;
         visualizer.channelCount = data.channelCount;
         visualizer.barWidthPercent = data.barWidthPercent;
+        visualizer.barLEDEffect = data.barLEDEffect ?? false;
+        visualizer.barLEDCount = data.barLEDCount ?? 16;
+        visualizer.barLEDSize = data.barLEDSize ?? 0.8;
         visualizer.flippedX = data.flippedX ?? false;
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;

@@ -1,245 +1,5 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
-class ColorInput {
-    static #template = document.getElementById('colorInputTemplate');
-    static #container = document.getElementById('colorInputMasterContainer');
-
-    // store input fields and current state
-    #popup = null;
-    #badge = null;
-    #stopsContainer = null;
-    #controlsParent = null;
-    #inputs = {
-        modeSelectors: [],
-        solid: {
-            input: null,
-        },
-        gradient: {
-            pattern: null,
-            x: null,
-            y: null,
-            r: null,
-            angle: null,
-            stops: []
-        }
-    }
-    #state = {
-        mode: 0,
-    }
-    #oninput = () => { };
-    constructor(container) {
-        if (!(container instanceof Element)) throw new TypeError('Container element must be a DOM element');
-        const cloned = ColorInput.#template.content.cloneNode(true);
-        this.#popup = cloned.children[0];
-        this.#badge = cloned.children[1];
-        container.appendChild(this.#badge);
-        ColorInput.#container.appendChild(this.#popup);
-        for (let curr = container; curr != null && !curr.classList.contains('tileControls'); curr = curr.parentElement, this.#controlsParent = curr); // I hate this
-        // opening/closing
-        this.#badge.onclick = (e) => {
-            this.#popup.classList.toggle('colorInputContainerHidden');
-            if (!this.#popup.classList.contains('colorInputContainerHidden')) {
-                const rect = this.#badge.getBoundingClientRect();
-                if (rect.top < 242) this.#popup.style.bottom = (window.innerHeight - rect.bottom - 242) + 'px';
-                else this.#popup.style.bottom = (window.innerHeight - rect.top - 2) + 'px';
-                this.#popup.style.left = Math.min(window.innerWidth - 244, rect.left) + 'px';
-                if (this.#controlsParent != null) this.#controlsParent.classList.add('tileControlsNoHide');
-            } else {
-                if (this.#controlsParent != null) this.#controlsParent.classList.remove('tileControlsNoHide');
-            }
-        };
-        let hideOnClickOff = (e) => {
-            if (!document.body.contains(container)) {
-                this.#popup.remove();
-                document.removeEventListener('mousedown', hideOnClickOff);
-            }
-            if (!this.#popup.contains(e.target) && e.target != this.#badge && !this.#popup.classList.contains('colorInputContainerHidden')) {
-                this.#popup.classList.add('colorInputContainerHidden');
-                if (this.#controlsParent != null && (!e.target.matches('.colorInputBadge') || !this.#controlsParent.contains(e.target))) this.#controlsParent.classList.remove('tileControlsNoHide');
-            }
-        };
-        document.addEventListener('mousedown', hideOnClickOff);
-        // color type/mode
-        this.#inputs.modeSelectors = [this.#popup.querySelector('.colorInputModeSolid'), this.#popup.querySelector('.colorInputModeGradient')];
-        const modeContainers = [this.#popup.querySelector('.colorInputSolidContainer'), this.#popup.querySelector('.colorInputGradientContainer')];
-        this.#inputs.modeSelectors.forEach((selector, i) => selector.onclick = (e) => {
-            modeContainers.forEach(el => el.style.display = 'none');
-            this.#inputs.modeSelectors.forEach(el => el.classList.remove('colorInputModeSelected'));
-            modeContainers[i].style.display = '';
-            selector.classList.add('colorInputModeSelected');
-            this.#state.mode = i;
-            this.#oninput(e);
-            this.#refreshBadge();
-        });
-        // solid colors
-        this.#inputs.solid.input = this.#popup.querySelector('.colorInputSolidColor');
-        this.#inputs.solid.input.addEventListener('input', (e) => {
-            this.#oninput(e);
-            this.#refreshBadge();
-        });
-        this.#inputs.solid.input.value = '#ffffff';
-        // gradient stuff
-        this.#inputs.gradient.pattern = this.#popup.querySelector('.colorInputGradientPattern');
-        this.#inputs.gradient.pattern.oninput = (e) => {
-            switch (Number(this.#inputs.gradient.pattern.value)) {
-                case 0:
-                    this.#inputs.gradient.x.disabled = true;
-                    this.#inputs.gradient.y.disabled = true;
-                    this.#inputs.gradient.r.disabled = true;
-                    this.#inputs.gradient.angle.disabled = false;
-                    break;
-                case 1:
-                    this.#inputs.gradient.x.disabled = false;
-                    this.#inputs.gradient.y.disabled = false;
-                    this.#inputs.gradient.r.disabled = false;
-                    this.#inputs.gradient.angle.disabled = true;
-                    break;
-                case 2:
-                    this.#inputs.gradient.x.disabled = false;
-                    this.#inputs.gradient.y.disabled = false;
-                    this.#inputs.gradient.r.disabled = true;
-                    this.#inputs.gradient.angle.disabled = false;
-                    break;
-            }
-        };
-        this.#inputs.gradient.x = this.#popup.querySelector('.colorInputGradientX');
-        this.#inputs.gradient.y = this.#popup.querySelector('.colorInputGradientY');
-        this.#inputs.gradient.r = this.#popup.querySelector('.colorInputGradientR');
-        this.#inputs.gradient.angle = this.#popup.querySelector('.colorInputGradientAngle');
-        for (let i in this.#inputs.gradient) {
-            if (this.#inputs.gradient[i] instanceof Element) this.#inputs.gradient[i].addEventListener('input', (e) => {
-                this.#oninput();
-                this.#refreshBadge();
-            });
-        }
-        this.#inputs.gradient.pattern.oninput();
-        this.#stopsContainer = this.#popup.querySelector('.colorInputGradientStops');
-        const addStopButton = this.#popup.querySelector('.colorInputGradientAddStop');
-        addStopButton.onclick = (e) => this.#addGradientColorStop();
-        this.#addGradientColorStop();
-        // disable options that don't do anything
-        this.#inputs.modeSelectors[0].onclick(); // forced reflow oof
-    }
-    #addGradientColorStop() {
-        // maybe should use a template instead
-        const item = document.createElement('div');
-        item.classList.add('colorInputGradientStopContainer');
-        const offset = document.createElement('input');
-        offset.classList.add('numberBox');
-        offset.classList.add('colorInputGradientStopOffset');
-        offset.type = 'number';
-        offset.min = 0;
-        offset.max = 100;
-        offset.step = 1;
-        offset.value = 0;
-        offset.addEventListener('input', (e) => {
-            if (Number(offset.value) < 0 || Number(offset.value) > 100) offset.value = Math.max(0, Math.min(100, Number(offset.value)));
-            this.#oninput();
-            this.#refreshBadge();
-        });
-        const color = document.createElement('input');
-        color.classList.add('colorInputGradientStopColor');
-        color.type = 'color';
-        color.value = '#ffffff';
-        color.addEventListener('input', (e) => {
-            this.#oninput();
-            this.#refreshBadge();
-        });
-        const remove = document.createElement('input');
-        remove.classList.add('colorInputGradientStopRemove');
-        remove.type = 'button';
-        remove.value = 'X';
-        remove.onclick = (e) => {
-            if (this.#inputs.gradient.stops.length > 1) {
-                item.remove();
-                this.#inputs.gradient.stops.splice(this.#inputs.gradient.stops.indexOf(item), 1);
-                this.#oninput();
-                this.#refreshBadge();
-            }
-        };
-        item.appendChild(offset);
-        item.appendChild(color);
-        item.appendChild(remove);
-        this.#inputs.gradient.stops.push([offset, color]);
-        this.#stopsContainer.appendChild(item);
-        this.#oninput();
-        this.#refreshBadge();
-        return this.#inputs.gradient.stops.at(-1);
-    }
-    #refreshBadge() {
-        if (this.#state.mode == 0) {
-            this.#badge.style.background = this.#inputs.solid.input.value;
-        } else if (this.#state.mode == 1) {
-            switch (Number(this.#inputs.gradient.pattern.value)) {
-                case 0:
-                    this.#badge.style.background = `linear-gradient(${180 - Number(this.#inputs.gradient.angle.value)}deg${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
-                    break;
-                case 1:
-                    this.#badge.style.background = `radial-gradient(circle ${Number(this.#inputs.gradient.r.value) * 0.2}px at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
-                    break;
-                case 2:
-                    this.#badge.style.background = `conic-gradient(from ${90 + Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
-                    break;
-            }
-        }
-    }
-
-    set oninput(cb) {
-        if (typeof cb != 'function') throw new TypeError('Callback function must be a function');
-        this.#oninput = cb;
-    }
-    get oninput() {
-        return this.#oninput;
-    }
-
-    get value() {
-        if (this.#state.mode == 0) {
-            return {
-                mode: 0,
-                value: this.#inputs.solid.input.value
-            };
-        } else if (this.#state.mode == 1) {
-            return {
-                mode: 1,
-                value: {
-                    type: Number(this.#inputs.gradient.pattern.value),
-                    x: Number(this.#inputs.gradient.x.value) / 100,
-                    y: Number(this.#inputs.gradient.y.value) / 100,
-                    r: Number(this.#inputs.gradient.r.value) / 100,
-                    angle: Number(this.#inputs.gradient.angle.value),
-                    stops: this.#inputs.gradient.stops.map(inputs => [Number(inputs[0].value) / 100, inputs[1].value])
-                }
-            };
-        }
-    }
-    set value(v) {
-        (this.#inputs.modeSelectors[v.mode] ?? this.#inputs.modeSelectors[0]).onclick();
-        switch (v.mode) {
-            case 0:
-                this.#inputs.solid.input.value = v.value;
-                this.#oninput();
-                this.#refreshBadge();
-                break;
-            case 1:
-                this.#inputs.gradient.pattern.value = v.value.type;
-                this.#inputs.gradient.x.value = v.value.x * 100;
-                this.#inputs.gradient.y.value = v.value.y * 100;
-                this.#inputs.gradient.r.value = v.value.r * 100;
-                this.#inputs.gradient.angle.value = v.value.angle;
-                this.#stopsContainer.innerHTML = '';
-                this.#inputs.gradient.stops = [];
-                for (let stop of v.value.stops) {
-                    const inputs = this.#addGradientColorStop();
-                    inputs[0].value = stop[0] * 100;
-                    inputs[1].value = stop[1];
-                }
-                this.#oninput();
-                this.#refreshBadge();
-                break;
-        }
-    }
-}
-
 // helpers for setup
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
@@ -274,6 +34,8 @@ function setVisualizerControls() {
             this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
             this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
             this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
+            this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
+            this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
             this.visualizer.symmetry = Number(visualizerSymmetry.value);
             this.visualizer.scale = Number(visualizerWaveformScale.value);
             this.visualizer.lineWidth = Number(visualizerLineWidth.value);
@@ -282,6 +44,7 @@ function setVisualizerControls() {
             this.visualizer.rotated = visualizerRotate.checked;
             this.visualizer.color = this.colorSelect1.value;
             this.visualizer.color2 = this.colorSelect2.value;
+            this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
             this.visualizer.volume = Number(volumeInput.value) / 100;
             audioReplace.value = '';
         }
@@ -307,6 +70,10 @@ function setVisualizerControls() {
     this.colorSelect2.oninput = (e) => {
         if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
     };
+    const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
+    fillAlpha.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
+    });
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
     const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
@@ -340,6 +107,21 @@ function setVisualizerControls() {
     const visualizerWidth = this.tile.querySelector('.tileVisualizerBarWidth');
     visualizerWidth.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
+    });
+    const visualizerLEDToggle = this.tile.querySelector('.tileVisualizerBarLEDEffect');
+    visualizerLEDToggle.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
+        if (visualizerLEDToggle.checked) visualizerLEDOptions.classList.remove('hidden');
+        else visualizerLEDOptions.classList.add('hidden');
+    });
+    const visualizerLEDOptions = this.tile.querySelector('.tileVisualizerLEDOptions');
+    const visualizerLEDCount = this.tile.querySelector('.tileVisualizerBarLEDCount');
+    visualizerLEDCount.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
+    });
+    const visualizerLEDSize = this.tile.querySelector('.tileVisualizerBarLEDSize');
+    visualizerLEDSize.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
     });
     // line options
     const visualizerLineWidth = this.tile.querySelector('.tileVisualizerLineWidth');
@@ -404,6 +186,7 @@ function applyVisualizerControls(tile, data) {
         tile.colorSelect1.value = data.visualizer.color;
         tile.colorSelect2.value = data.visualizer.color2;
     }
+    tile.tile.querySelector('.tileVisualizerFillAlpha').value = (data.visualizer.fillAlpha ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
     if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
@@ -422,6 +205,10 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
+    tile.tile.querySelector('.tileVisualizerBarLEDEffect').checked = data.visualizer.barLEDEffect ?? false;
+    if (data.visualizer.barLEDEffect) tile.tile.querySelector('.tileVisualizerLEDOptions').classList.remove('hidden');
+    tile.tile.querySelector('.tileVisualizerBarLEDCount').value = data.visualizer.barLEDCount ?? 16;
+    tile.tile.querySelector('.tileVisualizerBarLEDSize').value = (data.visualizer.barLEDSize ?? 0.8) * 100;
     tile.tile.querySelector('.tileVisualizerFrequencySymmetry').value = data.visualizer.symmetry ?? 0;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
@@ -908,6 +695,21 @@ class ChannelPeakTile {
         channelPeakBarWidth.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
         });
+        const channelPeakLEDToggle = this.tile.querySelector('.tileChannelPeakBarLEDEffect');
+        channelPeakLEDToggle.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDEffect = channelPeakLEDToggle.checked;
+            if (channelPeakLEDToggle.checked) channelPeakLEDOptions.classList.remove('hidden');
+            else channelPeakLEDOptions.classList.add('hidden');
+        });
+        const channelPeakLEDOptions = this.tile.querySelector('.tileChannelPeakLEDOptions');
+        const channelPeakLEDCount = this.tile.querySelector('.tileChannelPeakBarLEDCount');
+        channelPeakLEDCount.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDCount = Number(channelPeakLEDCount.value);
+        });
+        const channelPeakLEDSize = this.tile.querySelector('.tileChannelPeakBarLEDSize');
+        channelPeakLEDSize.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDSize = Number(channelPeakLEDSize.value) / 100;
+        });
         const channelPeakSmoothing = this.tile.querySelector('.tileChannelPeakSmoothing');
         channelPeakSmoothing.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.smoothing = Number(channelPeakSmoothing.value);
@@ -961,6 +763,10 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
             tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
             tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
+            tile.tile.querySelector('.tileChannelPeakBarLEDEffect').checked = data.visualizer.barLEDEffect ?? false;
+            if (data.visualizer.barLEDEffect) tile.tile.querySelector('.tileChannelPeakLEDOptions').classList.remove('hidden');
+            tile.tile.querySelector('.tileChannelPeakBarLEDCount').value = data.visualizer.barLEDCount ?? 16;
+            tile.tile.querySelector('.tileChannelPeakBarLEDSize').value = (data.visualizer.barLEDSize ?? 0.8) * 100;
             if (typeof data.visualizer.color == 'string') tile.colorSelect.value = {
                 mode: 0,
                 value: data.visualizer.color

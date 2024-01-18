@@ -52,7 +52,7 @@ class VisualizerWorker {
         if (VisualizerWorker.#persistentData.get(this.persistenceId) === undefined) VisualizerWorker.#persistentData.set(this.persistenceId, {});
         const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
         // it's-a spaghetti time!
-        if (data === null) {
+        if (data === null) { // Loading spinner
             this.ctx.fillStyle = 'white';
             this.ctx.beginPath();
             let r = Math.min(width, height) / 3;
@@ -64,73 +64,89 @@ class VisualizerWorker {
             this.ctx.lineTo(r, 0);
             this.ctx.fill();
             this.ctx.resetTransform();
-        } else if (this.mode == 0) {
+        } else if (this.mode == 0) { // Frequency 1x bar
             VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256 * this.barScale;
+            let stepMultiplier = 256 / (this.barLEDEffect ? (this.barLEDCount) : 256);
+            let yScale = height / 257 * stepMultiplier;
             switch (this.symmetry) {
                 default:
                 case 0:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
                         this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
                     }
                     break;
                 case 1:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
                         this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
                         this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, height, barWidth, -barHeight);
                     }
                     break;
                 case 2:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
                         this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
                         this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
                     }
                     break;
             }
-        } else if (this.mode == 1) {
+            if (this.barLEDEffect) {
+                let blockStep = height / this.barLEDCount;
+                let blockHeight = blockStep * (1 - this.barLEDSize);
+                for (let i = -blockHeight / 2; i < height; i += blockStep) {
+                    this.ctx.clearRect(0, i, width, blockHeight);
+                }
+            }
+        } else if (this.mode == 1) { // Frequency 2x bar
             VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 256 * this.barScale;
+            let stepMultiplier = 256 / (this.barLEDEffect ? (this.barLEDCount) : 256);
+            let yScale = height / 257 * stepMultiplier;
             switch (this.symmetry) {
                 default:
                 case 0:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale - stepMultiplier * 1.5;
                         this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
                     break;
                 case 1:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale - stepMultiplier * 1.5;
                         this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                         this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
                     break;
                 case 2:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = (data[i] + 1) * yScale;
+                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale - stepMultiplier * 1.5;
                         this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                         this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
                     break;
             }
-        } else if (this.mode == 2) {
+            if (this.barLEDEffect) {
+                let blockStep = height / this.barLEDCount / 2;
+                let blockHeight = blockStep * (1 - this.barLEDSize);
+                for (let i = -blockHeight / 2 - blockStep / 2; i < height; i += blockStep) {
+                    this.ctx.clearRect(0, i, width, blockHeight);
+                }
+            }
+        } else if (this.mode == 2) { // Frequency 1x line
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
+            let yScale = (height - this.lineWidth) / 256 * this.barScale;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             switch (this.symmetry) {
@@ -161,13 +177,13 @@ class VisualizerWorker {
                     break;
             }
             this.ctx.stroke();
-        } else if (this.mode == 7) {
+        } else if (this.mode == 7) { // Frequency 2x line
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
+            let yScale = (height - this.lineWidth) / 256 * this.barScale;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height / 2);
             switch (this.symmetry) {
@@ -211,14 +227,14 @@ class VisualizerWorker {
             }
             this.ctx.lineTo(0, height / 2);
             this.ctx.stroke();
-        } else if (this.mode == 3) {
+        } else if (this.mode == 3) { // Frequency 1x fill
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             VisualizerWorker.setColor.call(this, this.color2, 'fillStyle', 1);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
+            let yScale = height / 256 * this.barScale;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height - yOffset);
@@ -248,16 +264,18 @@ class VisualizerWorker {
             }
             this.ctx.lineTo(width, height - yOffset);
             this.ctx.lineTo(0, height - yOffset);
+            this.ctx.globalAlpha = this.fillAlpha;
             this.ctx.fill();
+            this.ctx.globalAlpha = 1;
             this.ctx.stroke();
-        } else if (this.mode == 5) {
+        } else if (this.mode == 5) { // Frequency 2x fill
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             VisualizerWorker.setColor.call(this, this.color2, 'fillStyle', 1);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = width / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = (height - (this.lineWidth / 2)) / 255 * this.barScale;
+            let yScale = height / 256 * this.barScale;
             this.ctx.beginPath();
             this.ctx.moveTo(0, height / 2);
             switch (this.symmetry) {
@@ -300,9 +318,11 @@ class VisualizerWorker {
                     break;
             }
             this.ctx.lineTo(0, height / 2);
+            this.ctx.globalAlpha = this.fillAlpha;
             this.ctx.fill();
+            this.ctx.globalAlpha = 1;
             this.ctx.stroke();
-        } else if (this.mode == 4) {
+        } else if (this.mode == 4) { // Waveform
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
@@ -315,7 +335,7 @@ class VisualizerWorker {
                 this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
             }
             this.ctx.stroke();
-        } else if (this.mode == 6) {
+        } else if (this.mode == 6) { // Channel peak
             persistentData.lastFrames = persistentData.lastFrames ?? [];
             let peaks = [];
             for (let i in data) {
@@ -334,10 +354,18 @@ class VisualizerWorker {
             let barSpace = (width / peaks.length);
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
-            let yScale = height / 127 * this.barScale;
+            let stepMultiplier = 128 / (this.barLEDEffect ? (this.barLEDCount) : 128);
+            let yScale = height / 128 * stepMultiplier;
             for (let i = 0; i < peaks.length; i++) {
-                let barHeight = peaks[i] * yScale + 1;
+                let barHeight = Math.ceil((peaks[i] * this.barScale + 1) / stepMultiplier) * yScale;
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
+            }
+            if (this.barLEDEffect) {
+                let blockStep = height / this.barLEDCount;
+                let blockHeight = blockStep * (1 - this.barLEDSize);
+                for (let i = -blockHeight / 2; i < height; i += blockStep) {
+                    this.ctx.clearRect(0, i, width, blockHeight);
+                }
             }
         } else {
             this.ctx.fillStyle = 'red';
