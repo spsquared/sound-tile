@@ -96,10 +96,11 @@ class VisualizerWorker {
                     break;
             }
             if (this.barLEDEffect) {
+                this.ctx.fillStyle = '#000000';
                 let blockStep = height / this.barLEDCount;
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2; i < height; i += blockStep) {
-                    this.ctx.clearRect(0, i, width, blockHeight);
+                    this.ctx.fillRect(0, i, width, blockHeight);
                 }
             }
         } else if (this.mode == 1) { // Frequency 2x bar
@@ -134,10 +135,11 @@ class VisualizerWorker {
                     break;
             }
             if (this.barLEDEffect) {
+                this.ctx.fillStyle = '#000000';
                 let blockStep = height / this.barLEDCount / 2;
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2 - blockStep / 2; i < height; i += blockStep) {
-                    this.ctx.clearRect(0, i, width, blockHeight);
+                    this.ctx.fillRect(0, i, width, blockHeight);
                 }
             }
         } else if (this.mode == 2) { // Frequency 1x line
@@ -361,10 +363,11 @@ class VisualizerWorker {
                 this.ctx.fillRect(i * barSpace + barShift, height - barHeight, barWidth, barHeight);
             }
             if (this.barLEDEffect) {
+                this.ctx.fillStyle = '#000000';
                 let blockStep = height / this.barLEDCount;
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2; i < height; i += blockStep) {
-                    this.ctx.clearRect(0, i, width, blockHeight);
+                    this.ctx.fillRect(0, i, width, blockHeight);
                 }
             }
         } else {
