@@ -309,6 +309,8 @@ uploadButton.oninput = (e) => {
                             return TextTile.fromData(treenode);
                         case 'b':
                             return BlankTile.fromData(treenode);
+                        case 'grass':
+                            return GrassTile.fromData(treenode);
                         default:
                             const tile = new TextTile();
                             tile.text = 'Unknown Tile';
@@ -498,13 +500,15 @@ function createTileSource(tileClass, img, alt) {
     });
     tileSourceContainer.appendChild(source);
 };
+createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer tile');
+createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel peak tile');
 createTileSource(TextTile, './assets/text-tile.png', 'New text tile');
 createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
-createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer tile');
 createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
-createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel peak tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
+createTileSource(GrassTile, './assets/blank-tile.png', 'New grass tile');
+tileSourceContainer.lastChild.style.display = 'none';
 
 // tree editor
 const tileModeButton = document.getElementById('tileMode');

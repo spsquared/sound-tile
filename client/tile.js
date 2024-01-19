@@ -36,6 +36,7 @@ function setVisualizerControls() {
             this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
             this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
             this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
+            this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
             this.visualizer.symmetry = Number(visualizerSymmetry.value);
             this.visualizer.scale = Number(visualizerWaveformScale.value);
             this.visualizer.lineWidth = Number(visualizerLineWidth.value);
@@ -262,7 +263,7 @@ class GroupTile {
     }
 
     addChild(child, index = this.children.length) {
-        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ChannelPeakTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, or another GroupTile');
+        if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ChannelPeakTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile) && !(child instanceof GrassTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, GrassTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
         if (child.parent !== null) child.parent.removeChild(child);
@@ -658,8 +659,12 @@ class ChannelPeakTile {
                 this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
                 this.visualizer.channelCount = Number(channelPeakChannels.value);
                 this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
+                this.visualizer.barScale = Number(channelPeakVolumeCrop.value) / 100;
+                this.visualizer.barLEDEffect = channelPeakLEDToggle.checked;
+                this.visualizer.barLEDCount = Number(channelPeakLEDCount.value);
+                this.visualizer.barLEDSize = Number(channelPeakLEDSize.value) / 100;
                 this.visualizer.smoothing = Number(channelPeakSmoothing.value);
-                this.visualizer.color = colorSelect.value;
+                this.visualizer.color = this.colorSelect.value;
                 this.visualizer.volume = Number(volumeInput.value) / 100;
                 audioReplace.value = '';
             }
@@ -986,6 +991,62 @@ class BlankTile {
     }
     static fromData(data) {
         const tile = new BlankTile();
+        applyDefaultTileControls(tile, data);
+        return tile;
+    };
+    destroy() {
+        if (this.parent) this.parent.removeChild(this);
+    }
+}
+class GrassTile {
+    static #template = document.getElementById('imageTileTemplate');
+
+    parent = null;
+    tile = null;
+    img = null;
+    updateLoop = setInterval(() => {});
+    constructor() {
+        this.tile = GrassTile.#template.content.cloneNode(true).children[0];
+        setDefaultTileControls.call(this);
+        this.img = this.tile.querySelector('.tileImg');
+        this.tile.querySelector('.tileImgUploadCover').remove();
+        this.tile.querySelector('.tileImgReplaceLabel').remove();
+        this.tile.querySelector('.tileImgSmoothing').remove();
+        const imageContainer = this.tile.querySelector('.tileImgContainer');
+        this.#resize = () => {
+            const rect = imageContainer.getBoundingClientRect();
+            if (rect.width / rect.height < this.img.width / this.img.height) {
+                // width restriction
+                this.img.style.width = rect.width + 'px';
+                this.img.style.height = 'unset';
+            } else {
+                // height restriction
+                this.img.style.width = 'unset';
+                this.img.style.height = rect.height + 'px';
+            }
+        };
+        this.updateLoop = setInterval(() => {
+            this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg';
+        }, 5000);
+        this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg';
+        this.#resize();
+        window.addEventListener('resize', this.#resize);
+    }
+
+    #resize = () => { }
+    refresh() {
+        this.#resize();
+    }
+
+    getData() {
+        return {
+            type: 'grass',
+            backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
+            flex: this.tile.querySelector('.tileFlex').value
+        };
+    }
+    static fromData(data) {
+        const tile = new GrassTile();
         applyDefaultTileControls(tile, data);
         return tile;
     };
