@@ -1063,6 +1063,63 @@ img {
     z-index: 999;
 }
 
+/* modal stuff */
+#modalContainer {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: 300ms linear opacity;
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+    z-index: 1000;
+}
+#modal {
+    position: fixed;
+    bottom: 100vh;
+    left: calc(25vw - 20px);
+    width: 50vw;
+    padding: 4px 16px;
+    border: 4px solid white;
+    border-radius: 8px;
+    background-color: black;
+    text-align: center;
+    transition: 400ms ease-in-out transform;
+}
+#modalContent {
+    font-size: 16px;
+}
+#modalYes, #modalNo, #modalOk {
+    margin: 4px 4px;
+    padding: 4px 4px;
+    font: 16px Arial;
+    font-weight: 600;
+    border: 2px solid white;
+    transition: 50ms ease transform;
+    cursor: pointer;
+}
+#modalYes:hover, #modalNo:hover, #modalOk:hover {
+    transform: translateY(-2px) scale(102%);
+}
+#modalYes:active, #modalNo:active, #modalOk:active {
+    transform: translateY(2px) scale(102%);
+}
+#modalYes {
+    width: 100px;
+    background-color: lime;
+}
+#modalNo {
+    width: 100px;
+    background-color: red;
+}
+#modalOk {
+    width: 100px;
+    background-color: lightgrey;
+}
+
 /* super secretly stolen from nightride.fm */
 #superSecretDiv {
     display: none;

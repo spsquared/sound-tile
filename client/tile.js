@@ -1,5 +1,7 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
+const display = document.getElementById('display');
+
 // helpers for setup
 const visualizerOptionsTemplate = document.getElementById('visualizerOptionsTemplate');
 function setDefaultTileControls() {
@@ -38,6 +40,7 @@ function setVisualizerControls() {
             this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
             this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
             this.visualizer.symmetry = Number(visualizerSymmetry.value);
+            this.visualizer.smoothingTimeConstant = Number(visualizerSmoothing.value);
             this.visualizer.scale = Number(visualizerWaveformScale.value);
             this.visualizer.lineWidth = Number(visualizerLineWidth.value);
             this.visualizer.flippedX = visualizerFlip.checked;
@@ -660,9 +663,9 @@ class ChannelPeakTile {
                 this.visualizer.channelCount = Number(channelPeakChannels.value);
                 this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
                 this.visualizer.barScale = Number(channelPeakVolumeCrop.value) / 100;
-                this.visualizer.barLEDEffect = channelPeakLEDToggle.checked;
-                this.visualizer.barLEDCount = Number(channelPeakLEDCount.value);
-                this.visualizer.barLEDSize = Number(channelPeakLEDSize.value) / 100;
+                this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
+                this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
+                this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
                 this.visualizer.smoothing = Number(channelPeakSmoothing.value);
                 this.visualizer.color = this.colorSelect.value;
                 this.visualizer.volume = Number(volumeInput.value) / 100;
@@ -700,20 +703,20 @@ class ChannelPeakTile {
         channelPeakBarWidth.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
         });
-        const channelPeakLEDToggle = this.tile.querySelector('.tileChannelPeakBarLEDEffect');
-        channelPeakLEDToggle.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.barLEDEffect = channelPeakLEDToggle.checked;
-            if (channelPeakLEDToggle.checked) channelPeakLEDOptions.classList.remove('hidden');
-            else channelPeakLEDOptions.classList.add('hidden');
+        const visualizerLEDToggle = this.tile.querySelector('.tileVisualizerBarLEDEffect');
+        visualizerLEDToggle.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
+            if (visualizerLEDToggle.checked) visualizerLEDOptions.classList.remove('hidden');
+            else visualizerLEDOptions.classList.add('hidden');
         });
-        const channelPeakLEDOptions = this.tile.querySelector('.tileChannelPeakLEDOptions');
-        const channelPeakLEDCount = this.tile.querySelector('.tileChannelPeakBarLEDCount');
-        channelPeakLEDCount.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.barLEDCount = Number(channelPeakLEDCount.value);
+        const visualizerLEDOptions = this.tile.querySelector('.tileVisualizerLEDOptions');
+        const visualizerLEDCount = this.tile.querySelector('.tileVisualizerBarLEDCount');
+        visualizerLEDCount.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
         });
-        const channelPeakLEDSize = this.tile.querySelector('.tileChannelPeakBarLEDSize');
-        channelPeakLEDSize.addEventListener('input', (e) => {
-            if (this.visualizer !== null) this.visualizer.barLEDSize = Number(channelPeakLEDSize.value) / 100;
+        const visualizerLEDSize = this.tile.querySelector('.tileVisualizerBarLEDSize');
+        visualizerLEDSize.addEventListener('input', (e) => {
+            if (this.visualizer !== null) this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
         });
         const channelPeakSmoothing = this.tile.querySelector('.tileChannelPeakSmoothing');
         channelPeakSmoothing.addEventListener('input', (e) => {
@@ -768,10 +771,10 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileChannelPeakBarWidth').value = data.visualizer.barWidthPercent * 100;
             tile.tile.querySelector('.tileChannelPeakSmoothing').value = data.visualizer.smoothing ?? 0.8;
             tile.tile.querySelector('.tileChannelPeakVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
-            tile.tile.querySelector('.tileChannelPeakBarLEDEffect').checked = data.visualizer.barLEDEffect ?? false;
-            if (data.visualizer.barLEDEffect) tile.tile.querySelector('.tileChannelPeakLEDOptions').classList.remove('hidden');
-            tile.tile.querySelector('.tileChannelPeakBarLEDCount').value = data.visualizer.barLEDCount ?? 16;
-            tile.tile.querySelector('.tileChannelPeakBarLEDSize').value = (data.visualizer.barLEDSize ?? 0.8) * 100;
+            tile.tile.querySelector('.tileVisualizerBarLEDEffect').checked = data.visualizer.barLEDEffect ?? false;
+            if (data.visualizer.barLEDEffect) tile.tile.querySelector('.tileVisualizerLEDOptions').classList.remove('hidden');
+            tile.tile.querySelector('.tileVisualizerBarLEDCount').value = data.visualizer.barLEDCount ?? 16;
+            tile.tile.querySelector('.tileVisualizerBarLEDSize').value = (data.visualizer.barLEDSize ?? 0.8) * 100;
             if (typeof data.visualizer.color == 'string') tile.colorSelect.value = {
                 mode: 0,
                 value: data.visualizer.color
@@ -780,6 +783,9 @@ class ChannelPeakTile {
             tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
             tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
             tile.tile.querySelector('.tileChannelPeakMute').checked = data.visualizer.muteOutput ?? false;
+            if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
+            if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
+            if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
             tile.visualizer = ChannelPeakVisualizer.fromData(data.visualizer, tile.canvas);
             tile.tile.querySelector('.tileSourceUploadCover').remove();
         }

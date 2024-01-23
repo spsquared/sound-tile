@@ -218,6 +218,17 @@
             </div>
         </div>
     </div>
+    <div id="modalContainer">
+        <div id="modal">
+            <h1 id="modalTitle"></h1>
+            <p id="modalContent"></p>
+            <button id="modalYes">YES</button>
+            <button id="modalNo">NO</button>
+            <button id="modalOk">OK</button>
+            <br>
+            <br>
+        </div>
+    </div>
     <template id="colorInputTemplate">
         <div class="colorInputContainer colorInputContainerHidden">
             <input type="button" class="colorInputModeSolid" value="Solid">
@@ -486,16 +497,16 @@
                     </label>
                     <label title="LED bar effect">
                         LED Bar:
-                        <input class="tileChannelPeakBarLEDEffect checkBox" type="checkbox">
+                        <input class="tileVisualizerBarLEDEffect checkBox" type="checkbox">
                     </label>
-                    <span class="tileChannelPeakLEDOptions hidden">
+                    <span class="tileVisualizerLEDOptions hidden">
                         <label title="LED count per bar">
                             LED Count:
-                            <input class="tileChannelPeakBarLEDCount numberBox" type="number" min="1", max="64" value="16">
+                            <input class="tileVisualizerBarLEDCount numberBox" type="number" min="1", max="64" value="16">
                         </label>
                         <label title="LED size on second axis">
                             LED Size:
-                            <input class="tileChannelPeakBarLEDSize numberBox" type="number" min="0", max="100" step="5" value="80">
+                            <input class="tileVisualizerBarLEDSize numberBox" type="number" min="5", max="100" step="5" value="80">
                         </label>
                     </span>
                     <label title="Smoothing factor">
@@ -639,9 +650,9 @@
             </div>
         </div>
     </template>
-    <!-- also more styles like discrete LED bars and luminance bars (bars are always drawn the same but with different opacities) -->
+    <!-- also more styles like luminance bars (bars are always drawn the same but with different opacities) -->
     <!-- oh and radial style -->
-    <!-- stereo analyzer??? -->
+    <!-- spectrogram?? -->
     <template id="visualizerOptionsTemplate">
         <span>
             <label class="tileAudioReplaceLabel buttonLabel">

@@ -132,6 +132,7 @@ class Visualizer {
         });
     }
     resize(w, h) {
+        if (w < 0 || h < 0 || !isFinite(w) || !isFinite(h)) return;
         if (this.worker !== null) this.worker.postMessage([1, w, h]);
         else {
             this.canvas.width = w;
