@@ -346,6 +346,7 @@ img {
     background-color: black;
     border-bottom: 4px solid white;
     transition: 200ms ease transform;
+    container-type: size;
     --tabImage: url(./assets/arrow-up.svg);
     z-index: 997;
 }
@@ -366,7 +367,7 @@ img {
 #dropdownTabCheckbox {
     opacity: 0;
 }
-#dropdownTabCheckbox:checked~#dropdown {
+#dropdownTabCheckbox:checked ~ #dropdown {
     transform: translateY(-100%);
     --tabImage: url(./assets/arrow-down.svg);
 }
@@ -528,6 +529,12 @@ img {
 }
 #seeker:active {
     cursor: grabbing;
+}
+@container (max-width: 874px) {
+    #seekerBody:hover {
+        min-width: 180px !important;
+        max-width: 180px !important;
+    }
 }
 #playButtonLabel {
     grid-row: 2;

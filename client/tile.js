@@ -1318,15 +1318,14 @@ document.addEventListener('touchend', onDragEnd);
 // touch cancel: oof
 
 window.addEventListener('load', (e) => {
-    GroupTile.root.addChild(new ImageTile());
-    GroupTile.root.addChild(new ImageTile());
+    GroupTile.root.addChild(new VisualizerTextTile());
+    GroupTile.root.addChild(new VisualizerTile());
     let subgroup = new GroupTile(1);
-    subgroup.addChild(new VisualizerImageTile())
     subgroup.addChild(new VisualizerTile())
-    subgroup.addChild(new VisualizerTextTile());
+    subgroup.addChild(new ChannelPeakTile());
     let subgroup2 = new GroupTile();
-    subgroup2.addChild(new BlankTile());
-    subgroup2.addChild(new ImageTile());
+    subgroup2.addChild(new VisualizerTile());
+    subgroup2.addChild(new TextTile());
     subgroup.addChild(subgroup2, 1);
     GroupTile.root.addChild(subgroup, 0);
 });
