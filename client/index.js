@@ -2,7 +2,7 @@
 
 let loaded = true;
 window.addEventListener('load', (e) => {
-    if (typeof AudioContext != 'function') {
+    if (AudioContext == undefined) {
         document.getElementById('notsupported').style.display = 'block';
         return;
     }

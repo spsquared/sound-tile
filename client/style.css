@@ -97,8 +97,10 @@ img {
 }
 
 .colorBox {
+    appearance: none;
     display: inline-block;
-    height: 24px;
+    width: 52px;
+    height: 26px;
     margin: 0px 2px;
     margin-top: -12px;
     padding: 0px 0px;
@@ -108,10 +110,12 @@ img {
     cursor: pointer;
 }
 .colorBox::-webkit-color-swatch {
+    appearance: none;
     margin: 0px 0px;
     padding: 0px 0px;
     height: 18px;
     border: 2px solid white;
+    border-radius: 0;
 }
 
 .checkBox {
@@ -266,7 +270,7 @@ img {
     flex-direction: row;
     border-bottom: 2px solid white;
 }
-.colorInputGradientStopOffset, .colorInputGradientStopColor, .colorInputGradientStopRemove {
+.colorInputGradientStopOffset, .colorInputGradientStopColor, .colorInputGradientStopMoveUp, .colorInputGradientStopMoveDown, .colorInputGradientStopRemove {
     border: none;
     border-radius: 0;
     margin: 0px 0px;
@@ -276,6 +280,7 @@ img {
     flex-grow: 1;
     margin: 0px 0px;
     padding: 0px 0px;
+    background-color: white;
     cursor: pointer;
 }
 .colorInputGradientStopColor::-webkit-color-swatch {
@@ -287,13 +292,33 @@ img {
     width: 100%;
     border: none;
 }
+.colorInputGradientStopMoveUp, .colorInputGradientStopMoveDown, .colorInputGradientStopRemove {
+    width: 18px;
+    padding: 0px 0px;
+    background-color: gray;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    border-right: 2px solid white;
+    color: black;
+    cursor: pointer;
+}
+.colorInputGradientStopMoveUp {
+    background-image: url(./assets/arrow-up-dark.svg);
+}
+.colorInputGradientStopMoveDown {
+    background-image: url(./assets/arrow-down-dark.svg);
+}
+.colorInputGradientStopContainer:first-child .colorInputGradientStopMoveUp, .colorInputGradientStopContainer:last-child .colorInputGradientStopMoveDown {
+    background-color: #555;
+    cursor: not-allowed;
+}
 .colorInputGradientStopRemove {
     width: 16px;
-    padding: 0px 0px;
     background-color: red;
-    font-size: 12px;
-    text-align: center;
-    cursor: pointer;
+    background-size: 90% 90%;
+    background-image: url(./assets/delete.svg);
+    border-right: none;
 }
 .colorInputBadge {
     display: inline-block;
@@ -386,6 +411,7 @@ img {
     height: 60px;
     border: none;
     border-top: 2px solid white;
+    border-radius: 0px;
     padding: 0px 0px;
     background-image: url(./assets/download.svg);
 }

@@ -145,10 +145,35 @@ class ColorInput {
             this.#oninput();
             this.#refreshBadge();
         });
+        const moveUp = document.createElement('input');
+        moveUp.classList.add('colorInputGradientStopMoveUp');
+        moveUp.type = 'button';
+        moveUp.onclick = (e) => {
+            let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
+            if (index > 0) {
+                let val = color.value;
+                color.value = this.#inputs.gradient.stops[index - 1][1].value;
+                this.#inputs.gradient.stops[index - 1][1].value = val;
+                this.#oninput();
+                this.#refreshBadge();
+            }
+        };
+        const moveDown = document.createElement('input');
+        moveDown.classList.add('colorInputGradientStopMoveDown');
+        moveDown.type = 'button';
+        moveDown.onclick = (e) => {
+            let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
+            if (index < this.#inputs.gradient.stops.length - 1) {
+                let val = color.value;
+                color.value = this.#inputs.gradient.stops[index + 1][1].value;
+                this.#inputs.gradient.stops[index + 1][1].value = val;
+                this.#oninput();
+                this.#refreshBadge();
+            }
+        };
         const remove = document.createElement('input');
         remove.classList.add('colorInputGradientStopRemove');
         remove.type = 'button';
-        remove.value = 'X';
         remove.onclick = (e) => {
             if (this.#inputs.gradient.stops.length > 1) {
                 item.remove();
@@ -159,6 +184,8 @@ class ColorInput {
         };
         item.appendChild(offset);
         item.appendChild(color);
+        item.appendChild(moveUp);
+        item.appendChild(moveDown);
         item.appendChild(remove);
         this.#inputs.gradient.stops.push([offset, color]);
         this.#stopsContainer.appendChild(item);
@@ -241,6 +268,8 @@ class ColorInput {
 }
 
 // upload/download
+const fileControlsContainer = document.getElementById('fileControls');
+const uploadButtonLabel = document.getElementById('uploadButtonLabel');
 const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
 uploadButton.oninput = (e) => {
@@ -283,6 +312,7 @@ uploadButton.oninput = (e) => {
             mediaControls.playing = false;
             playButton.checked = false;
             mediaControls.setTime(mediaControls.duration);
+            if (wakeLock && !wakeLock.released) wakeLock.release();
             GroupTile.root.tile.remove();
             GroupTile.root = new GroupTile(false);
             display.appendChild(GroupTile.root.tile);
@@ -380,6 +410,22 @@ downloadButton.onclick = async (e) => {
     downloadButton.disabled = false;
     uploadButton.disabled = false;
 };
+fileControlsContainer.ondragover = (e) => {
+    e.preventDefault();
+    uploadButtonLabel.style.backgroundColor = '#999';
+};
+fileControlsContainer.ondragend = fileControlsContainer.ondragleave = (e) => {
+    e.preventDefault();
+    uploadButtonLabel.style.backgroundColor = '';
+};
+fileControlsContainer.ondrop = (e) => {
+    e.preventDefault();
+    uploadButtonLabel.style.backgroundColor = '';
+    if (e.dataTransfer.files) {
+        uploadButton.files = e.dataTransfer.files;
+        uploadButton.oninput();
+    }
+};
 
 // volume
 const volumeControlInput = document.getElementById('volume');
@@ -418,6 +464,7 @@ const mediaControls = {
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     }
 };
+let wakeLock;
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
     timeSeekInput.max = mediaControls.duration;
@@ -437,6 +484,7 @@ setInterval(() => {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
             playButton.checked = false;
+            if (wakeLock && !wakeLock.released) wakeLock.release();
             mediaControls.setTime(mediaControls.duration);
         } else if (mediaControls.playing) {
             mediaControls.setTime(0);
@@ -455,20 +503,28 @@ setInterval(() => {
 timeSeekInput.oninput = (e) => {
     mediaControls.setTime(timeSeekInput.value);
 };
-playButton.onclick = (e) => {
+playButton.onclick = async (e) => {
     if (!allowModification) return;
     mediaControls.playing = playButton.checked;
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;
         mediaControls.startTime = performance.now();
     }
-    if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
-    else Visualizer.stopAll();
+    if (mediaControls.playing) {
+        Visualizer.startAll(mediaControls.currentTime);
+        if (WakeLock != undefined) wakeLock = await window.navigator.wakeLock.request();
+    } else {
+        Visualizer.stopAll();
+        if (wakeLock && !wakeLock.released) wakeLock.release();
+    }
 };
 loopToggle.onclick = (e) => {
     mediaControls.loop = loopToggle.checked;
     window.localStorage.setItem('loop', mediaControls.loop);
 };
+document.addEventListener('visibilitychange', async (e) => {
+    if (!document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await window.navigator.wakeLock.request();
+});
 loopToggle.checked = mediaControls.loop;
 
 // tile source

@@ -83,7 +83,7 @@ function drawTiles() {
 };
 
 const exportButton = document.getElementById('exportButton');
-if (typeof window.MediaRecorder != 'function') {
+if (window.MediaRecorder == undefined) {
     exportButton.disabled = true;
     exportButton.title += ' (Not supported by browser)';
 }

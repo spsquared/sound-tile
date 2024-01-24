@@ -8,6 +8,7 @@ function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+    this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.addEventListener('input', (e) => {
@@ -18,19 +19,25 @@ function setDefaultTileControls() {
 function setVisualizerControls() {
     this.tile.querySelector('.tileVisualizerControls').appendChild(visualizerOptionsTemplate.content.cloneNode(true).children[0]);
     // audio controls
-    const audioUpload = this.tile.querySelector('.tileSourceUpload');
-    audioUpload.addEventListener('change', async (e) => {
-        if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
-            this.visualizer = new Visualizer(await audioUpload.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+    let uploadAudio = async (files) => {
+        if (files.length > 0 && files[0].type.startsWith('audio/')) {
+            this.tile.ondrop = (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files) replaceAudio(e.dataTransfer.files);
+            };
+            if (this.tile.querySelector('.tileSourceUploadCover') == null) {
+                replaceAudio(files);
+                return;
+            }
+            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.tile.querySelector('.tileSourceUploadCover').remove();
             this.visualizer.loadPromise.then(() => visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * (Number(visualizerFrequencyCrop.value) / 100));
         }
-    });
-    const audioReplace = this.tile.querySelector('.tileAudioReplace');
-    audioReplace.addEventListener('change', async (e) => {
-        if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
+    };
+    let replaceAudio = async (files) => {
+        if (files.length > 0 && files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
-            this.visualizer = new Visualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.visualizer.mode = Number(visualizerMode.value);
             this.visualizer.fftSize = Number(visualizerFFTSize.value);
             this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
@@ -52,7 +59,16 @@ function setVisualizerControls() {
             this.visualizer.volume = Number(volumeInput.value) / 100;
             audioReplace.value = '';
         }
-    });
+    };
+    const audioUpload = this.tile.querySelector('.tileSourceUpload');
+    audioUpload.addEventListener('change', (e) => uploadAudio(audioUpload.files));
+    const audioReplace = this.tile.querySelector('.tileAudioReplace');
+    audioReplace.addEventListener('change', (e) => replaceAudio(audioReplace.files));
+    this.tile.ondrop = (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files) uploadAudio(e.dataTransfer.files);
+    };
+    this.tile.ondragover = (e) => e.preventDefault();
     // volume controls
     const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
     const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
@@ -248,6 +264,7 @@ class GroupTile {
         if (orientation) this.childBox.classList.add('tileGroupVertical');
         this.controls.dragBar = this.tile.querySelector('.tileDrag');
         this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
         this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
@@ -648,18 +665,24 @@ class ChannelPeakTile {
         this.canvas.height = 500;
         // visualizer controls
         // audio controls
-        const audioUpload = this.tile.querySelector('.tileSourceUpload');
-        audioUpload.addEventListener('change', async (e) => {
-            if (audioUpload.files.length > 0 && audioUpload.files[0].type.startsWith('audio/')) {
-                this.visualizer = new ChannelPeakVisualizer(await audioUpload.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+        let uploadAudio = async (files) => {
+            if (files.length > 0 && files[0].type.startsWith('audio/')) {
+                this.tile.ondrop = (e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files) replaceAudio(e.dataTransfer.files);
+                };
+                if (this.tile.querySelector('.tileSourceUploadCover') == null) {
+                    replaceAudio(files);
+                    return;
+                }
+                this.visualizer = new ChannelPeakVisualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
                 this.tile.querySelector('.tileSourceUploadCover').remove();
             }
-        });
-        const audioReplace = this.tile.querySelector('.tileAudioReplace');
-        audioReplace.addEventListener('change', async (e) => {
-            if (audioReplace.files.length > 0 && audioReplace.files[0].type.startsWith('audio/')) {
+        };
+        let replaceAudio = async (files) => {
+            if (files.length > 0 && files[0].type.startsWith('audio/')) {
                 this.visualizer.destroy();
-                this.visualizer = new ChannelPeakVisualizer(await audioReplace.files[0].arrayBuffer(), this.canvas, () => this.refresh());
+                this.visualizer = new ChannelPeakVisualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
                 this.visualizer.channelCount = Number(channelPeakChannels.value);
                 this.visualizer.barWidthPercent = Number(channelPeakBarWidth.value) / 100;
                 this.visualizer.barScale = Number(channelPeakVolumeCrop.value) / 100;
@@ -667,11 +690,24 @@ class ChannelPeakTile {
                 this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
                 this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
                 this.visualizer.smoothing = Number(channelPeakSmoothing.value);
+                this.visualizer.muteOutput = channelPeakMute.checked;
+                this.visualizer.flippedX = visualizerFlip.checked;
+                this.visualizer.flippedY = visualizerFlip2.checked;
+                this.visualizer.rotated = visualizerRotate.checked;
                 this.visualizer.color = this.colorSelect.value;
                 this.visualizer.volume = Number(volumeInput.value) / 100;
                 audioReplace.value = '';
             }
-        });
+        };
+        const audioUpload = this.tile.querySelector('.tileSourceUpload');
+        audioUpload.addEventListener('change', (e) => uploadAudio(audioUpload.files));
+        const audioReplace = this.tile.querySelector('.tileAudioReplace');
+        audioReplace.addEventListener('change', (e) => replaceAudio(audioReplace.files));
+        this.tile.ondrop = (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files) uploadAudio(e.dataTransfer.files);
+        };
+        this.tile.ondragover = (e) => e.preventDefault();
         // volume controls
         const volumeInput = this.tile.querySelector('.tileVisualizerVolumeInput');
         const volumeThumb = this.tile.querySelector('.tileVisualizerVolumeThumb');
@@ -1010,7 +1046,7 @@ class GrassTile {
     parent = null;
     tile = null;
     img = null;
-    updateLoop = setInterval(() => {});
+    updateLoop = setInterval(() => { });
     constructor() {
         this.tile = GrassTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
@@ -1102,8 +1138,9 @@ function startDrag(e) {
     drag.dragging = true;
     drag.drop.tile = null;
 };
-document.addEventListener('mousemove', (e) => {
+let onDragMove = (e) => {
     if (drag.dragging) {
+        if (e instanceof TouchEvent) e = e.touches[0];
         if (GroupTile.treeMode) {
             if (e.clientX < window.innerWidth * 0.01) {
                 display.scrollBy(-8, 0);
@@ -1253,8 +1290,8 @@ document.addEventListener('mousemove', (e) => {
         //     drag.drop.index = drag.from.index;
         // }
     }
-}, { passive: true });
-document.addEventListener('mouseup', (e) => {
+};
+let onDragEnd = (e) => {
     if (drag.dragging && drag.drop.tile !== null) {
         if (drag.drop.createGroup) {
             const newGroup = new GroupTile(drag.drop.groupOrientation);
@@ -1273,7 +1310,12 @@ document.addEventListener('mouseup', (e) => {
         drag.tile = null;
         drag.dragging = false;
     }
-});
+};
+document.addEventListener('mousemove', onDragMove, { passive: true });
+document.addEventListener('touchmove', onDragMove, { passive: true });
+document.addEventListener('mouseup', onDragEnd);
+document.addEventListener('touchend', onDragEnd);
+// touch cancel: oof
 
 window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new ImageTile());

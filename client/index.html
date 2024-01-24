@@ -24,7 +24,7 @@
     <script src="./tile.js" defer></script>
     <script src="./sound.js" defer></script>
     <script src="./visualizerWorker.js" defer></script>
-    <script src="./export.js" defer></script>
+    <!-- <script src="./export.js" defer></script> -->
     <script src="./controls.js" defer></script>
 </head>
 <body>
@@ -106,7 +106,6 @@
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
-        <!-- actual buttons are too finicky -->
         <div id="fileControls">
             <input type="file" id="uploadButton" accept=".soundtile" title="Upload Tiles from computer">
             <label id="uploadButtonLabel" for="uploadButton"></label>
@@ -133,7 +132,8 @@
                     </label>
                 </div>
             </div>
-            <input type="button" id="exportButton" title="Export video (really bad)" disabled>
+            <!-- <input type="button" id="exportButton" title="Export video (really bad)" disabled> -->
+            <!-- picture-in-picture and maybe metadata thing for mediasession -->
         </div>
         <div id="modeControls">
             <input type="button" id="tileMode" title="Tile edit mode">
@@ -264,9 +264,7 @@
                 <input class="colorInputGradientAddStop buttonLabel" type="button" title="Add a color stop" value="+">
             </div>
         </div>
-        <div class="colorInputBadge">
-            <!-- a box with an image or something inside -->
-        </div>
+        <div class="colorInputBadge"></div>
     </template>
     <template id="groupTileTemplate">
         <div class="tileGroup">
