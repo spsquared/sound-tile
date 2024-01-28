@@ -1,5 +1,7 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
+const isWorker = this.window === undefined;
+
 class VisualizerWorker {
     static #persistentData = new Map();
 
@@ -43,7 +45,7 @@ class VisualizerWorker {
         let width = this.canvas.width;
         let height = this.canvas.height;
         this.ctx.resetTransform();
-        if (window !== undefined) this.ctx.clearRect(0, 0, width, height);
+        if (!isWorker) this.ctx.clearRect(0, 0, width, height);
         this.ctx.scale(this.flippedX * -2 + 1, this.flippedY * -2 + 1);
         this.ctx.translate(this.flippedX * -width, this.flippedY * -height);
         if (this.rotated) {
