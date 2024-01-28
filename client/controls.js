@@ -279,6 +279,12 @@ uploadButton.oninput = (e) => {
         const reader = new FileReader();
         reader.onload = async (e) => {
             const tree = msgpack.decode(new Uint8Array(reader.result));
+            if (tree.version > 1) {
+                modal('Unsupported version!', `The uploaded Sound Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
+                downloadButton.disabled = false;
+                uploadButton.disabled = false;
+                return;
+            }
             if (tree.version > 0) {
                 let promises = [];
                 let curr;
@@ -291,15 +297,19 @@ uploadButton.oninput = (e) => {
                     }
                     if (curr.visualizer != null) {
                         let visualizer = curr.visualizer;
-                        promises.push(new Promise((resolve, reject) => {
-                            fflate.decompress(new Uint8Array(visualizer.buffer), {
-                                consume: true
-                            }, (err, data) => {
-                                if (err) throw err;
-                                visualizer.buffer = data.buffer;
-                                resolve();
-                            });
-                        }));
+                        if (Worker !== undefined) {
+                            promises.push(new Promise((resolve, reject) => {
+                                fflate.decompress(new Uint8Array(visualizer.buffer), {
+                                    consume: true
+                                }, (err, data) => {
+                                    if (err) throw err;
+                                    visualizer.buffer = data.buffer;
+                                    resolve();
+                                });
+                            }));
+                        } else {
+                            visualizer.buffer = fflate.decompressSync(new Uint8Array(visualizer.buffer)).buffer;
+                        }
                     }
                 }
                 await Promise.all(promises);
@@ -311,11 +321,13 @@ uploadButton.oninput = (e) => {
             Visualizer.destroyAll();
             mediaControls.playing = false;
             playButton.checked = false;
+            pipPlayButton.checked = false;
             mediaControls.setTime(mediaControls.duration);
             if (wakeLock && !wakeLock.released) wakeLock.release();
             GroupTile.root.tile.remove();
             GroupTile.root = new GroupTile(false);
-            display.appendChild(GroupTile.root.tile);
+            if (documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
+            else display.appendChild(GroupTile.root.tile);
             let dfs = (treenode) => {
                 if (treenode.children !== undefined) {
                     let node = GroupTile.fromData(treenode);
@@ -377,7 +389,10 @@ downloadButton.onclick = async (e) => {
     };
     const tree = {
         version: 1,
-        root: dfs(GroupTile.root)
+        root: dfs(GroupTile.root),
+        // metadata: {
+
+        // }
     };
     let promises = []
     let curr;
@@ -390,15 +405,19 @@ downloadButton.onclick = async (e) => {
         }
         if (curr.visualizer != null) {
             let visualizer = curr.visualizer;
-            promises.push(new Promise((resolve, reject) => {
-                fflate.gzip(new Uint8Array(visualizer.buffer), {
-                    level: 4
-                }, (err, data) => {
-                    if (err) throw err;
-                    visualizer.buffer = data.buffer;
-                    resolve();
-                });
-            }));
+            if (Worker !== undefined) {
+                promises.push(new Promise((resolve, reject) => {
+                    fflate.gzip(new Uint8Array(visualizer.buffer), {
+                        level: 4
+                    }, (err, data) => {
+                        if (err) throw err;
+                        visualizer.buffer = data.buffer;
+                        resolve();
+                    });
+                }));
+            } else {
+                visualizer.buffer = fflag.gzipSync(new Uint8Array(visualizer.buffer), { level: 4 }).buffer;
+            }
         }
     }
     await Promise.all(promises);
@@ -430,23 +449,33 @@ fileControlsContainer.ondrop = (e) => {
 // volume
 const volumeControlInput = document.getElementById('volume');
 const volumeControlThumb = document.getElementById('volumeThumb');
+const pipVolumeControlBody = document.getElementById('pipVolumeBody');
+const pipVolumeControlInput = document.getElementById('pipVolume');
 volumeControlInput.oninput = (e) => {
     globalVolume.gain.setValueAtTime(Number(volumeControlInput.value) / 100, audioContext.currentTime);
-    volumeControlThumb.style.setProperty('--volume', Number(volumeControlInput.value) / 100);
+    volumeControlThumb.style.setProperty('--volume', Number(volumeControlInput.value) / 150);
+    pipVolumeControlBody.style.setProperty('--volume', Number(volumeControlInput.value) / 150);
+    pipVolumeControlInput.value = volumeControlInput.value;
     volumeControlInput.title = volumeControlInput.value + '%';
+    pipVolumeControlInput.title = volumeControlInput.value + '%';
     window.localStorage.setItem('volume', volumeControlInput.value);
 };
 volumeControlInput.addEventListener('wheel', (e) => {
     volumeControlInput.value = Number(volumeControlInput.value) - Math.round(e.deltaY / 20);
     volumeControlInput.oninput();
 }, { passive: true });
-volumeControlInput.value = window.localStorage.getItem('volume') ?? 100;
-volumeControlInput.oninput();
+window.addEventListener('load', (e) => {
+    volumeControlInput.value = window.localStorage.getItem('volume') ?? 100;
+    volumeControlInput.oninput();
+});
 
 // media controls
 const timeSeekInput = document.getElementById('seeker');
 const timeSeekThumb = document.getElementById('seekerThumb');
+const pipTimeSeekInput = document.getElementById('pipSeeker');
+const pipTimeSeekThumb = document.getElementById('pipSeekerThumb');
 const playButton = document.getElementById('playButton');
+const pipPlayButton = document.getElementById('pipPlayButton');
 const timeDisplay = document.getElementById('timeDisplay');
 const loopToggle = document.getElementById('loopToggle');
 const mediaControls = {
@@ -458,8 +487,12 @@ const mediaControls = {
     setTime: (t) => {
         if (!allowModification) return;
         mediaControls.currentTime = Number(t);
+        timeSeekInput.value = mediaControls.currentTime;
+        pipTimeSeekInput.value = mediaControls.currentTime;
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+        pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
+        pipTimeSeekInput.title = timeSeekInput.title;
         mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     }
@@ -468,12 +501,14 @@ let wakeLock;
 Visualizer.onUpdate = () => {
     mediaControls.duration = Visualizer.duration;
     timeSeekInput.max = mediaControls.duration;
+    pipTimeSeekInput.max = mediaControls.duration;
     if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = mediaControls.duration;
         mediaControls.startTime = performance.now();
     }
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+    pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
 };
 function getTime(s) {
     return `${Math.trunc(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.trunc(s) % 60}`;
@@ -484,6 +519,7 @@ setInterval(() => {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.playing = false;
             playButton.checked = false;
+            pipPlayButton.checked = false;
             if (wakeLock && !wakeLock.released) wakeLock.release();
             mediaControls.setTime(mediaControls.duration);
         } else if (mediaControls.playing) {
@@ -493,8 +529,11 @@ setInterval(() => {
     if (mediaControls.playing) {
         mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
         timeSeekInput.value = mediaControls.currentTime;
+        pipTimeSeekInput.value = mediaControls.currentTime;
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+        pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
+        pipTimeSeekInput.title = timeSeekInput.title;
     } else {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
@@ -517,6 +556,7 @@ playButton.onclick = async (e) => {
         Visualizer.stopAll();
         if (wakeLock && !wakeLock.released) wakeLock.release();
     }
+    pipPlayButton.checked = playButton.checked;
 };
 loopToggle.onclick = (e) => {
     mediaControls.loop = loopToggle.checked;
@@ -526,6 +566,93 @@ document.addEventListener('visibilitychange', async (e) => {
     if (!document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await window.navigator.wakeLock.request();
 });
 loopToggle.checked = mediaControls.loop;
+
+// picture-in-picture
+const pipButton = document.getElementById('pipButton')
+const pipContainer = document.getElementById('pipContainer');
+const pipDisplay = document.getElementById('pipDisplay');
+const pipTitle = document.createElement('title');
+const pipDisplayCover = document.getElementById('pipDisplayCover');
+pipContainer.remove();
+pipDisplayCover.remove();
+if (documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
+    if (documentPictureInPicture.window == null) {
+        try {
+            const pipWindow = await documentPictureInPicture.requestWindow();
+            pipWindow.addEventListener('pagehide', (e) => {
+                display.appendChild(GroupTile.root.tile);
+                pipDisplayCover.remove();
+                pipButton.checked = false;
+                let inefficientWait = setInterval(() => {
+                    if ([...display.children].includes(GroupTile.root.tile)) {
+                        GroupTile.root.refresh();
+                        clearInterval(inefficientWait);
+                    }
+                }, 10);
+            });
+            const styleSheet = document.createElement('link');
+            styleSheet.href = './style.css';
+            styleSheet.rel = 'stylesheet';
+            pipTitle.innerText = 'Sound Tile'; // add media information later
+            pipWindow.document.head.appendChild(pipTitle);
+            pipWindow.document.head.appendChild(styleSheet);
+            pipWindow.document.body.appendChild(pipContainer);
+            // re-add listeners that get removed
+            pipPlayButton.onclick = (e) => playButton.click();
+            pipVolumeControlInput.oninput = (e) => {
+                globalVolume.gain.setValueAtTime(Number(pipVolumeControlInput.value) / 100, audioContext.currentTime);
+                volumeControlThumb.style.setProperty('--volume', Number(pipVolumeControlInput.value) / 150);
+                pipVolumeControlBody.style.setProperty('--volume', Number(pipVolumeControlInput.value) / 150);
+                volumeControlInput.value = pipVolumeControlInput.value;
+                volumeControlInput.title = pipVolumeControlInput.value + '%';
+                pipVolumeControlInput.title = pipVolumeControlInput.value + '%';
+                window.localStorage.setItem('volume', pipVolumeControlInput.value);
+            };
+            pipVolumeControlInput.addEventListener('wheel', (e) => {
+                pipVolumeControlInput.value = Number(pipVolumeControlInput.value) - Math.round(e.deltaY / 20);
+                pipVolumeControlInput.oninput();
+            }, { passive: true });
+            pipTimeSeekInput.oninput = (e) => {
+                mediaControls.setTime(pipTimeSeekInput.value);
+            };
+            pipContainer.appendChild(GroupTile.root.tile);
+            display.appendChild(pipDisplayCover);
+            pipWindow.addEventListener('resize', (e) => {
+                GroupTile.root.refresh();
+            });
+            let inefficientWait = setInterval(() => {
+                try {
+                    // completely doesn't work because the size is just wrong
+                    if ([...pipWindow.document.body.children].includes(pipContainer) && [...pipContainer.children].includes(GroupTile.root.tile)) {
+                        GroupTile.root.refresh();
+                        pipWindow.resizeTo(320, 180);
+                        clearInterval(inefficientWait);
+                    }
+                    if (documentPictureInPicture.window == null) clearInterval(inefficientWait);
+                } catch (err) {
+                    clearInterval(inefficientWait)
+                }
+            }, 10);
+            // band-aid fix
+            setTimeout(() => GroupTile.root.refresh(), 1000);
+        } catch (err) {
+            console.error(err);
+            if (documentPictureInPicture.window != null) documentPictureInPicture.window.close();
+            modal('Could not open picture-in-picture', 'An unexpected error occured while opening picture-in-picture.<br>Perhaps your connection is not secure?');
+        }
+        pipButton.checked = documentPictureInPicture.window != null;
+    } else {
+        documentPictureInPicture.window.close();
+        pipDisplayCover.remove();
+        pipButton.checked = false;
+        let inefficientWait = setInterval(() => {
+            if ([...display.children].includes(GroupTile.root.tile)) {
+                GroupTile.root.refresh();
+                clearInterval(inefficientWait);
+            }
+        }, 10);
+    }
+};
 
 // tile source
 const tileSourceTemplate = document.getElementById('tileSourceTemplate');

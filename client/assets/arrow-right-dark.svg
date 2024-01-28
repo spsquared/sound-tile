@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <svg fill="#000000" width="800px" height="800px" viewBox="0 0 1920 1920" xmlns="http://www.w3.org/2000/svg">
-  <path d="M 0.08 568.063 L 176.21 391.933 L 960.198 1175.797 L 1743.938 391.933 L 1920.067 568.063 L 960.197 1528.181 L 0.08 568.063 Z" fill-rule="evenodd" style="transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(0, -1, 1, 0, -0.000113, 0.000003)"/>
+  <path d="M 0.08 568.063 L 176.21 391.933 L 960.198 1175.797 L 1743.938 391.933 L 1920.067 568.063 L 960.197 1528.181 L 0.08 568.063 Z" fill-rule="evenodd" style="transform-box: fill-box; transform-origin: 50% 50%;" transform="matrix(0, -1, 1, 0, -0, 0)"/>
 </svg>

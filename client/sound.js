@@ -106,14 +106,14 @@ class Visualizer {
         if (this.drawing) return;
         await new Promise((resolve, reject) => {
             this.drawing = true;
-            this.worker.onmessage = (e) => {
+            if (this.worker !== null) this.worker.onmessage = (e) => {
                 if (e.data[0] !== null) this.ctx.transferFromImageBitmap(e.data[0]);
                 this.drawing = false;
                 resolve();
             };
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
-                else VisualizerWorker.draw.call(this, data);
+                else VisualizerWorker.draw.call(this, null);
             } else if (this.mode <= 3 || this.mode == 5 || this.mode == 7) {
                 const data = new Uint8Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getByteFrequencyData(data);
@@ -126,17 +126,20 @@ class Visualizer {
                 else VisualizerWorker.draw.call(this, data);
             } else {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, []]);
-                else VisualizerWorker.draw.call(this, data);
+                else VisualizerWorker.draw.call(this, null);
             }
+            if (this.worker === null) this.drawing = false;
             this.colorChanged = false;
+            this.resized = false;
         });
     }
     resize(w, h) {
-        if (w < 0 || h < 0 || !isFinite(w) || !isFinite(h)) return;
+        if (w <= 0 || h <= 0 || !isFinite(w) || !isFinite(h)) return;
         if (this.worker !== null) this.worker.postMessage([1, w, h]);
         else {
             this.canvas.width = w;
             this.canvas.height = h;
+            this.resized = true;
         }
     }
     get #workerData() {
@@ -181,7 +184,7 @@ class Visualizer {
         return this.#color2;
     }
     set smoothingTimeConstant(c) {
-        this.analyzer.smoothingTimeConstant = c;
+        this.analyzer.smoothingTimeConstant = Math.max(0, Math.min(1, c));
     }
     get smoothingTimeConstant() {
         return this.analyzer.smoothingTimeConstant;
@@ -320,14 +323,14 @@ class ChannelPeakVisualizer extends Visualizer {
         if (this.drawing) return;
         await new Promise((resolve, reject) => {
             this.drawing = true;
-            this.worker.onmessage = (e) => {
+            if (this.worker !== null) this.worker.onmessage = (e) => {
                 if (e.data[0] !== null) this.ctx.transferFromImageBitmap(e.data[0]);
                 this.drawing = false;
                 resolve();
             };
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
-                else VisualizerWorker.draw.call(this, data);
+                else VisualizerWorker.draw.call(this, null);
             } else {
                 const dataArr = [];
                 for (let i = 0; i < this.analyzers.length; i++) {
@@ -336,9 +339,11 @@ class ChannelPeakVisualizer extends Visualizer {
                     dataArr.push(data);
                 }
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, dataArr], [...dataArr.map(arr => arr.buffer)]);
-                else VisualizerWorker.draw.call(this, data);
+                else VisualizerWorker.draw.call(this, dataArr);
             }
+            if (this.worker === null) this.drawing = false;
             this.colorChanged = false;
+            this.resized = false;
         });
     }
     get #workerData() {
@@ -435,7 +440,7 @@ async function startDraw() {
     delete startDraw;
     while (true) {
         await new Promise((resolve, reject) => {
-            if (drawVisualizers) window.requestAnimationFrame(async () => {
+            if (drawVisualizers || (documentPictureInPicture !== undefined && documentPictureInPicture.window != null && !documentPictureInPicture.window.document.hidden)) window.requestAnimationFrame(async () => {
                 await Visualizer.draw();
                 resolve();
             });

@@ -6,13 +6,16 @@ window.addEventListener('load', (e) => {
         document.getElementById('notsupported').style.display = 'block';
         return;
     }
+    if (window.documentPictureInPicture == undefined || !window.isSecureContext) {
+        document.getElementById('pipButton').disabled = true;
+    }
     if (!loaded) return;
     document.getElementById('loadingCover').style.opacity = 0;
     window.addEventListener('error', (e) => {
         modal('An error occured:', `<span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
     });
+    window.onerror = null;
     setTimeout(() => {
-        window.onerror = null;
         document.getElementById('loadingCover').remove();
     }, 200);
 });

@@ -244,6 +244,7 @@ function applyVisualizerControls(tile, data) {
 class GroupTile {
     static #template = document.getElementById('groupTileTemplate');
     static root = new GroupTile(false);
+    static #updateListeners = new Set();
     static #treeMode = false;
 
     parent = null;
@@ -292,6 +293,7 @@ class GroupTile {
         this.children.splice(index, 0, child);
         child.parent = this;
         this.refresh();
+        GroupTile.#updateListeners.forEach((cb) => { try { cb(); } finally { } });
     }
     replaceChild(child, replacement) {
         if (!this.children.includes(child)) return false;
@@ -303,6 +305,7 @@ class GroupTile {
         removed.tile.remove();
         this.addChild(replacement, index);
         this.refresh();
+        GroupTile.#updateListeners.forEach((cb) => { try { cb(); } finally { } });
         return removed;
     }
     removeChild(child) {
@@ -315,6 +318,7 @@ class GroupTile {
         removed.tile.remove();
         this.refresh();
         this.checkObsolescence();
+        GroupTile.#updateListeners.forEach((cb) => { try { cb(); } finally { } });
         return removed;
     }
     getChildIndex(child) {
@@ -357,6 +361,13 @@ class GroupTile {
         if (this.parent) this.parent.removeChild(this);
     }
 
+    static addUpdateListener(cb) {
+        if (typeof cb != 'function') throw new TypeError('GroupTile update listener callback must be a function');
+        this.#updateListeners.add(cb);
+    }
+    static removeUpdateListener(cb) {
+        return this.#updateListeners.delete(cb);
+    }
     static set treeMode(tmode) {
         if (tmode == this.#treeMode) return;
         this.#treeMode = tmode;
@@ -392,7 +403,6 @@ class VisualizerTile {
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -499,7 +509,6 @@ class VisualizerImageTile {
                 this.img.style.height = rect2.height + 'px';
             }
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -609,7 +618,6 @@ class VisualizerTextTile {
             editContainer.style.height = rect2.height + 'px';
             draw();
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -783,7 +791,6 @@ class ChannelPeakTile {
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -890,7 +897,6 @@ class ImageTile {
                 this.img.style.height = rect.height + 'px';
             }
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -979,7 +985,6 @@ class TextTile {
             this.canvas.style.height = rect2.height + 'px';
             draw();
         };
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -1053,7 +1058,7 @@ class GrassTile {
         this.img = this.tile.querySelector('.tileImg');
         this.tile.querySelector('.tileImgUploadCover').remove();
         this.tile.querySelector('.tileImgReplaceLabel').remove();
-        this.tile.querySelector('.tileImgSmoothing').remove();
+        this.tile.querySelector('.tileImgSmoothing').parentElement.remove();
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = imageContainer.getBoundingClientRect();
@@ -1072,7 +1077,6 @@ class GrassTile {
         }, 5000);
         this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg';
         this.#resize();
-        window.addEventListener('resize', this.#resize);
     }
 
     #resize = () => { }
@@ -1098,6 +1102,9 @@ class GrassTile {
 }
 
 display.appendChild(GroupTile.root.tile);
+window.addEventListener('resize', (e) => {
+    if (documentPictureInPicture === undefined || documentPictureInPicture.window == null) GroupTile.root.refresh();
+});
 
 const drag = {
     container: document.getElementById('draggingContainer'),
@@ -1316,6 +1323,12 @@ document.addEventListener('touchmove', onDragMove, { passive: true });
 document.addEventListener('mouseup', onDragEnd);
 document.addEventListener('touchend', onDragEnd);
 // touch cancel: oof
+display.addEventListener('wheel', (e) => {
+    // prevent chrome history navigation
+    e.preventDefault();
+    display.scrollBy(e.deltaX, e.deltaY);
+    window.resizeBy(e.deltaZ, e.deltaZ);
+});
 
 window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new VisualizerTextTile());

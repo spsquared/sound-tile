@@ -101,7 +101,9 @@
             }
         </style>
     </div>
-    <div id="display"></div>
+    <div id="display">
+
+    </div>
     <div id="colorInputMasterContainer"></div>
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
@@ -111,9 +113,18 @@
             <label id="uploadButtonLabel" for="uploadButton"></label>
             <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
+        <input type="checkbox" id="mediaDataTabCheckbox">
+        <!-- <div id="mediaDataControls">
+            <div id="mediaDataBody"> -->
+                <!-- image -->
+                <!-- album title -->
+                <!-- metadata like album covers also playlist features (wait then it needs files hmmm progressive web app) -->
+            <!-- </div>
+            <label id="mediaDataTab" for="mediaDataTabCheckbox"></label>
+        </div> -->
         <div id="mediaControls">
             <div id="volumeBody">
-                <input type="range" id="volume" min="0" max="100" step="1" value="100" title="100%">
+                <input type="range" id="volume" min="0" max="150" step="1" value="100" title="100%">
                 <div id="volumeTrack"></div>
                 <div id="volumeThumb"></div>
             </div>
@@ -132,7 +143,9 @@
                     </label>
                 </div>
             </div>
-            <input type="button" id="exportButton" title="Export video (really bad)" disabled>
+            <!-- <input type="button" id="exportButton" title="Export video (really bad)" disabled> -->
+            <input type="checkbox" id="pipButton" title="Picture-in-picture">
+            <label id="pipButtonLabel" for="pipButton"></label>
         </div>
         <div id="modeControls">
             <input type="button" id="tileMode" title="Tile edit mode">
@@ -227,6 +240,25 @@
             <br>
             <br>
         </div>
+    </div>
+    <div id="pipContainer">
+        <div id="pipDisplay"></div>
+        <div id="pipControls">
+            <input type="checkbox" id="pipPlayButton">
+            <label id="pipPlayButtonLabel" for="pipPlayButton"></label>
+            <div id="pipVolumeBody">
+                <input type="range" id="pipVolume" min="0" max="150" step="1" value="100" title="100%">
+                <div id="pipVolumeTrack"></div>
+                <div id="pipVolumeThumb"></div>
+            </div>
+            <div id="pipSeekerBody">
+                <input type="range" id="pipSeeker" min="0" max="1" step="0.1">
+                <div id="pipSeekerThumb"></div>
+            </div>
+        </div>
+    </div>
+    <div id="pipDisplayCover">
+        Picture-in-Picture
     </div>
     <template id="colorInputTemplate">
         <div class="colorInputContainer colorInputContainerHidden">

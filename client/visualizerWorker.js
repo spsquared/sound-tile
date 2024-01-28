@@ -19,8 +19,12 @@ class VisualizerWorker {
                     height = w;
                 }
                 let angle = color.value.angle * Math.PI / 180;
+                let halfWidth = width / 2;
+                let halfHeight = height / 2;
+                let edgeX = ((Math.abs(Math.tan(angle)) > width / height) ? (halfWidth * Math.sign(Math.sin(angle))) : (Math.tan(angle) * halfHeight * Math.sign(Math.cos(angle))));
+                let edgeY = ((Math.abs(Math.tan(angle)) < width / height) ? (halfHeight * Math.sign(Math.cos(angle))) : (((angle % 180) == 0) ? (halfHeight * Math.sign(Math.cos(angle))) : (halfWidth / Math.tan(angle * Math.sign(Math.sin(angle))))));
                 const gradient = color.value.type == 0
-                    ? this.ctx.createLinearGradient((Math.sin(angle)) < 0 ? width : 0, (Math.cos(angle)) < 0 ? height : 0, ((Math.sin(angle)) < 0 ? width : 0) + (Math.abs(angle % Math.PI) == Math.PI / 2 ? (angle % (2 * Math.PI) == Math.PI / 2 ? width : -width) : (Math.max(-1, Math.min(1, Math.tan(angle))) * height)), ((Math.cos(angle)) < 0 ? height : 0) + (angle % Math.PI == 0 ? (angle % (2 * Math.PI) == 0 ? height : -height) : (Math.max(-1, Math.min(1, 1 / Math.tan(angle))) * width)))
+                    ? this.ctx.createLinearGradient(halfWidth - edgeX, halfHeight - edgeY, halfWidth + edgeX, halfHeight + edgeY)
                     : (color.value.type == 1
                         ? this.ctx.createRadialGradient(color.value.x * width, color.value.y * height, 0, color.value.x * width, color.value.y * height, color.value.r * Math.min(width, height))
                         : this.ctx.createConicGradient(color.value.angle * Math.PI / 180, color.value.x * width, color.value.y * height));
@@ -39,6 +43,7 @@ class VisualizerWorker {
         let width = this.canvas.width;
         let height = this.canvas.height;
         this.ctx.resetTransform();
+        if (this instanceof Visualizer) this.ctx.clearRect(0, 0, width, height);
         this.ctx.scale(this.flippedX * -2 + 1, this.flippedY * -2 + 1);
         this.ctx.translate(this.flippedX * -width, this.flippedY * -height);
         if (this.rotated) {
@@ -236,7 +241,7 @@ class VisualizerWorker {
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = (width - this.lineWidth) / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = height / 256 * this.barScale;
+            let yScale = (height - this.lineWidth) / 256 * this.barScale;
             let xOffset = this.lineWidth / 2;
             let yOffset = this.lineWidth / 2;
             this.ctx.beginPath();
@@ -279,7 +284,7 @@ class VisualizerWorker {
             this.ctx.lineJoin = 'round';
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let xStep = (width - this.lineWidth) / ((croppedFreq * (this.symmetry ? 2 : 1)) - 1);
-            let yScale = height / 256 * this.barScale;
+            let yScale = (height - this.lineWidth) / 256 * this.barScale;
             let xOffset = this.lineWidth / 2;
             this.ctx.beginPath();
             this.ctx.moveTo(xOffset, height / 2);

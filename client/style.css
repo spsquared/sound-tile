@@ -4,7 +4,7 @@
     font-family: 'Source Code Pro';
     font-weight: 100, 200, 300, 400, 500, 600, 700, 800;
     font-style: normal;
-    src: url(/assets/SourceCodePro.ttf) format('truetype');
+    src: url(./assets/SourceCodePro.ttf) format('truetype');
 }
 
 body {
@@ -365,9 +365,9 @@ img {
     cursor: pointer;
 }
 #dropdownTabCheckbox {
-    opacity: 0;
+    display: none;
 }
-#dropdownTabCheckbox:checked ~ #dropdown {
+#dropdownTabCheckbox:checked + #dropdown {
     transform: translateY(-100%);
     --tabImage: url(./assets/arrow-down.svg);
 }
@@ -397,7 +397,7 @@ img {
 #uploadButtonLabel:hover, #downloadButton:hover {
     background-color: #999;
 }
-#uploadButton:disabled ~ #uploadButtonLabel, #downloadButton:disabled {
+#uploadButton:disabled + #uploadButtonLabel, #downloadButton:disabled {
     background-color: #555;
     cursor: not-allowed;
 }
@@ -418,6 +418,40 @@ img {
 }
 
 /* controls 2 - electric boogaloo */
+
+#mediaDataControls {
+    display: flex;
+    border-left: 4px solid white;
+}
+#mediaDataTabCheckbox {
+    display: none;
+}
+#mediaDataBody {
+    max-width: 0px;
+    min-width: 0px;
+    flex-grow: 1;
+    transition: 400ms ease min-width;
+    overflow: hidden;
+}
+#mediaDataTab {
+    width: 24px;
+    border-left: 4px solid white;
+    margin-left: -4px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/arrow-right.svg);
+    cursor: pointer;
+}
+#mediaDataTabCheckbox:checked ~ #mediaDataControls #mediaDataBody {
+    max-width: fit-content;
+    min-width: 320px;
+}
+#mediaDataTabCheckbox:checked ~ #mediaDataControls #mediaDataTab {
+    background-image: url(./assets/arrow-left.svg);
+}
+
+/* controls 3 - grian hasn't named it yet */
 
 #mediaControls {
     display: grid;
@@ -453,6 +487,10 @@ img {
     border: none;
     background-color: gray;
     pointer-events: none;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/volume.svg);
     --volume: 1;
 }
 #volumeThumb::before {
@@ -605,8 +643,38 @@ img {
 #exportButton:hover {
     background-color: rgb(60, 158, 255);
 }
+#pipButton {
+    display: none;
+}
+#pipButtonLabel {
+    grid-row: 2;
+    grid-column: 4;
+    width: 58px;
+    height: 58px;
+    margin-right: -4px;
+    border: none;
+    border-right: 4px solid white;
+    padding: 0px 0px;
+    background-color: dodgerblue;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/picture-in-picture.svg);
+    transition: 50ms linear background-color;
+    cursor: pointer;
+}
+#pipButton:checked + #pipButtonLabel {
+    background-image: url(./assets/picture-in-picture-exit.svg);
+}
+#pipButton:disabled + #pipButtonLabel {
+    filter: grayscale(1);
+    cursor: not-allowed;
+}
+#pipButtonLabel:hover {
+    background-color: rgb(60, 158, 255);
+}
 
-/* controls 3 - grian hasn't named it yet */
+/* controls 4 - grand tour??? */
 
 #modeControls {
     display: grid;
@@ -1135,10 +1203,10 @@ img {
     cursor: pointer;
 }
 #modalYes:hover, #modalNo:hover, #modalOk:hover {
-    transform: translateY(-2px) scale(102%);
+    transform: translateY(-2px);
 }
 #modalYes:active, #modalNo:active, #modalOk:active {
-    transform: translateY(2px) scale(102%);
+    transform: translateY(2px);
 }
 #modalYes {
     width: 100px;
@@ -1151,6 +1219,179 @@ img {
 #modalOk {
     width: 100px;
     background-color: lightgrey;
+}
+
+/* PiP */
+#pipContainer {
+    display: flex;
+    align-items: stretch;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: calc(100vw - 4px);
+    height: calc(100vh - 4px);
+    border: 2px solid white;
+    overflow: hidden;
+}
+#pipContainer .tileControls, #pipContainer .tileDrag, #pipContainer .tileSourceUploadCover, #pipContainer .tileImgUploadCover, #pipContainer .tileImgUploadCoverSmall {
+    display: none !important;
+}
+#pipControls {
+    display: flex;
+    align-items: stretch;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 40px;
+    background-color: black;
+    border-top: 4px solid white;
+    opacity: 0;
+    transition: 200ms linear opacity;
+    z-index: 999;
+    overflow: hidden;
+}
+#pipControls:hover {
+    opacity: 1;
+}
+/* copy and paste */
+#pipPlayButtonLabel {
+    width: 40px;
+    height: 40px;
+    border-right: 4px solid white;
+    background-color: #A00;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 50% 50%;
+    background-image: url(./assets/play.svg);
+    transition: 50ms linear background-color;
+    cursor: pointer;
+}
+#pipPlayButton {
+    display: none;
+}
+#pipPlayButton:checked + #pipPlayButtonLabel {
+    background-color: #070;
+    background-image: url(./assets/pause.svg);
+}
+#pipPlayButton + #pipPlayButtonLabel:hover {
+    background-color: #C00;
+}
+#pipPlayButton:checked + #pipPlayButtonLabel:hover {
+    background-color: #090;
+}
+#pipVolumeBody {
+    position: relative;
+    min-width: 40px;
+    max-width: 40px;
+    margin: 0px 4px;
+    transition: 100ms ease min-width;
+    overflow: clip;
+    --volume: 1;
+}
+#pipVolumeBody:hover {
+    min-width: 120px;
+    max-width: fit-content;
+}
+#pipVolumeTrack {
+    position: absolute;
+    top: 13px;
+    left: 0px;
+    width: calc(100% - 4px);
+    height: 10px;
+    border: 2px solid white;
+    background-color: #333;
+    pointer-events: none;
+}
+#pipVolumeThumb {
+    position: absolute;
+    top: 5px;
+    left: calc(((100% - 19px) * var(--volume)) + 2px);
+    width: 15px;
+    height: 30px;
+    border: none;
+    background-color: gray;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 80% 80%;
+    background-image: url(./assets/volume.svg);
+    pointer-events: none;
+}
+#pipVolumeBody::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 2px;
+    width: calc((100% - 19px) * var(--volume));
+    height: 10px;
+    background-color: #477fd8;
+    pointer-events: none;
+}
+#pipVolume {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    margin: 0px 0px;
+    border: none;
+    opacity: 0;
+    cursor: grab;
+}
+#pipVolume:active {
+    cursor: grabbing;
+}
+#pipSeekerBody {
+    position: relative;
+    flex-grow: 1;
+    margin: 0px 0px;
+    background-color: #333;
+    border-left: 4px solid white;
+    overflow: clip;
+}
+#pipSeekerThumb {
+    position: absolute;
+    top: 0px;
+    left: calc((100% - 20px) * var(--progress));
+    width: 20px;
+    height: 40px;
+    background-color: lightgray;
+    pointer-events: none;
+    --progress: 0;
+}
+#pipSeekerThumb::before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: 20px;
+    width: 100vw;
+    height: 40px;
+    background-color: #555;
+    pointer-events: none;
+}
+#pipSeeker {
+    appearance: none;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    margin: 0px 0px;
+    border: none;
+    opacity: 0;
+    cursor: grab;
+}
+#pipSeeker:active {
+    cursor: grabbing;
+}
+#pipDisplayCover {
+    text-align: center;
+    padding-top: calc(50vh - 16px);
+    line-height: 32px;
+    font-size: 32px;
+    font-family: 'Source Code Pro', Courier, monospace;
+    border: 2px solid white;
+    flex-grow: 1;
 }
 
 /* super secretly stolen from nightride.fm */
