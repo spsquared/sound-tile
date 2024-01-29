@@ -82,18 +82,6 @@ function setVisualizerControls() {
         volumeInput.oninput();
     }, { passive: true });
     // visualizer options
-    this.colorSelect1 = new ColorInput(this.tile.querySelector('.tileVisualizerColor1'));
-    this.colorSelect2 = new ColorInput(this.tile.querySelector('.tileVisualizerColor2'));
-    this.colorSelect1.oninput = (e) => {
-        if (this.visualizer !== null) this.visualizer.color = this.colorSelect1.value;
-    };
-    this.colorSelect2.oninput = (e) => {
-        if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
-    };
-    const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
-    fillAlpha.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
-    });
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
     const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
@@ -102,14 +90,14 @@ function setVisualizerControls() {
     visualizerMode.addEventListener('input', (e) => {
         let mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
-        if (mode <= 3 || mode == 5 || mode == 7) {
+        if (mode <= 3 || mode == 5 || mode >= 7) {
             visualizerFrequencyOptions.classList.remove('hidden');
             visualizerWaveformOptions.classList.add('hidden');
         } else {
             visualizerFrequencyOptions.classList.add('hidden');
             visualizerWaveformOptions.classList.remove('hidden');
         }
-        if (mode < 2) {
+        if (mode < 2 || mode == 8) {
             visualizerBarOptions.classList.remove('hidden');
             visualizerLineOptions.classList.add('hidden');
         } else {
@@ -185,6 +173,19 @@ function setVisualizerControls() {
     visualizerRotate.addEventListener('click', (e) => {
         if (this.visualizer !== null) this.visualizer.rotated = visualizerRotate.checked;
     });
+    // colors!!!
+    this.colorSelect1 = new ColorInput(this.tile.querySelector('.tileVisualizerColor1'));
+    this.colorSelect2 = new ColorInput(this.tile.querySelector('.tileVisualizerColor2'));
+    this.colorSelect1.oninput = (e) => {
+        if (this.visualizer !== null) this.visualizer.color = this.colorSelect1.value;
+    };
+    this.colorSelect2.oninput = (e) => {
+        if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
+    };
+    const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
+    fillAlpha.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
+    });
 };
 function applyDefaultTileControls(tile, data) {
     tile.tile.querySelector('.tileBackgroundColor').value = data.backgroundColor;
@@ -208,13 +209,13 @@ function applyVisualizerControls(tile, data) {
     }
     tile.tile.querySelector('.tileVisualizerFillAlpha').value = (data.visualizer.fillAlpha ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7) {
+    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode >= 7) {
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     }
-    if (data.visualizer.mode < 2) {
+    if (data.visualizer.mode < 2 || mode == 8) {
         tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
@@ -603,16 +604,16 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let textHeight = this.text.split('\n').length * window.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (window.devicePixelRatio ?? 1) + 4;
-            const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
+            let textHeight = this.text.split('\n').length * window.innerHeight * (Number(fontSize.value) + 0.5) / 100;
+            const rect = canvasContainer.getBoundingClientRect();
+            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 8) * scale));
             this.canvas.style.width = rect.width + 'px';
-            this.canvas.style.height = (rect.height - (textHeight / scale) - 4) + 'px';
+            this.canvas.style.height = (rect.height - textHeight - 8) + 'px';
             this.canvas2.width = Math.round(rect.width * scale);
-            this.canvas2.height = Math.round(textHeight);
+            this.canvas2.height = Math.round(textHeight * scale);
             this.canvas2.style.width = rect.width + 'px';
-            this.canvas2.style.height = (textHeight / scale) + 'px';
+            this.canvas2.style.height = textHeight + 'px';
             const rect2 = this.tile.getBoundingClientRect();
             editContainer.style.width = rect2.width + 'px';
             editContainer.style.height = rect2.height + 'px';
@@ -729,10 +730,6 @@ class ChannelPeakTile {
             volumeInput.oninput();
         }, { passive: true });
         // visualizer options
-        this.colorSelect = new ColorInput(this.tile.querySelector('.tileVisualizerColor'));
-        this.colorSelect.oninput = (e) => {
-            if (this.visualizer !== null) this.visualizer.color = this.colorSelect.value;
-        };
         const channelPeakVolumeCrop = this.tile.querySelector('.tileChannelPeakVolumeCrop');
         channelPeakVolumeCrop.addEventListener('input', (e) => {
             if (this.visualizer !== null) this.visualizer.barScale = Number(channelPeakVolumeCrop.value) / 100;
@@ -783,6 +780,11 @@ class ChannelPeakTile {
         visualizerRotate.addEventListener('click', (e) => {
             if (this.visualizer !== null) this.visualizer.rotated = visualizerRotate.checked;
         });
+        // colors
+        this.colorSelect = new ColorInput(this.tile.querySelector('.tileVisualizerColor'));
+        this.colorSelect.oninput = (e) => {
+            if (this.visualizer !== null) this.visualizer.color = this.colorSelect.value;
+        };
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();

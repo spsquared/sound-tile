@@ -114,7 +114,7 @@ class Visualizer {
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
                 else VisualizerWorker.draw.call(this, null);
-            } else if (this.mode <= 3 || this.mode == 5 || this.mode == 7) {
+            } else if (this.mode <= 3 || this.mode == 5 || this.mode >= 7) {
                 const data = new Uint8Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getByteFrequencyData(data);
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);

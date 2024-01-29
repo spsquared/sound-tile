@@ -650,7 +650,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
         } catch (err) {
             console.error(err);
             if (documentPictureInPicture.window != null) documentPictureInPicture.window.close();
-            modal('Could not open picture-in-picture', 'An unexpected error occured while opening picture-in-picture.<br>Perhaps your connection is not secure?');
+            modal('Could not open picture-in-picture', 'An unexpected error occured while opening picture-in-picture.<br>(Perhaps your connection is not secure?)');
         }
         pipButton.checked = documentPictureInPicture.window != null;
     } else {

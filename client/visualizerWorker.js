@@ -45,6 +45,7 @@ class VisualizerWorker {
         let width = this.canvas.width;
         let height = this.canvas.height;
         this.ctx.resetTransform();
+        this.ctx.globalAlpha = 1;
         if (!isWorker) this.ctx.clearRect(0, 0, width, height);
         this.ctx.scale(this.flippedX * -2 + 1, this.flippedY * -2 + 1);
         this.ctx.translate(this.flippedX * -width, this.flippedY * -height);
@@ -334,6 +335,45 @@ class VisualizerWorker {
             this.ctx.fill();
             this.ctx.globalAlpha = 1;
             this.ctx.stroke();
+        } else if (this.mode == 8) { // Frequency luminance bars
+            VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
+            let croppedFreq = Math.ceil(data.length * this.barCrop);
+            let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
+            let barWidth = Math.max(1, barSpace * this.barWidthPercent);
+            let barShift = (barSpace - barWidth) / 2;
+            let lumiScale = this.barScale / 256;
+            switch (this.symmetry) {
+                default:
+                case 0:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                        this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                    }
+                    break;
+                case 1:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                        this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                        this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, 0, barWidth, height);
+                    }
+                    break;
+                case 2:
+                    for (let i = 0; i < croppedFreq; i++) {
+                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                        this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                        this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                    }
+                    break;
+            }
+            this.ctx.globalAlpha = 1;
+            if (this.barLEDEffect) {
+                this.ctx.fillStyle = '#000000';
+                let blockStep = height / this.barLEDCount;
+                let blockHeight = blockStep * (1 - this.barLEDSize);
+                for (let i = -blockHeight / 2; i < height; i += blockStep) {
+                    this.ctx.fillRect(0, i, width, blockHeight);
+                }
+            }
         } else if (this.mode == 4) { // Waveform
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
@@ -387,8 +427,6 @@ class VisualizerWorker {
             this.ctx.font = '16px Arial';
             this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
             this.ctx.clearRect(0, 0, width, height);
-            this.ctx.fillStyle = 'white';
-            this.ctx.fillRect(0, 0, width, height);
         }
         persistentData.lastMode = this.mode;
     }
