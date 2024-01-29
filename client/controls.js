@@ -276,9 +276,9 @@ uploadButton.oninput = (e) => {
     if (!uploadButton.disabled && allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         downloadButton.disabled = true;
         uploadButton.disabled = true;
-        try {
-            const reader = new FileReader();
-            reader.onload = async (e) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
                 const tree = msgpack.decode(new Uint8Array(reader.result));
                 if (tree.version > 1) {
                     modal('Unsupported version!', `The uploaded Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
@@ -327,7 +327,7 @@ uploadButton.oninput = (e) => {
                 if (wakeLock && !wakeLock.released) wakeLock.release();
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
-                if (documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
+                if (window.documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
                 else display.appendChild(GroupTile.root.tile);
                 let dfs = (treenode) => {
                     if (treenode.children !== undefined) {
@@ -367,15 +367,21 @@ uploadButton.oninput = (e) => {
                 setTimeout(() => GroupTile.root.refresh(), 0);
                 downloadButton.disabled = false;
                 uploadButton.disabled = false;
-            };
-            reader.readAsArrayBuffer(uploadButton.files[0]);
-        } catch (err) {
-            downloadButton.disabled = false;
-            uploadButton.disabled = false;
-            modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
-        } finally {
-            uploadButton.value = '';
-        }
+            } catch (err) {
+                downloadButton.disabled = false;
+                uploadButton.disabled = false;
+                modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
+                GroupTile.root.tile.remove();
+                GroupTile.root = new GroupTile(false);
+                const tile = new TextTile();
+                tile.text = 'Upload failed';
+                tile.refresh();
+                GroupTile.root.addChild(tile);
+            } finally {
+                uploadButton.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(uploadButton.files[0]);
     }
 };
 downloadButton.onclick = async (e) => {
@@ -399,7 +405,7 @@ downloadButton.onclick = async (e) => {
             version: 1,
             root: dfs(GroupTile.root),
             // metadata: {
-    
+
             // }
         };
         let promises = []

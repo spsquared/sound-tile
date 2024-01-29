@@ -215,7 +215,7 @@ function applyVisualizerControls(tile, data) {
         tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
         tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     }
-    if (data.visualizer.mode < 2 || mode == 8) {
+    if (data.visualizer.mode < 2 || data.visualizer.mode == 8) {
         tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
     } else {
         tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
