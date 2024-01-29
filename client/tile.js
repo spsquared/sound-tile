@@ -1323,11 +1323,22 @@ document.addEventListener('touchmove', onDragMove, { passive: true });
 document.addEventListener('mouseup', onDragEnd);
 document.addEventListener('touchend', onDragEnd);
 // touch cancel: oof
+const tileControlDivList = [...display.querySelectorAll('.tileControls')];
+GroupTile.addUpdateListener(() => {
+    tileControlDivList.length = 0;
+    tileControlDivList.push(...display.querySelectorAll('.tileControls'));
+});
 display.addEventListener('wheel', (e) => {
     // prevent chrome history navigation
     e.preventDefault();
-    display.scrollBy(e.deltaX, e.deltaY);
+    let targetControlDiv = tileControlDivList.find((el) => el.contains(e.target));
+    if (!e.target.matches('.tileVisualizerVolumeInput') && (e.target.matches('.tileControls') || targetControlDiv != undefined)) {
+        targetControlDiv.scrollBy(e.deltaX, e.deltaY);
+    } else {
+        display.scrollBy(e.deltaX, e.deltaY);
+    }
     window.resizeBy(e.deltaZ, e.deltaZ);
+    // 
 });
 
 window.addEventListener('load', (e) => {
