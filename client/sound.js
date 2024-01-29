@@ -440,7 +440,7 @@ async function startDraw() {
     delete startDraw;
     while (true) {
         await new Promise((resolve, reject) => {
-            if (drawVisualizers || (documentPictureInPicture !== undefined && documentPictureInPicture.window != null && !documentPictureInPicture.window.document.hidden)) window.requestAnimationFrame(async () => {
+            if (drawVisualizers || (window.documentPictureInPicture !== undefined && window.documentPictureInPicture.window != null && !window.documentPictureInPicture.window.document.hidden)) window.requestAnimationFrame(async () => {
                 await Visualizer.draw();
                 resolve();
             });

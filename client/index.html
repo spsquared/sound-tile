@@ -348,7 +348,7 @@
                         <span class="tileVisualizerColor2"></span>
                         <label title="Fill opacity">
                             A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">
+                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
                         </label>
                     </span>
                 </div>
@@ -392,13 +392,13 @@
                         <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                     </label>
                     <label title="Smooth image rendering">
-                        Smoothing:
+                        Smooth Img:
                         <input class="tileImgSmoothing checkBox" type="checkbox" checked>
                     </label>
-                    <label title="Use image as visualizer backdrop">
+                    <!-- <label title="Use image as visualizer backdrop">
                         Image BG:
-                        <input class="tileImgSmoothing checkBox" type="checkbox" checked>
-                    </label>
+                        <input class="tileImgBackdrop checkBox" type="checkbox">
+                    </label> -->
                     <label title="Background color">
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
@@ -409,7 +409,7 @@
                         <span class="tileVisualizerColor2"></span>
                         <label title="Fill opacity">
                             A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">
+                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
                         </label>
                     </span>
                 </div>
@@ -442,9 +442,9 @@
                         <input class="tileTextEdit button" type="button">
                     </label>
                     <span class="tileVisualizerControls"></span>
-                    <label title="Font size">
+                    <label title="Font size (relative to window height)">
                         Font:
-                        <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                        <input class="tileTextSize numberBox" type="number" min="1" max="20" step="0.1" value="2.5">%
                     </label>
                     <label title="Text align">
                         Align:
@@ -468,7 +468,7 @@
                         <span class="tileVisualizerColor2"></span>
                         <label title="Fill opacity">
                             A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">
+                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
                         </label>
                     </span>
                     <label title="Text color">
@@ -522,7 +522,7 @@
                     </label>
                     <label title="Percentage width of bars">
                         Width:
-                        <input class="tileChannelPeakBarWidth numberBox" type="number" min="5" max="100" step="5" value="80">
+                        <input class="tileChannelPeakBarWidth numberBox" type="number" min="5" max="100" step="5" value="80">%
                     </label>
                     <label title="LED bar effect">
                         LED Bar:
@@ -535,11 +535,11 @@
                         </label>
                         <label title="LED size on second axis">
                             LED Size:
-                            <input class="tileVisualizerBarLEDSize numberBox" type="number" min="5", max="100" step="5" value="80">
+                            <input class="tileVisualizerBarLEDSize numberBox" type="number" min="5", max="100" step="5" value="80">%
                         </label>
                     </span>
                     <label title="Smoothing factor">
-                        Smooth:
+                        Smoothing:
                         <input class="tileChannelPeakSmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.5">
                     </label>
                     <label title="Scale of volume drawn">
@@ -603,7 +603,7 @@
                         <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
                     </label>
                     <label title="Smooth image rendering">
-                        Smoothing:
+                        Smooth Img:
                         <input class="tileImgSmoothing checkBox" type="checkbox" checked>
                     </label>
                     <label title="Background color">
@@ -632,9 +632,9 @@
                         Edit
                         <input class="tileTextEdit button" type="button">
                     </label>
-                    <label title="Font size">
+                    <label title="Font size (relative to window height)">
                         Font:
-                        <input class="tileTextSize numberBox" type="number" min="1" max="96" step="1" value="16">
+                        <input class="tileTextSize numberBox" type="number" min="1" max="20" step="0.1" value="2.5">%
                     </label>
                     <label title="Text align">
                         Align:
@@ -723,7 +723,7 @@
             <span class="tileVisualizerBarOptions">
                 <label title="Percentage width of bars">
                     Width:
-                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="120" step="5" value="80">
+                    <input class="tileVisualizerBarWidth numberBox" type="number" min="25" max="120" step="5" value="80">%
                 </label>
                 <label title="LED bar effect">
                     LED Bar:
@@ -736,7 +736,7 @@
                     </label>
                     <label title="LED size on second axis">
                         LED Size:
-                        <input class="tileVisualizerBarLEDSize numberBox" type="number" min="5", max="100" step="5" value="80">
+                        <input class="tileVisualizerBarLEDSize numberBox" type="number" min="5", max="100" step="5" value="80">%
                     </label>
                 </span>
             </span>
@@ -748,13 +748,13 @@
             </span>
             <span class="tileVisualizerFrequencyOptions">
                 <label title="Percentage of frequencies to be displayed">
-                    Freq %:
-                    <input class="tileVisualizerFrequencyFrequencyCrop numberBox" type="number" min="25" max="100" step="12.5" value="100">
+                    Freq scale:
+                    <input class="tileVisualizerFrequencyFrequencyCrop numberBox" type="number" min="25" max="100" step="12.5" value="100">%
                     (<span class="tileVisualizerFrequencyFrequencyCropDisplay">0</span>Hz)
                 </label>
                 <label title="Scale of volume drawn">
-                    Vol %:
-                    <input class="tileVisualizerFrequencyVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">
+                    Vol scale:
+                    <input class="tileVisualizerFrequencyVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">%
                 </label>
                 <label title="Symmetry to follow when drawing">
                     Symmetry:
@@ -765,7 +765,7 @@
                     </select>
                 </label>
                 <label title="Smoothing factor (Blackman window)">
-                    Smooth:
+                    Smoothing:
                     <input class="tileVisualizerFrequencySmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.8">
                 </label>
             </span>

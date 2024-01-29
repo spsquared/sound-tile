@@ -584,7 +584,7 @@ class VisualizerTextTile {
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
             this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-            this.ctx2.font = `${fontSize.value}px Source Code Pro`;
+            this.ctx2.font = `${window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
             this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
@@ -603,7 +603,7 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let textHeight = this.text.split('\n').length * (Number(fontSize.value) + 2) + 4;
+            let textHeight = this.text.split('\n').length * window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1) + 4;
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
@@ -957,7 +957,7 @@ class TextTile {
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.font = `${fontSize.value * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
+            this.ctx.font = `${window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
             this.ctx.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
@@ -1103,7 +1103,7 @@ class GrassTile {
 
 display.appendChild(GroupTile.root.tile);
 window.addEventListener('resize', (e) => {
-    if (documentPictureInPicture === undefined || documentPictureInPicture.window == null) GroupTile.root.refresh();
+    if (window.documentPictureInPicture === undefined || window.documentPictureInPicture.window == null) GroupTile.root.refresh();
 });
 
 const drag = {

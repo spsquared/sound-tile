@@ -551,7 +551,7 @@ playButton.onclick = async (e) => {
     }
     if (mediaControls.playing) {
         Visualizer.startAll(mediaControls.currentTime);
-        if (WakeLock != undefined) wakeLock = await window.navigator.wakeLock.request();
+        if (WakeLock != undefined && !document.hidden) wakeLock = await window.navigator.wakeLock.request();
     } else {
         Visualizer.stopAll();
         if (wakeLock && !wakeLock.released) wakeLock.release();
@@ -575,7 +575,7 @@ const pipTitle = document.createElement('title');
 const pipDisplayCover = document.getElementById('pipDisplayCover');
 pipContainer.remove();
 pipDisplayCover.remove();
-if (documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
+if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
     if (documentPictureInPicture.window == null) {
         try {
             const pipWindow = await documentPictureInPicture.requestWindow();
