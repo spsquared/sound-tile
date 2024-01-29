@@ -588,7 +588,7 @@ class VisualizerTextTile {
             this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let size = Number(fontSize.value) + 2;
+            let size = window.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (window.devicePixelRatio ?? 1);
             let x = this.canvas2.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
@@ -603,7 +603,7 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let textHeight = this.text.split('\n').length * window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1) + 4;
+            let textHeight = this.text.split('\n').length * window.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (window.devicePixelRatio ?? 1) + 4;
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 4) * scale));
