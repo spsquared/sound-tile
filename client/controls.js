@@ -276,158 +276,170 @@ uploadButton.oninput = (e) => {
     if (!uploadButton.disabled && allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         downloadButton.disabled = true;
         uploadButton.disabled = true;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const tree = msgpack.decode(new Uint8Array(reader.result));
-            if (tree.version > 1) {
-                modal('Unsupported version!', `The uploaded Sound Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
-                downloadButton.disabled = false;
-                uploadButton.disabled = false;
-                return;
-            }
-            if (tree.version > 0) {
-                let promises = [];
-                let curr;
-                let stack = [tree.root];
-                while (stack.length) {
-                    curr = stack.pop();
-                    if (curr.children !== undefined) {
-                        for (let child of curr.children) stack.push(child);
-                        continue;
-                    }
-                    if (curr.visualizer != null) {
-                        let visualizer = curr.visualizer;
-                        if (Worker !== undefined) {
-                            promises.push(new Promise((resolve, reject) => {
-                                fflate.decompress(new Uint8Array(visualizer.buffer), {
-                                    consume: true
-                                }, (err, data) => {
-                                    if (err) throw err;
-                                    visualizer.buffer = data.buffer;
-                                    resolve();
-                                });
-                            }));
-                        } else {
-                            visualizer.buffer = fflate.decompressSync(new Uint8Array(visualizer.buffer)).buffer;
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const tree = msgpack.decode(new Uint8Array(reader.result));
+                if (tree.version > 1) {
+                    modal('Unsupported version!', `The uploaded Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
+                    downloadButton.disabled = false;
+                    uploadButton.disabled = false;
+                    return;
+                }
+                if (tree.version > 0) {
+                    let promises = [];
+                    let curr;
+                    let stack = [tree.root];
+                    while (stack.length) {
+                        curr = stack.pop();
+                        if (curr.children !== undefined) {
+                            for (let child of curr.children) stack.push(child);
+                            continue;
+                        }
+                        if (curr.visualizer != null) {
+                            let visualizer = curr.visualizer;
+                            if (Worker !== undefined) {
+                                promises.push(new Promise((resolve, reject) => {
+                                    fflate.decompress(new Uint8Array(visualizer.buffer), {
+                                        consume: true
+                                    }, (err, data) => {
+                                        if (err) throw err;
+                                        visualizer.buffer = data.buffer;
+                                        resolve();
+                                    });
+                                }));
+                            } else {
+                                visualizer.buffer = fflate.decompressSync(new Uint8Array(visualizer.buffer)).buffer;
+                            }
                         }
                     }
+                    await Promise.all(promises);
                 }
-                await Promise.all(promises);
-            }
-            // jank
-            for (let child of GroupTile.root.children) {
-                child.destroy();
-            }
-            Visualizer.destroyAll();
-            mediaControls.playing = false;
-            playButton.checked = false;
-            pipPlayButton.checked = false;
-            mediaControls.setTime(mediaControls.duration);
-            if (wakeLock && !wakeLock.released) wakeLock.release();
-            GroupTile.root.tile.remove();
-            GroupTile.root = new GroupTile(false);
-            if (documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
-            else display.appendChild(GroupTile.root.tile);
-            let dfs = (treenode) => {
-                if (treenode.children !== undefined) {
-                    let node = GroupTile.fromData(treenode);
-                    for (let child of treenode.children) {
-                        node.addChild(dfs(child));
-                    }
-                    return node;
-                } else {
-                    switch (treenode.type) {
-                        case 'v':
-                            return VisualizerTile.fromData(treenode);
-                        case 'vi':
-                            return VisualizerImageTile.fromData(treenode);
-                        case 'vt':
-                            return VisualizerTextTile.fromData(treenode);
-                        case 'cp':
-                            return ChannelPeakTile.fromData(treenode);
-                        case 'i':
-                            return ImageTile.fromData(treenode);
-                        case 't':
-                            return TextTile.fromData(treenode);
-                        case 'b':
-                            return BlankTile.fromData(treenode);
-                        case 'grass':
-                            return GrassTile.fromData(treenode);
-                        default:
-                            const tile = new TextTile();
-                            tile.text = 'Unknown Tile';
-                            tile.refresh();
-                            return tile;
-                    }
+                // jank
+                for (let child of GroupTile.root.children) {
+                    child.destroy();
                 }
+                Visualizer.destroyAll();
+                mediaControls.playing = false;
+                playButton.checked = false;
+                pipPlayButton.checked = false;
+                mediaControls.setTime(mediaControls.duration);
+                if (wakeLock && !wakeLock.released) wakeLock.release();
+                GroupTile.root.tile.remove();
+                GroupTile.root = new GroupTile(false);
+                if (documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
+                else display.appendChild(GroupTile.root.tile);
+                let dfs = (treenode) => {
+                    if (treenode.children !== undefined) {
+                        let node = GroupTile.fromData(treenode);
+                        for (let child of treenode.children) {
+                            node.addChild(dfs(child));
+                        }
+                        return node;
+                    } else {
+                        switch (treenode.type) {
+                            case 'v':
+                                return VisualizerTile.fromData(treenode);
+                            case 'vi':
+                                return VisualizerImageTile.fromData(treenode);
+                            case 'vt':
+                                return VisualizerTextTile.fromData(treenode);
+                            case 'cp':
+                                return ChannelPeakTile.fromData(treenode);
+                            case 'i':
+                                return ImageTile.fromData(treenode);
+                            case 't':
+                                return TextTile.fromData(treenode);
+                            case 'b':
+                                return BlankTile.fromData(treenode);
+                            case 'grass':
+                                return GrassTile.fromData(treenode);
+                            default:
+                                const tile = new TextTile();
+                                tile.text = 'Unknown Tile';
+                                tile.refresh();
+                                return tile;
+                        }
+                    }
+                };
+                GroupTile.root.addChild(dfs(tree.root));
+                GroupTile.root.children[0].checkObsolescence();
+                setTimeout(() => GroupTile.root.refresh(), 0);
+                downloadButton.disabled = false;
+                uploadButton.disabled = false;
             };
-            GroupTile.root.addChild(dfs(tree.root));
-            GroupTile.root.children[0].checkObsolescence();
-            setTimeout(() => GroupTile.root.refresh(), 0);
+            reader.readAsArrayBuffer(uploadButton.files[0]);
+        } catch (err) {
             downloadButton.disabled = false;
             uploadButton.disabled = false;
-        };
-        reader.readAsArrayBuffer(uploadButton.files[0]);
-        uploadButton.value = '';
+            modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
+        } finally {
+            uploadButton.value = '';
+        }
     }
 };
 downloadButton.onclick = async (e) => {
     if (downloadButton.disabled) return;
-    downloadButton.disabled = true;
-    uploadButton.disabled = true;
-    let dfs = (node) => {
-        if (node.children !== undefined) {
-            let treenode = {
-                ...node.getData(),
-                children: []
-            };
-            for (let child of node.children) {
-                treenode.children.push(dfs(child));
+    try {
+        downloadButton.disabled = true;
+        uploadButton.disabled = true;
+        let dfs = (node) => {
+            if (node.children !== undefined) {
+                let treenode = {
+                    ...node.getData(),
+                    children: []
+                };
+                for (let child of node.children) {
+                    treenode.children.push(dfs(child));
+                }
+                return treenode;
+            } else return node.getData();
+        };
+        const tree = {
+            version: 1,
+            root: dfs(GroupTile.root),
+            // metadata: {
+    
+            // }
+        };
+        let promises = []
+        let curr;
+        let stack = [tree.root];
+        while (stack.length) {
+            curr = stack.pop();
+            if (curr.children !== undefined) {
+                for (let child of curr.children) stack.push(child);
+                continue;
             }
-            return treenode;
-        } else return node.getData();
-    };
-    const tree = {
-        version: 1,
-        root: dfs(GroupTile.root),
-        // metadata: {
-
-        // }
-    };
-    let promises = []
-    let curr;
-    let stack = [tree.root];
-    while (stack.length) {
-        curr = stack.pop();
-        if (curr.children !== undefined) {
-            for (let child of curr.children) stack.push(child);
-            continue;
-        }
-        if (curr.visualizer != null) {
-            let visualizer = curr.visualizer;
-            if (Worker !== undefined) {
-                promises.push(new Promise((resolve, reject) => {
-                    fflate.gzip(new Uint8Array(visualizer.buffer), {
-                        level: 4
-                    }, (err, data) => {
-                        if (err) throw err;
-                        visualizer.buffer = data.buffer;
-                        resolve();
-                    });
-                }));
-            } else {
-                visualizer.buffer = fflag.gzipSync(new Uint8Array(visualizer.buffer), { level: 4 }).buffer;
+            if (curr.visualizer != null) {
+                let visualizer = curr.visualizer;
+                if (Worker !== undefined) {
+                    promises.push(new Promise((resolve, reject) => {
+                        fflate.gzip(new Uint8Array(visualizer.buffer), {
+                            level: 4
+                        }, (err, data) => {
+                            if (err) throw err;
+                            visualizer.buffer = data.buffer;
+                            resolve();
+                        });
+                    }));
+                } else {
+                    visualizer.buffer = fflag.gzipSync(new Uint8Array(visualizer.buffer), { level: 4 }).buffer;
+                }
             }
         }
+        await Promise.all(promises);
+        const download = document.createElement('a');
+        let current = new Date();
+        download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
+        download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
+        download.click();
+    } catch (err) {
+        modal('Could not save Tiles:', `An error occured while saving your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
+    } finally {
+        downloadButton.disabled = false;
+        uploadButton.disabled = false;
     }
-    await Promise.all(promises);
-    const download = document.createElement('a');
-    let current = new Date();
-    download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
-    download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
-    download.click();
-    downloadButton.disabled = false;
-    uploadButton.disabled = false;
 };
 fileControlsContainer.ondragover = (e) => {
     e.preventDefault();
