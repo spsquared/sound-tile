@@ -851,6 +851,7 @@ img {
     flex-wrap: nowrap;
     flex-grow: 1;
     flex-basis: 0px;
+    box-sizing: border-box;
 }
 .tileGroupSelf {
     position: relative;
@@ -858,7 +859,20 @@ img {
     height: 60px;
     min-height: 60px;
     border: 4px solid white;
-    margin: -2px -2px;
+}
+.tileGroupChildren {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    flex-basis: 0px;
+    align-items: stretch;
+    box-sizing: border-box;
+    min-width: 0px;
+    min-height: 0px;
+    overflow: hidden;
+}
+.tileGroupVertical {
+    flex-direction: column;
 }
 .treeModeDisplay .tileGroup {
     flex-grow: 1 !important;
@@ -866,14 +880,9 @@ img {
 .treeModeDisplay .tileGroupSelf {
     display: block;
 }
-.tileGroupChildren {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: stretch;
-}
-.tileGroupVertical {
-    flex-direction: column;
+.treeModeDisplay .tileGroupChildren {
+    /* padding: 0px 0px; */
+    overflow: visible;
 }
 .treeModeDisplay .tileGroupVertical {
     flex-direction: row;
@@ -883,6 +892,7 @@ img {
     display: flex;
     flex-grow: 1;
     flex-basis: 0px;
+    box-sizing: border-box;
     min-width: 0px;
     min-height: 0px;
 }
@@ -1384,14 +1394,22 @@ img {
 #pipSeeker:active {
     cursor: grabbing;
 }
-#pipDisplayCover {
+#pipDisplayCover, #uploadingCover {
+    display: none;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    box-sizing: border-box;
+    width: 100vw;
+    height: 100vh;
     text-align: center;
     padding-top: calc(50vh - 16px);
     line-height: 32px;
     font-size: 32px;
     font-family: 'Source Code Pro', Courier, monospace;
-    border: 2px solid white;
-    flex-grow: 1;
+    border: 4px solid white;
+    background-color: black;
+    z-index: 7;
 }
 
 /* super secretly stolen from nightride.fm */

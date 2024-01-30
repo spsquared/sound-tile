@@ -5,7 +5,7 @@
 function detachDisplay(width, height) {
     display.style.width = (parseInt(width) - 4) + 'px';
     display.style.height = (parseInt(height) - 4) + 'px';
-    allowModification = false;
+    modificationLock++;
     drawVisualizers = false;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = true);
     GroupTile.root.refresh();
@@ -13,7 +13,7 @@ function detachDisplay(width, height) {
 function reAttachDisplay() {
     display.style.width = '';
     display.style.height = '';
-    allowModification = true;
+    modificationLock--;
     drawVisualizers = true;
     GroupTile.root.tile.querySelectorAll('input').forEach((el) => el.disabled = false);
     GroupTile.root.refresh();

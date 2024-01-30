@@ -1,0 +1,58 @@
+{
+    "name": "Sound Tile",
+    "short_name": "SoundTile",
+    "description": "A tile-based real-time visualizer and music player! Tile your music with Sound Tile!",
+    "icons": [
+        {
+            "src": "/assets/icon-0.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "/assets/icon-1.png",
+            "type": "image/png",
+            "sizes": "512x512"
+        }
+    ],
+    "start_url": "/?pwa=1",
+    "background_color": "#333333",
+    "display": "standalone",
+    "display_override": ["window-controls-overlay"],
+    "orientation": "landscape-primary",
+    "scope": "/",
+    "shortcuts": [],
+    "file_handlers": [
+        {
+            "action": "/",
+            "accept": {
+                "application/octet-stream": [".soundtile"]
+            }
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/assets/pwa-screenshot-1.png",
+            "type": "image/png",
+            "sizes": "1280x720",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/assets/pwa-screenshot-2.png",
+            "type": "image/png",
+            "sizes": "1280x720",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/assets/pwa-screenshot-3.png",
+            "type": "image/png",
+            "sizes": "1280x720",
+            "form_factor": "wide"
+        },
+        {
+            "src": "/assets/pwa-screenshot-4.png",
+            "type": "image/png",
+            "sizes": "1280x720",
+            "form_factor": "wide"
+        }
+    ]
+}

@@ -1,5 +1,6 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
+let displayWindow = window;
 const display = document.getElementById('display');
 
 // helpers for setup
@@ -9,7 +10,7 @@ function setDefaultTileControls() {
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
-    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.addEventListener('input', (e) => {
         this.tile.style.flexGrow = Number(flexGrowInput.value);
@@ -267,7 +268,7 @@ class GroupTile {
         this.controls.dragBar = this.tile.querySelector('.tileDrag');
         this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
         this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
-        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (allowModification && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
         this.controls.flexGrow.addEventListener('input', (e) => {
@@ -495,7 +496,7 @@ class VisualizerImageTile {
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            let scale = window.devicePixelRatio ?? 1;
+            let scale = displayWindow.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
@@ -585,11 +586,11 @@ class VisualizerTextTile {
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
             this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-            this.ctx2.font = `${window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
+            this.ctx2.font = `${displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1)}px Source Code Pro`;
             this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let size = window.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (window.devicePixelRatio ?? 1);
+            let size = displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (displayWindow.devicePixelRatio ?? 1);
             let x = this.canvas2.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
@@ -604,8 +605,8 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let scale = window.devicePixelRatio ?? 1;
-            let textHeight = this.text.split('\n').length * window.innerHeight * (Number(fontSize.value) + 0.5) / 100;
+            let scale = displayWindow.devicePixelRatio ?? 1;
+            let textHeight = this.text.split('\n').length * displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100;
             const rect = canvasContainer.getBoundingClientRect();
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 8) * scale));
             this.canvas.style.width = rect.width + 'px';
@@ -788,7 +789,7 @@ class ChannelPeakTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            let scale = window.devicePixelRatio ?? 1;
+            let scale = displayWindow.devicePixelRatio ?? 1;
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
@@ -959,7 +960,7 @@ class TextTile {
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.font = `${window.innerHeight * Number(fontSize.value) / 100 * (window.devicePixelRatio ?? 1)}px Source Code Pro`;
+            this.ctx.font = `${displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1)}px Source Code Pro`;
             this.ctx.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
@@ -980,7 +981,7 @@ class TextTile {
             editContainer.style.width = rect.width + 'px';
             editContainer.style.height = rect.height + 'px';
             const rect2 = canvasContainer.getBoundingClientRect();
-            let scale = window.devicePixelRatio ?? 1;
+            let scale = displayWindow.devicePixelRatio ?? 1;
             this.canvas.width = Math.round(rect2.width * scale);
             this.canvas.height = Math.round(rect2.height * scale);
             this.canvas.style.width = rect2.width + 'px';
@@ -1105,7 +1106,7 @@ class GrassTile {
 
 display.appendChild(GroupTile.root.tile);
 window.addEventListener('resize', (e) => {
-    if (window.documentPictureInPicture === undefined || window.documentPictureInPicture.window == null) GroupTile.root.refresh();
+    if (pipWindow == null) GroupTile.root.refresh();
 });
 
 const drag = {
@@ -1124,10 +1125,14 @@ const drag = {
         tile: null,
         index: 0
     },
+    scrollDir: {
+        x: 0,
+        y: 0
+    },
     dragging: false
 };
 function startDrag(e) {
-    if (!allowModification || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
+    if (modificationLock > 0 || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
     drag.tile = this;
     drag.from.tile = this.parent;
     drag.from.index = this.parent.getChildIndex(this);
@@ -1150,16 +1155,18 @@ function startDrag(e) {
 let onDragMove = (e) => {
     if (drag.dragging) {
         if (e instanceof TouchEvent) e = e.touches[0];
+        drag.scrollDir.x = 0;
+        drag.scrollDir.y = 0;
         if (GroupTile.treeMode) {
-            if (e.clientX < window.innerWidth * 0.01) {
-                display.scrollBy(-8, 0);
-            } else if (e.clientX > window.innerWidth * 0.99) {
-                display.scrollBy(8, 0);
+            if (e.clientX < window.innerWidth * 0.02) {
+                drag.scrollDir.x = -1;
+            } else if (e.clientX > window.innerWidth * 0.98) {
+                drag.scrollDir.x = 1;
             }
-            if (e.clientY < window.innerHeight * 0.01) {
-                display.scrollBy(0, -8);
-            } else if (e.clientY > window.innerHeight * 0.99) {
-                display.scrollBy(0, 8);
+            if (e.clientY < window.innerHeight * 0.02) {
+                drag.scrollDir.y = -1;
+            } else if (e.clientY > window.innerHeight * 0.98) {
+                drag.scrollDir.y = 1;
             }
         }
         drag.container.style.top = e.clientY - drag.dragY + 'px';
@@ -1325,6 +1332,9 @@ document.addEventListener('touchmove', onDragMove, { passive: true });
 document.addEventListener('mouseup', onDragEnd);
 document.addEventListener('touchend', onDragEnd);
 // touch cancel: oof
+setInterval(() => {
+    if (drag.dragging && (drag.scrollDir.x != 0 || drag.scrollDir.y != 0)) display.scrollBy(8 * drag.scrollDir.x, 8 * drag.scrollDir.y);
+}, 20);
 const tileControlDivList = [...display.querySelectorAll('.tileControls')];
 GroupTile.addUpdateListener(() => {
     tileControlDivList.length = 0;
@@ -1334,13 +1344,16 @@ display.addEventListener('wheel', (e) => {
     // prevent chrome history navigation
     e.preventDefault();
     let targetControlDiv = tileControlDivList.find((el) => el.contains(e.target));
-    if (!e.target.matches('.tileVisualizerVolumeInput') && (e.target.matches('.tileControls') || targetControlDiv != undefined)) {
+    if (e.target.matches('.tileVisualizerVolumeInput')) {
+
+    } else if (e.target.matches('.tileControls') || targetControlDiv != undefined) {
         targetControlDiv.scrollBy(e.deltaX, e.deltaY);
+        const rect = targetControlDiv.getBoundingClientRect();
+        display.scrollBy((targetControlDiv.scrollTop == 0 || targetControlDiv.scrollWidth - targetControlDiv.scrollLeft <= rect.width) ? e.deltaX : 0, (targetControlDiv.scrollTop == 0 || targetControlDiv.scrollHeight - targetControlDiv.scrollTop <= rect.height) ? e.deltaY : 0);
     } else {
         display.scrollBy(e.deltaX, e.deltaY);
     }
     window.resizeBy(e.deltaZ, e.deltaZ);
-    // 
 });
 
 window.addEventListener('load', (e) => {

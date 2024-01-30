@@ -272,18 +272,28 @@ const fileControlsContainer = document.getElementById('fileControls');
 const uploadButtonLabel = document.getElementById('uploadButtonLabel');
 const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
+const uploadingCover = document.getElementById('uploadingCover');
 uploadButton.oninput = (e) => {
-    if (!uploadButton.disabled && allowModification && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+    if (!uploadButton.disabled && modificationLock == 0 && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
+        modificationLock++;
         downloadButton.disabled = true;
         uploadButton.disabled = true;
+        uploadingCover.style.display = 'block';
+        Visualizer.stopAll();
+        mediaControls.playing = false;
+        playButton.checked = false;
+        pipPlayButton.checked = false;
+        mediaControls.setTime(mediaControls.duration);
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
                 const tree = msgpack.decode(new Uint8Array(reader.result));
                 if (tree.version > 1) {
                     modal('Unsupported version!', `The uploaded Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
+                    modificationLock--;
                     downloadButton.disabled = false;
                     uploadButton.disabled = false;
+                    uploadingCover.style.display = '';
                     return;
                 }
                 if (tree.version > 0) {
@@ -320,14 +330,10 @@ uploadButton.oninput = (e) => {
                     child.destroy();
                 }
                 Visualizer.destroyAll();
-                mediaControls.playing = false;
-                playButton.checked = false;
-                pipPlayButton.checked = false;
-                mediaControls.setTime(mediaControls.duration);
                 if (wakeLock && !wakeLock.released) wakeLock.release();
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
-                if (window.documentPictureInPicture != undefined && documentPictureInPicture.window != null) pipContainer.appendChild(GroupTile.root.tile);
+                if (pipWindow != null) pipContainer.appendChild(GroupTile.root.tile);
                 else display.appendChild(GroupTile.root.tile);
                 let dfs = (treenode) => {
                     if (treenode.children !== undefined) {
@@ -365,11 +371,16 @@ uploadButton.oninput = (e) => {
                 GroupTile.root.addChild(dfs(tree.root));
                 GroupTile.root.children[0].checkObsolescence();
                 setTimeout(() => GroupTile.root.refresh(), 0);
+                modificationLock--;
                 downloadButton.disabled = false;
                 uploadButton.disabled = false;
+                uploadingCover.style.display = '';
             } catch (err) {
+                console.error(err);
+                modificationLock--;
                 downloadButton.disabled = false;
                 uploadButton.disabled = false;
+                uploadingCover.style.display = '';
                 modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
@@ -387,6 +398,7 @@ uploadButton.oninput = (e) => {
 downloadButton.onclick = async (e) => {
     if (downloadButton.disabled) return;
     try {
+        modificationLock++;
         downloadButton.disabled = true;
         uploadButton.disabled = true;
         let dfs = (node) => {
@@ -443,6 +455,7 @@ downloadButton.onclick = async (e) => {
     } catch (err) {
         modal('Could not save Tiles:', `An error occured while saving your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
     } finally {
+        modificationLock--;
         downloadButton.disabled = false;
         uploadButton.disabled = false;
     }
@@ -463,6 +476,18 @@ fileControlsContainer.ondrop = (e) => {
         uploadButton.oninput();
     }
 };
+
+// PWA slap-on upload
+if (window.launchQueue !== undefined) launchQueue.setConsumer((params) => {
+    if (params.files && params.files.length > 0 && !uploadButton.disabled) {
+        window.addEventListener('load', async (e) => {
+            const list = new DataTransfer();
+            list.items.add(await params.files[0].getFile());
+            uploadButton.files = list.files;
+            uploadButton.oninput();
+        });
+    }
+});
 
 // volume
 const volumeControlInput = document.getElementById('volume');
@@ -503,7 +528,7 @@ const mediaControls = {
     playing: false,
     loop: (window.localStorage.getItem('loop') ?? true) == 'true' ? true : false,
     setTime: (t) => {
-        if (!allowModification) return;
+        if (modificationLock > 0) return;
         mediaControls.currentTime = Number(t);
         timeSeekInput.value = mediaControls.currentTime;
         pipTimeSeekInput.value = mediaControls.currentTime;
@@ -561,7 +586,11 @@ timeSeekInput.oninput = (e) => {
     mediaControls.setTime(timeSeekInput.value);
 };
 playButton.onclick = async (e) => {
-    if (!allowModification) return;
+    if (modificationLock > 0) {
+        playButton.checked = mediaControls.playing;
+        pipPlayButton.checked = mediaControls.playing;
+        return;
+    }
     mediaControls.playing = playButton.checked;
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;
@@ -569,7 +598,9 @@ playButton.onclick = async (e) => {
     }
     if (mediaControls.playing) {
         Visualizer.startAll(mediaControls.currentTime);
-        if (WakeLock != undefined && !document.hidden) wakeLock = await window.navigator.wakeLock.request();
+        if (WakeLock != undefined && !displayWindow.document.hidden) {
+            wakeLock = await displayWindow.navigator.wakeLock.request();
+        }
     } else {
         Visualizer.stopAll();
         if (wakeLock && !wakeLock.released) wakeLock.release();
@@ -581,25 +612,31 @@ loopToggle.onclick = (e) => {
     window.localStorage.setItem('loop', mediaControls.loop);
 };
 document.addEventListener('visibilitychange', async (e) => {
-    if (!document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await window.navigator.wakeLock.request();
+    if (!displayWindow.document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
 });
 loopToggle.checked = mediaControls.loop;
 
+// media data
+// controls title of page as well (reset to default Sound Tile when nothing playing)
+
 // picture-in-picture
+let pipWindow = null;
 const pipButton = document.getElementById('pipButton')
 const pipContainer = document.getElementById('pipContainer');
 const pipDisplay = document.getElementById('pipDisplay');
 const pipTitle = document.createElement('title');
 const pipDisplayCover = document.getElementById('pipDisplayCover');
 pipContainer.remove();
-pipDisplayCover.remove();
 if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
     if (documentPictureInPicture.window == null) {
         try {
-            const pipWindow = await documentPictureInPicture.requestWindow();
+            pipWindow = await documentPictureInPicture.requestWindow();
+            displayWindow = pipWindow;
             pipWindow.addEventListener('pagehide', (e) => {
+                pipWindow = null;
+                displayWindow = window;
                 display.appendChild(GroupTile.root.tile);
-                pipDisplayCover.remove();
+                pipDisplayCover.style.display = '';
                 pipButton.checked = false;
                 let inefficientWait = setInterval(() => {
                     if ([...display.children].includes(GroupTile.root.tile)) {
@@ -634,9 +671,12 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 mediaControls.setTime(pipTimeSeekInput.value);
             };
             pipContainer.appendChild(GroupTile.root.tile);
-            display.appendChild(pipDisplayCover);
+            pipDisplayCover.style.display = 'block';
             pipWindow.addEventListener('resize', (e) => {
                 GroupTile.root.refresh();
+            });
+            pipWindow.document.addEventListener('visibilitychange', async (e) => {
+                if (!displayWindow.document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
             });
             let inefficientWait = setInterval(() => {
                 try {
@@ -648,7 +688,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                     }
                     if (documentPictureInPicture.window == null) clearInterval(inefficientWait);
                 } catch (err) {
-                    clearInterval(inefficientWait)
+                    clearInterval(inefficientWait);
                 }
             }, 10);
             // band-aid fix
@@ -656,12 +696,16 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
         } catch (err) {
             console.error(err);
             if (documentPictureInPicture.window != null) documentPictureInPicture.window.close();
+            pipWindow = null;
+            displayWindow = window;
             modal('Could not open picture-in-picture', 'An unexpected error occured while opening picture-in-picture.<br>(Perhaps your connection is not secure?)');
         }
         pipButton.checked = documentPictureInPicture.window != null;
     } else {
         documentPictureInPicture.window.close();
-        pipDisplayCover.remove();
+        pipWindow = null;
+        displayWindow = window;
+        pipDisplayCover.style.display = '';
         pipButton.checked = false;
         let inefficientWait = setInterval(() => {
             if ([...display.children].includes(GroupTile.root.tile)) {

@@ -25,6 +25,10 @@ window.onerror = (e, filename, lineno, colno, err) => {
     loaded = false;
 };
 
+// PWA stuff
+const urlParams = new URLSearchParams(window.location.search);
+const isPWA = urlParams.get('pwa') != null;
+
 // modal
 const modalContainer = document.getElementById('modalContainer');
 const modalBody = document.getElementById('modal');
@@ -34,6 +38,7 @@ const modalYes = document.getElementById('modalYes');
 const modalNo = document.getElementById('modalNo');
 const modalOk = document.getElementById('modalOk');
 function modal(title, subtitle, confirmation = false) {
+    modificationLock++;
     modalTitle.innerHTML = title;
     modalContent.innerHTML = subtitle;
     if (confirmation) {
@@ -49,6 +54,7 @@ function modal(title, subtitle, confirmation = false) {
     modalContainer.style.pointerEvents = 'all';
     modalBody.style.transform = 'translateY(calc(50vh + 50%))';
     const hide = () => {
+        modificationLock--;
         modalContainer.style.opacity = '';
         modalContainer.style.pointerEvents = '';
         modalBody.style.transform = '';
@@ -78,9 +84,9 @@ function modal(title, subtitle, confirmation = false) {
         });
     });
 };
-let allowModification = true;
+let modificationLock = 0;
 
 function superSecretScanlines() {
     document.getElementById('superSecretDiv').style.display = 'block';
 };
-if (new URLSearchParams(window.location.search).get('superSecretScanlines')) superSecretScanlines();
+if (urlParams.get('superSecretScanlines')) superSecretScanlines();

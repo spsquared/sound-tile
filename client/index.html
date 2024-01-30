@@ -6,11 +6,11 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="title" content="Sound Tile">
-    <meta name="description" content="Tile your music with Sound Tile's visualizers!">
+    <meta name="description" content="Tile-based real-time visualizer and music player">
     <meta name="url" content="https://soundtile.web.app/">
     <meta name="image" content="https://soundtile.web.app/assets/logo.png">
     <meta property="og:title" content="Sound Tile">
-    <meta property="og:description" content="Tile your music with Sound Tile's visualizers!">
+    <meta property="og:description" content="Tile-based real-time visualizer and music player">
     <meta property="og:url" content="https://soundtile.web.app/">
     <meta property="og:image" content="https://soundtile.web.app/assets/logo.png">
     <meta property="og:image:width" content="256">
@@ -18,6 +18,7 @@
     <title>Sound Tile</title>
     <link rel="icon" href="./assets/favicon.png" type="image/png">
     <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.json">
     <script src="./msgpack.min.js" defer></script>
     <script src="./fflate.min.js" defer></script>
     <script src="./index.js" defer></script>
@@ -105,6 +106,12 @@
 
     </div>
     <div id="colorInputMasterContainer"></div>
+    <div id="pipDisplayCover">
+        Picture-in-Picture
+    </div>
+    <div id="uploadingCover">
+        Loading...
+    </div>
     <input type="checkbox" id="dropdownTabCheckbox">
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
@@ -256,9 +263,6 @@
                 <div id="pipSeekerThumb"></div>
             </div>
         </div>
-    </div>
-    <div id="pipDisplayCover">
-        Picture-in-Picture
     </div>
     <template id="colorInputTemplate">
         <div class="colorInputContainer colorInputContainerHidden">
