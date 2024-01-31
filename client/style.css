@@ -119,7 +119,12 @@ img {
 }
 
 .checkBox {
+    position: relative;
+    top: 4px;
+    width: 16px;
+    height: 16px;
     margin: 0px 0px;
+    cursor: pointer;
 }
 .checkBox:disabled {
     filter: grayscale(1);
@@ -399,7 +404,7 @@ img {
 }
 #uploadButton:disabled + #uploadButtonLabel, #downloadButton:disabled {
     background-color: #555;
-    cursor: not-allowed;
+    cursor: wait;
 }
 #uploadButtonLabel {
     border-bottom: 2px solid white;
@@ -1410,6 +1415,9 @@ img {
     border: 4px solid white;
     background-color: black;
     z-index: 7;
+}
+#uploadingCover {
+    cursor: wait;
 }
 
 /* super secretly stolen from nightride.fm */

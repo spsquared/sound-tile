@@ -177,7 +177,7 @@ class ColorInput {
         remove.onclick = (e) => {
             if (this.#inputs.gradient.stops.length > 1) {
                 item.remove();
-                this.#inputs.gradient.stops.splice(this.#inputs.gradient.stops.indexOf(item), 1);
+                this.#inputs.gradient.stops.splice(this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset), 1);
                 this.#oninput();
                 this.#refreshBadge();
             }
@@ -284,6 +284,8 @@ uploadButton.oninput = (e) => {
         playButton.checked = false;
         pipPlayButton.checked = false;
         mediaControls.setTime(mediaControls.duration);
+        playButton.title = "Play (SPACE)";
+        pipPlayButton.title = "Play (SPACE)";
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -499,8 +501,8 @@ volumeControlInput.oninput = (e) => {
     volumeControlThumb.style.setProperty('--volume', Number(volumeControlInput.value) / 150);
     pipVolumeControlBody.style.setProperty('--volume', Number(volumeControlInput.value) / 150);
     pipVolumeControlInput.value = volumeControlInput.value;
-    volumeControlInput.title = volumeControlInput.value + '%';
-    pipVolumeControlInput.title = volumeControlInput.value + '%';
+    volumeControlInput.title = 'Volume: ' + volumeControlInput.value + '%';
+    pipVolumeControlInput.title = 'Volume: ' + volumeControlInput.value + '%';
     window.localStorage.setItem('volume', volumeControlInput.value);
 };
 volumeControlInput.addEventListener('wheel', (e) => {
@@ -563,6 +565,8 @@ setInterval(() => {
             mediaControls.playing = false;
             playButton.checked = false;
             pipPlayButton.checked = false;
+            playButton.title = "Play (SPACE)";
+            pipPlayButton.title = "Play (SPACE)";
             if (wakeLock && !wakeLock.released) wakeLock.release();
             mediaControls.setTime(mediaControls.duration);
         } else if (mediaControls.playing) {
@@ -598,11 +602,13 @@ playButton.onclick = async (e) => {
     }
     if (mediaControls.playing) {
         Visualizer.startAll(mediaControls.currentTime);
-        if (WakeLock != undefined && !displayWindow.document.hidden) {
-            wakeLock = await displayWindow.navigator.wakeLock.request();
-        }
+        playButton.title = "Pause (SPACE)";
+        pipPlayButton.title = "Pause (SPACE)";
+        if (WakeLock != undefined && !displayWindow.document.hidden) wakeLock = await displayWindow.navigator.wakeLock.request();
     } else {
         Visualizer.stopAll();
+        playButton.title = "Play (SPACE)";
+        pipPlayButton.title = "Play (SPACE)";
         if (wakeLock && !wakeLock.released) wakeLock.release();
     }
     pipPlayButton.checked = playButton.checked;
@@ -659,8 +665,8 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 volumeControlThumb.style.setProperty('--volume', Number(pipVolumeControlInput.value) / 150);
                 pipVolumeControlBody.style.setProperty('--volume', Number(pipVolumeControlInput.value) / 150);
                 volumeControlInput.value = pipVolumeControlInput.value;
-                volumeControlInput.title = pipVolumeControlInput.value + '%';
-                pipVolumeControlInput.title = pipVolumeControlInput.value + '%';
+                volumeControlInput.title = 'Volume: ' + pipVolumeControlInput.value + '%';
+                pipVolumeControlInput.title = 'Volume: ' + pipVolumeControlInput.value + '%';
                 window.localStorage.setItem('volume', pipVolumeControlInput.value);
             };
             pipVolumeControlInput.addEventListener('wheel', (e) => {

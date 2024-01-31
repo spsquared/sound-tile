@@ -116,8 +116,8 @@
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
         <div id="fileControls">
-            <input type="file" id="uploadButton" accept=".soundtile" title="Upload Tiles from computer">
-            <label id="uploadButtonLabel" for="uploadButton"></label>
+            <input type="file" id="uploadButton" accept=".soundtile">
+            <label id="uploadButtonLabel" for="uploadButton" title="Upload Tiles from computer"></label>
             <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
         <input type="checkbox" id="mediaDataTabCheckbox">
@@ -131,38 +131,38 @@
         </div> -->
         <div id="mediaControls">
             <div id="volumeBody">
-                <input type="range" id="volume" min="0" max="150" step="1" value="100" title="100%">
+                <input type="range" id="volume" min="0" max="150" step="1" value="100" title="Volume: 100%">
                 <div id="volumeTrack"></div>
                 <div id="volumeThumb"></div>
             </div>
             <div id="seekerBody">
-                <input type="range" id="seeker" min="0" max="0" step="0.1">
+                <input type="range" id="seeker" min="0" max="0" step="0.1" title="0:00/0:00">
                 <div id="seekerThumb"></div>
             </div>
             <input type="checkbox" id="playButton">
-            <label id="playButtonLabel" for="playButton"></label>
+            <label id="playButtonLabel" for="playButton" title="Play (SPACE)"></label>
             <div id="time">
                 <div id="timeDisplay"></div>
                 <div>
-                    <label class="toggle">
+                    <label class="toggle" title="Loop song">
                         <input type="checkbox" id="loopToggle" class="toggleInput" checked>
                         <span class="toggleSlider"></span>
                     </label>
                 </div>
             </div>
             <!-- <input type="button" id="exportButton" title="Export video (really bad)" disabled> -->
-            <input type="checkbox" id="pipButton" title="Picture-in-picture">
-            <label id="pipButtonLabel" for="pipButton"></label>
+            <input type="checkbox" id="pipButton">
+            <label id="pipButtonLabel" for="pipButton" title="Picture-in-picture"></label>
         </div>
         <div id="modeControls">
-            <input type="button" id="tileMode" title="Tile edit mode">
-            <input type="button" id="treeMode" title="Tree edit mode">
+            <input type="button" id="tileMode" title="Tile view">
+            <input type="button" id="treeMode" title="Tree view">
             <div id="modeSelectSlider"></div>
             <div id="tileModeImage"></div>
             <div id="treeModeImage"></div>
         </div>
         <div id="tileSource"></div>
-        <label id="dropdownTab" for="dropdownTabCheckbox"></label>
+        <label id="dropdownTab" for="dropdownTabCheckbox" title="Toggle dropdown (H)"></label>
     </div>
     <div id="draggingContainer"></div>
     <div id="draggingLayoutPreview"></div>
@@ -252,7 +252,7 @@
         <div id="pipDisplay"></div>
         <div id="pipControls">
             <input type="checkbox" id="pipPlayButton">
-            <label id="pipPlayButtonLabel" for="pipPlayButton"></label>
+            <label id="pipPlayButtonLabel" for="pipPlayButton" title="Play"></label>
             <div id="pipVolumeBody">
                 <input type="range" id="pipVolume" min="0" max="150" step="1" value="100" title="100%">
                 <div id="pipVolumeTrack"></div>
@@ -399,10 +399,10 @@
                         Smooth Img:
                         <input class="tileImgSmoothing checkBox" type="checkbox" checked>
                     </label>
-                    <!-- <label title="Use image as visualizer backdrop">
+                    <label title="Use image as visualizer backdrop">
                         Image BG:
                         <input class="tileImgBackdrop checkBox" type="checkbox">
-                    </label> -->
+                    </label>
                     <label title="Background color">
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
