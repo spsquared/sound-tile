@@ -492,6 +492,17 @@ class VisualizerImageTile {
             if (imageSmoothing.checked) this.img.style.imageRendering = 'auto';
             else this.img.style.imageRendering = 'pixelated';
         });
+        const imageBackdrop = this.tile.querySelector('.tileImgBackdrop');
+        imageBackdrop.addEventListener('click', (e) => {
+            if (imageBackdrop.checked) {
+                canvasContainer.insertBefore(this.img, this.canvas)
+                imageContainer.style.display = 'none';
+            } else {
+                imageContainer.appendChild(this.img);
+                imageContainer.style.display = '';
+            }
+            this.#resize();
+        });
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
@@ -500,7 +511,7 @@ class VisualizerImageTile {
             if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
-            const rect2 = imageContainer.getBoundingClientRect();
+            const rect2 = imageBackdrop.checked ? rect : imageContainer.getBoundingClientRect();
             if (rect2.width / rect2.height < this.img.width / this.img.height) {
                 // width restriction
                 this.img.style.width = rect2.width + 'px';
@@ -525,6 +536,7 @@ class VisualizerImageTile {
             visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
             image: this.img.src,
             smoothing: this.tile.querySelector('.tileImgSmoothing').checked,
+            imageBackground: this.tile.querySelector('.tileImgBackdrop').checked,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -539,6 +551,7 @@ class VisualizerImageTile {
             tile.img.src = data.image;
             tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
         }
+        if (data.imageBackground) tile.tile.querySelector('.tileImgBackdrop').click();
         if (data.smoothing === false) tile.tile.querySelector('.tileImgSmoothing').click();
         return tile;
     };

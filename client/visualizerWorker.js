@@ -46,6 +46,7 @@ class VisualizerWorker {
         let height = this.canvas.height;
         this.ctx.resetTransform();
         this.ctx.globalAlpha = 1;
+        this.ctx.globalCompositeOperation = 'source-over';
         if (!isWorker) this.ctx.clearRect(0, 0, width, height);
         this.ctx.scale(this.flippedX * -2 + 1, this.flippedY * -2 + 1);
         this.ctx.translate(this.flippedX * -width, this.flippedY * -height);
@@ -104,7 +105,7 @@ class VisualizerWorker {
                     break;
             }
             if (this.barLEDEffect) {
-                this.ctx.fillStyle = '#000000';
+                this.ctx.globalCompositeOperation = 'destination-out';
                 let blockStep = height / this.barLEDCount;
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2; i < height; i += blockStep) {
@@ -143,7 +144,7 @@ class VisualizerWorker {
                     break;
             }
             if (this.barLEDEffect) {
-                this.ctx.fillStyle = '#000000';
+                this.ctx.globalCompositeOperation = 'destination-out';
                 let blockStep = height / (this.barLEDCount * 2 + 1);
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2 - blockStep; i < height; i += blockStep) {
@@ -365,9 +366,9 @@ class VisualizerWorker {
                     }
                     break;
             }
-            this.ctx.globalAlpha = 1;
             if (this.barLEDEffect) {
-                this.ctx.fillStyle = '#000000';
+                this.ctx.globalAlpha = 1;
+                this.ctx.globalCompositeOperation = 'destination-out';
                 let blockStep = height / this.barLEDCount;
                 let blockHeight = blockStep * (1 - this.barLEDSize);
                 for (let i = -blockHeight / 2; i < height; i += blockStep) {
