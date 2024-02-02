@@ -96,10 +96,8 @@ class Visualizer {
         this.playingSource.start(audioContext.currentTime, Math.max(time, 0));
     }
     stop() {
-        if (this.playingSource !== null) {
-            this.playingSource.stop();
-            this.playingSource.disconnect();
-        }
+        this.playingSource?.stop();
+        this.playingSource?.disconnect();
         this.playingSource = null;
     }
     async draw() {
@@ -440,7 +438,7 @@ async function startDraw() {
     delete startDraw;
     while (true) {
         await new Promise((resolve, reject) => {
-            if (drawVisualizers || (pipWindow != null && !pipWindow.document.hidden)) window.requestAnimationFrame(async () => {
+            if (drawVisualizers || (pipWindow !== null && !pipWindow.document.hidden)) window.requestAnimationFrame(async () => {
                 await Visualizer.draw();
                 resolve();
             });

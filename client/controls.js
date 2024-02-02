@@ -34,7 +34,7 @@ class ColorInput {
         this.#badge = cloned.children[1];
         container.appendChild(this.#badge);
         ColorInput.#container.appendChild(this.#popup);
-        for (let curr = container; curr != null && !curr.classList.contains('tileControls'); curr = curr.parentElement, this.#controlsParent = curr); // I hate this
+        for (let curr = container; curr !== null && !curr.classList.contains('tileControls'); curr = curr.parentElement, this.#controlsParent = curr); // I hate this
         // opening/closing
         this.#badge.onclick = (e) => {
             this.#popup.classList.toggle('colorInputContainerHidden');
@@ -43,9 +43,9 @@ class ColorInput {
                 if (rect.top < 242) this.#popup.style.bottom = (window.innerHeight - rect.bottom - 242) + 'px';
                 else this.#popup.style.bottom = (window.innerHeight - rect.top - 2) + 'px';
                 this.#popup.style.left = Math.min(window.innerWidth - 244, rect.left) + 'px';
-                if (this.#controlsParent != null) this.#controlsParent.classList.add('tileControlsNoHide');
+                this.#controlsParent?.classList.add('tileControlsNoHide');
             } else {
-                if (this.#controlsParent != null) this.#controlsParent.classList.remove('tileControlsNoHide');
+                this.#controlsParent?.classList.remove('tileControlsNoHide');
             }
         };
         let hideOnClickOff = (e) => {
@@ -55,7 +55,7 @@ class ColorInput {
             }
             if (!this.#popup.contains(e.target) && e.target != this.#badge && !this.#popup.classList.contains('colorInputContainerHidden')) {
                 this.#popup.classList.add('colorInputContainerHidden');
-                if (this.#controlsParent != null && (!e.target.matches('.colorInputBadge') || !this.#controlsParent.contains(e.target))) this.#controlsParent.classList.remove('tileControlsNoHide');
+                if (!e.target.matches('.colorInputBadge') || !this.#controlsParent.contains(e.target)) this.#controlsParent?.classList.remove('tileControlsNoHide');
             }
         };
         document.addEventListener('mousedown', hideOnClickOff);
@@ -273,19 +273,15 @@ const uploadButtonLabel = document.getElementById('uploadButtonLabel');
 const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
 const uploadingCover = document.getElementById('uploadingCover');
-uploadButton.oninput = (e) => {
+uploadButton.oninput = async (e) => {
     if (!uploadButton.disabled && modificationLock == 0 && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         modificationLock++;
         downloadButton.disabled = true;
         uploadButton.disabled = true;
+        mDatTitle.disabled = true;
+        mDatSubtitle.disabled = true;
         uploadingCover.style.display = 'block';
-        Visualizer.stopAll();
-        mediaControls.playing = false;
-        playButton.checked = false;
-        pipPlayButton.checked = false;
-        mediaControls.setTime(mediaControls.duration);
-        playButton.title = "Play (SPACE)";
-        pipPlayButton.title = "Play (SPACE)";
+        mediaControls.stopPlayback();
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
@@ -299,6 +295,7 @@ uploadButton.oninput = (e) => {
                     return;
                 }
                 if (tree.version > 0) {
+                    // decompress audio
                     let promises = [];
                     let curr;
                     let stack = [tree.root];
@@ -335,7 +332,7 @@ uploadButton.oninput = (e) => {
                 if (wakeLock && !wakeLock.released) wakeLock.release();
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
-                if (pipWindow != null) pipContainer.appendChild(GroupTile.root.tile);
+                if (pipWindow !== null) pipContainer.appendChild(GroupTile.root.tile);
                 else display.appendChild(GroupTile.root.tile);
                 let dfs = (treenode) => {
                     if (treenode.children !== undefined) {
@@ -373,15 +370,33 @@ uploadButton.oninput = (e) => {
                 GroupTile.root.addChild(dfs(tree.root));
                 GroupTile.root.children[0].checkObsolescence();
                 setTimeout(() => GroupTile.root.refresh(), 0);
+                // set media data
+                if (tree.metadata !== undefined) {
+                    mDatImage.src = tree.metadata.image;
+                    mDatTitle.value = tree.metadata.title;
+                    mDatSubtitle.value = tree.metadata.subtitle;
+                    mDatToggle.checked = tree.metadata.title != '';
+                } else {
+                    mDatImage.src = './assets/default-cover.png';
+                    mDatTitle.value = '';
+                    mDatSubtitle.value = '';
+                    mDatToggle.checked = false;
+                }
                 modificationLock--;
+                updateTitle();
                 downloadButton.disabled = false;
                 uploadButton.disabled = false;
+                mDatTitle.disabled = false;
+                mDatSubtitle.disabled = false;
                 uploadingCover.style.display = '';
             } catch (err) {
                 console.error(err);
                 modificationLock--;
+                updateTitle();
                 downloadButton.disabled = false;
                 uploadButton.disabled = false;
+                mDatTitle.disabled = false;
+                mDatSubtitle.disabled = false;
                 uploadingCover.style.display = '';
                 modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
                 GroupTile.root.tile.remove();
@@ -403,6 +418,9 @@ downloadButton.onclick = async (e) => {
         modificationLock++;
         downloadButton.disabled = true;
         uploadButton.disabled = true;
+        mDatTitle.disabled = true;
+        mDatSubtitle.disabled = true;
+        document.body.style.cursor = 'progress';
         let dfs = (node) => {
             if (node.children !== undefined) {
                 let treenode = {
@@ -418,9 +436,11 @@ downloadButton.onclick = async (e) => {
         const tree = {
             version: 1,
             root: dfs(GroupTile.root),
-            // metadata: {
-
-            // }
+            metadata: {
+                image: mDatImage.src,
+                title: mDatTitle.value,
+                subtitle: mDatSubtitle.value
+            }
         };
         let promises = []
         let curr;
@@ -460,27 +480,34 @@ downloadButton.onclick = async (e) => {
         modificationLock--;
         downloadButton.disabled = false;
         uploadButton.disabled = false;
+        mDatTitle.disabled = false;
+        mDatSubtitle.disabled = false;
+        document.body.style.cursor = '';
     }
 };
-fileControlsContainer.ondragover = (e) => {
+fileControlsContainer.addEventListener('dragover', (e) => {
     e.preventDefault();
     uploadButtonLabel.style.backgroundColor = '#999';
-};
-fileControlsContainer.ondragend = fileControlsContainer.ondragleave = (e) => {
+});
+fileControlsContainer.addEventListener('dragleave', (e) => {
     e.preventDefault();
     uploadButtonLabel.style.backgroundColor = '';
-};
-fileControlsContainer.ondrop = (e) => {
+});
+fileControlsContainer.addEventListener('dragend', (e) => {
+    e.preventDefault();
+    uploadButtonLabel.style.backgroundColor = '';
+});
+fileControlsContainer.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadButtonLabel.style.backgroundColor = '';
     if (e.dataTransfer.files) {
         uploadButton.files = e.dataTransfer.files;
         uploadButton.oninput();
     }
-};
+});
 
 // PWA slap-on upload
-if (window.launchQueue !== undefined) launchQueue.setConsumer((params) => {
+window.launchQueue?.setConsumer((params) => {
     if (params.files && params.files.length > 0 && !uploadButton.disabled) {
         window.addEventListener('load', async (e) => {
             const list = new DataTransfer();
@@ -540,6 +567,24 @@ const mediaControls = {
         pipTimeSeekInput.title = timeSeekInput.title;
         mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
+    },
+    startPlayback: async () => {
+        mediaControls.playing = true;
+        playButton.checked = true;
+        pipPlayButton.checked = true;
+        Visualizer.startAll(mediaControls.currentTime);
+        playButton.title = "Pause (SPACE)";
+        pipPlayButton.title = "Pause (SPACE)";
+        if (window.WakeLock !== undefined && !displayWindow.document.hidden) wakeLock = await displayWindow.navigator.wakeLock.request();
+    },
+    stopPlayback: () => {
+        mediaControls.playing = false;
+        playButton.checked = false;
+        pipPlayButton.checked = false;
+        Visualizer.stopAll();
+        playButton.title = "Play (SPACE)";
+        pipPlayButton.title = "Play (SPACE)";
+        if (wakeLock && !wakeLock.released) wakeLock.release();
     }
 };
 let wakeLock;
@@ -562,12 +607,7 @@ setInterval(() => {
     let now = performance.now();
     if (mediaControls.currentTime >= mediaControls.duration) {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
-            mediaControls.playing = false;
-            playButton.checked = false;
-            pipPlayButton.checked = false;
-            playButton.title = "Play (SPACE)";
-            pipPlayButton.title = "Play (SPACE)";
-            if (wakeLock && !wakeLock.released) wakeLock.release();
+            mediaControls.stopPlayback();
             mediaControls.setTime(mediaControls.duration);
         } else if (mediaControls.playing) {
             mediaControls.setTime(0);
@@ -595,35 +635,85 @@ playButton.onclick = async (e) => {
         pipPlayButton.checked = mediaControls.playing;
         return;
     }
-    mediaControls.playing = playButton.checked;
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;
         mediaControls.startTime = performance.now();
     }
-    if (mediaControls.playing) {
-        Visualizer.startAll(mediaControls.currentTime);
-        playButton.title = "Pause (SPACE)";
-        pipPlayButton.title = "Pause (SPACE)";
-        if (WakeLock != undefined && !displayWindow.document.hidden) wakeLock = await displayWindow.navigator.wakeLock.request();
-    } else {
-        Visualizer.stopAll();
-        playButton.title = "Play (SPACE)";
-        pipPlayButton.title = "Play (SPACE)";
-        if (wakeLock && !wakeLock.released) wakeLock.release();
-    }
-    pipPlayButton.checked = playButton.checked;
+    if (playButton.checked) await mediaControls.startPlayback();
+    else mediaControls.stopPlayback();
 };
 loopToggle.onclick = (e) => {
     mediaControls.loop = loopToggle.checked;
     window.localStorage.setItem('loop', mediaControls.loop);
 };
 document.addEventListener('visibilitychange', async (e) => {
-    if (!displayWindow.document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
+    if (!displayWindow.document.hidden && mediaControls.playing && window.WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
 });
 loopToggle.checked = mediaControls.loop;
 
 // media data
-// controls title of page as well (reset to default Sound Tile when nothing playing)
+const title = document.head.querySelector('title');
+const mDatToggle = document.getElementById('mediaDataTabCheckbox');
+const mDatImage = document.getElementById('mediaDataCoverArt');
+const mDatTitle = document.getElementById('mediaDataTitle');
+const mDatSubtitle = document.getElementById('mediaDataSubtitle');
+function updateTitle() {
+    if (mDatTitle.value.replaceAll(' ', '').length > 0) {
+        if (isPWA) title.innerText = `${mDatTitle.value.trim()}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim()}`;
+        else title.innerText = `Sound Tile - ${mDatTitle.value.trim()}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim()}`
+    } else title.innerText = 'Sound Tile';
+};
+mDatTitle.addEventListener('input', updateTitle);
+mDatTitle.addEventListener('focus', (e) => mDatTitle.scrollLeft = 0);
+mDatSubtitle.addEventListener('input', updateTitle);
+mDatSubtitle.addEventListener('focus', (e) => mDatSubtitle.scrollLeft = 0);
+mDatTitle._scrollTime = 0;
+mDatSubtitle._scrollTime = 0;
+let scrollTime = -120;
+setInterval(() => {
+    scrollTime += 1;
+    if (document.activeElement != mDatTitle) mDatTitle.scrollLeft = scrollTime;
+    if (document.activeElement != mDatSubtitle) mDatSubtitle.scrollLeft = scrollTime;
+    if ((scrollTime > mDatTitle.scrollWidth - 112 || document.activeElement == mDatTitle) && (scrollTime > mDatSubtitle.scrollWidth - 112 || document.activeElement == mDatSubtitle)) {
+        scrollTime = -120;
+    }
+}, 40);
+mDatTitle.addEventListener('wheel', (e) => {
+    if (document.activeElement != mDatTitle) e.preventDefault();
+});
+mDatSubtitle.addEventListener('wheel', (e) => {
+    if (document.activeElement != mDatSubtitle) e.preventDefault();
+});
+mDatImage.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+    const imageUpload = document.createElement('input');
+    imageUpload.type = 'file';
+    imageUpload.accept = 'image/*';
+    imageUpload.addEventListener('change', (e) => {
+        if (imageUpload.files.length > 0 && imageUpload.files[0].type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                mDatImage.src = reader.result;
+            };
+            reader.readAsDataURL(imageUpload.files[0]);
+        }
+    });
+    imageUpload.click();
+});
+// copy/paste spaghetti (clean up if more drag-and-drop files added later?)
+mDatImage.addEventListener('dragover', (e) => e.preventDefault());
+mDatImage.addEventListener('dragleave', (e) => e.preventDefault());
+mDatImage.addEventListener('dragend', (e) => e.preventDefault());
+mDatImage.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            mDatImage.src = reader.result;
+        };
+        reader.readAsDataURL(e.dataTransfer.files[0]);
+    }
+});
 
 // picture-in-picture
 let pipWindow = null;
@@ -631,12 +721,16 @@ const pipButton = document.getElementById('pipButton')
 const pipContainer = document.getElementById('pipContainer');
 const pipDisplay = document.getElementById('pipDisplay');
 const pipTitle = document.createElement('title');
+const pipIconLink = document.createElement('link');
 const pipDisplayCover = document.getElementById('pipDisplayCover');
 pipContainer.remove();
+pipIconLink.rel = 'icon';
+pipIconLink.href = './assets/icon-0.png';
+pipIconLink.type = 'image/png';
 if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
     if (documentPictureInPicture.window == null) {
         try {
-            pipWindow = await documentPictureInPicture.requestWindow();
+            pipWindow = await documentPictureInPicture.requestWindow({ width: screen.width / 3, height: screen.height / 3 });
             displayWindow = pipWindow;
             pipWindow.addEventListener('pagehide', (e) => {
                 pipWindow = null;
@@ -657,6 +751,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
             pipTitle.innerText = 'Sound Tile'; // add media information later
             pipWindow.document.head.appendChild(pipTitle);
             pipWindow.document.head.appendChild(styleSheet);
+            pipWindow.document.head.appendChild(pipIconLink);
             pipWindow.document.body.appendChild(pipContainer);
             // re-add listeners that get removed
             pipPlayButton.onclick = (e) => playButton.click();
@@ -682,14 +777,16 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 GroupTile.root.refresh();
             });
             pipWindow.document.addEventListener('visibilitychange', async (e) => {
-                if (!displayWindow.document.hidden && mediaControls.playing && WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
+                if (!displayWindow.document.hidden && mediaControls.playing && window.WakeLock != undefined) wakeLock = await displayWindow.navigator.wakeLock.request();
+            });
+            pipContainer.addEventListener('wheel', (e) => {
+                e.preventDefault();
             });
             let inefficientWait = setInterval(() => {
                 try {
                     // completely doesn't work because the size is just wrong
                     if ([...pipWindow.document.body.children].includes(pipContainer) && [...pipContainer.children].includes(GroupTile.root.tile)) {
                         GroupTile.root.refresh();
-                        pipWindow.resizeTo(320, 180);
                         clearInterval(inefficientWait);
                     }
                     if (documentPictureInPicture.window == null) clearInterval(inefficientWait);
@@ -701,12 +798,12 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
             setTimeout(() => GroupTile.root.refresh(), 1000);
         } catch (err) {
             console.error(err);
-            if (documentPictureInPicture.window != null) documentPictureInPicture.window.close();
+            if (documentPictureInPicture.window !== null) documentPictureInPicture.window.close();
             pipWindow = null;
             displayWindow = window;
             modal('Could not open picture-in-picture', 'An unexpected error occured while opening picture-in-picture.<br>(Perhaps your connection is not secure?)');
         }
-        pipButton.checked = documentPictureInPicture.window != null;
+        pipButton.checked = documentPictureInPicture.window !== null;
     } else {
         documentPictureInPicture.window.close();
         pipWindow = null;
@@ -755,8 +852,8 @@ createTileSource(VisualizerTile, './assets/visualizer-tile.png', 'New visualizer
 createTileSource(ChannelPeakTile, './assets/channelpeak-tile.png', 'New channel peak tile');
 createTileSource(TextTile, './assets/text-tile.png', 'New text tile');
 createTileSource(ImageTile, './assets/image-tile.png', 'New image tile');
-createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(VisualizerTextTile, './assets/visualizer-text-tile.png', 'New visualizer + text tile');
+createTileSource(VisualizerImageTile, './assets/visualizer-image-tile.png', 'New visualizer + image tile');
 createTileSource(BlankTile, './assets/blank-tile.png', 'New blank tile');
 createTileSource(GrassTile, './assets/blank-tile.png', 'New grass tile');
 tileSourceContainer.lastChild.style.display = 'none';

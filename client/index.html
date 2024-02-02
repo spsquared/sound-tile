@@ -121,14 +121,15 @@
             <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
         <input type="checkbox" id="mediaDataTabCheckbox">
-        <!-- <div id="mediaDataControls">
-            <div id="mediaDataBody"> -->
-                <!-- image -->
-                <!-- album title -->
-                <!-- metadata like album covers also playlist features (wait then it needs files hmmm progressive web app) -->
-            <!-- </div>
-            <label id="mediaDataTab" for="mediaDataTabCheckbox"></label>
-        </div> -->
+        <div id="mediaDataControls">
+            <div id="mediaDataBody">
+                <img id="mediaDataCoverArt" src="./assets/default-cover.png" title="Album cover (double-click to change)">
+                <input id="mediaDataTitle" type="text" placeholder="Title" autocomplete="off" spellcheck="false">
+                <input id="mediaDataSubtitle" type="text" placeholder="Artist - Album" autocomplete="off" spellcheck="false">
+                <div id="mediaDataPlaylist"></div>
+            </div>
+            <label id="mediaDataTab" for="mediaDataTabCheckbox" title="Toggle media metadata"></label>
+        </div>
         <div id="mediaControls">
             <div id="volumeBody">
                 <input type="range" id="volume" min="0" max="150" step="1" value="100" title="Volume: 100%">
@@ -249,7 +250,6 @@
         </div>
     </div>
     <div id="pipContainer">
-        <div id="pipDisplay"></div>
         <div id="pipControls">
             <input type="checkbox" id="pipPlayButton">
             <label id="pipPlayButtonLabel" for="pipPlayButton" title="Play"></label>
@@ -376,7 +376,7 @@
                 <div class="tileImgUploadCoverSmall">
                     <label class="tileImgUploadLabel buttonLabel">
                         Upload Image
-                        <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                        <input class="tileImgUpload button" type="file" accept="image/bmp, image/jpeg, image/png, image/svg, image/webp">
                     </label>
                 </div>
                 <div class="tileSourceUploadCover">
@@ -388,7 +388,7 @@
                 <div class="tileControls">
                     <label class="tileImgReplaceLabel buttonLabel">
                         <span class="tileImgReplaceLabelText">Upload Image</span>
-                        <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                        <input class="tileImgReplace button" type="file" accept="image/bmp, image/jpeg, image/png, image/svg, image/webp">
                     </label>
                     <span class="tileVisualizerControls"></span>
                     <label title="Ratio of size relative to other tiles">
@@ -594,13 +594,13 @@
                 <div class="tileImgUploadCover">
                     <label class="tileImgUploadLabel buttonLabel">
                         Upload Image
-                        <input class="tileImgUpload button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                        <input class="tileImgUpload button" type="file" accept="image/bmp, image/jpeg, image/png, image/svg, image/webp">
                     </label>
                 </div>
                 <div class="tileControls">
                     <label class="tileImgReplaceLabel buttonLabel">
                         <span class="tileImgReplaceLabelText">Change Image</span>
-                        <input class="tileImgReplace button" type="file" accept="image/png, image/jpeg, image/svg, image/webp">
+                        <input class="tileImgReplace button" type="file" accept="image/bmp, image/jpeg, image/png, image/svg, image/webp">
                     </label>
                     <label title="Ratio of size relative to other tiles">
                         Size:

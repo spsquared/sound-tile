@@ -14,7 +14,7 @@ function setDefaultTileControls() {
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.addEventListener('input', (e) => {
         this.tile.style.flexGrow = Number(flexGrowInput.value);
-        if (this.parent !== null) this.parent.refresh();
+        this.parent?.refresh();
     });
 };
 function setVisualizerControls() {
@@ -273,14 +273,14 @@ class GroupTile {
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
         this.controls.flexGrow.addEventListener('input', (e) => {
             this.tile.style.flexGrow = Number(this.controls.flexGrow.value);
-            if (this.parent !== null) this.parent.refresh();
+            this.parent?.refresh();
         });
         this.controls.vertical = this.tile.querySelector('.tileGroupVertical');
         this.controls.vertical.onclick = (e) => {
             this.orientation = this.controls.vertical.checked;
             if (this.orientation) this.childBox.classList.add('tileGroupVertical');
             else this.childBox.classList.remove('tileGroupVertical');
-            if (this.parent !== null) this.parent.refresh();
+            this.parent?.refresh();
         };
         this.controls.vertical.checked = this.orientation;
     }
@@ -289,7 +289,7 @@ class GroupTile {
         if (!(child instanceof GroupTile) && !(child instanceof VisualizerTile) && !(child instanceof VisualizerImageTile) && !(child instanceof VisualizerTextTile) && !(child instanceof ChannelPeakTile) && !(child instanceof ImageTile) && !(child instanceof TextTile) && !(child instanceof BlankTile) && !(child instanceof GrassTile)) throw TypeError('GroupTile child must be a VisualizerTile, VisualizerImageTile, VisualizerTextTile, ImageTile, TextTile, BlankTile, GrassTile, or another GroupTile');
         if (typeof index != 'number' || index < 0 || index > this.children.length) throw new RangeError('GroupTile child insertion index out of range');
         // prevent duplicate children, add the tile to DOM first
-        if (child.parent !== null) child.parent.removeChild(child);
+        child.parent?.removeChild(child);
         if (index === this.children.length) this.childBox.appendChild(child.tile);
         else this.childBox.insertBefore(child.tile, this.children[index].tile);
         this.children.splice(index, 0, child);
@@ -401,7 +401,7 @@ class VisualizerTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             let scale = window.devicePixelRatio ?? 1;
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
+            this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
@@ -416,7 +416,7 @@ class VisualizerTile {
         return {
             type: 'v',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            visualizer: this.visualizer?.getData() ?? null,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -456,15 +456,8 @@ class VisualizerImageTile {
         const imageUpload = this.tile.querySelector('.tileImgUpload');
         const imageReplace = this.tile.querySelector('.tileImgReplace');
         const imageReplaceLabel = this.tile.querySelector('.tileImgReplaceLabelText');
-        const fileTypes = [
-            'image/bmp',
-            'image/jpeg',
-            'image/png',
-            'image/svg+xml',
-            'image/webp',
-        ];
         imageUpload.addEventListener('change', (e) => {
-            if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
+            if (imageUpload.files.length > 0 && imageUpload.files[0].type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.img.src = reader.result;
@@ -476,13 +469,13 @@ class VisualizerImageTile {
             }
         });
         imageReplace.addEventListener('change', (e) => {
-            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
+            if (imageReplace.files.length > 0 && imageReplace.files[0].type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.img.src = reader.result;
                     this.img.onload = (e) => this.#resize();
                     imageReplaceLabel.innerText = 'Change Image';
-                    if (this.tile.querySelector('.tileImgUploadCoverSmall') !== null) this.tile.querySelector('.tileImgUploadCoverSmall').remove();
+                    this.tile.querySelector('.tileImgUploadCoverSmall')?.remove();
                 };
                 reader.readAsDataURL(imageReplace.files[0]);
             }
@@ -508,7 +501,7 @@ class VisualizerImageTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             let scale = displayWindow.devicePixelRatio ?? 1;
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
+            this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
             const rect2 = imageBackdrop.checked ? rect : imageContainer.getBoundingClientRect();
@@ -533,7 +526,7 @@ class VisualizerImageTile {
         return {
             type: 'vi',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            visualizer: this.visualizer?.getData() ?? null,
             image: this.img.src,
             smoothing: this.tile.querySelector('.tileImgSmoothing').checked,
             imageBackground: this.tile.querySelector('.tileImgBackdrop').checked,
@@ -621,7 +614,7 @@ class VisualizerTextTile {
             let scale = displayWindow.devicePixelRatio ?? 1;
             let textHeight = this.text.split('\n').length * displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100;
             const rect = canvasContainer.getBoundingClientRect();
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 8) * scale));
+            this.visualizer?.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 8) * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = (rect.height - textHeight - 8) + 'px';
             this.canvas2.width = Math.round(rect.width * scale);
@@ -644,7 +637,7 @@ class VisualizerTextTile {
         return {
             type: 'vt',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            visualizer: this.visualizer?.getData() ?? null,
             text: this.text,
             fontSize: this.tile.querySelector('.tileTextSize').value,
             textAlign: this.tile.querySelector('.tileTextAlign').value,
@@ -803,7 +796,7 @@ class ChannelPeakTile {
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
             let scale = displayWindow.devicePixelRatio ?? 1;
-            if (this.visualizer !== null) this.visualizer.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
+            this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
         };
@@ -818,7 +811,7 @@ class ChannelPeakTile {
         return {
             type: 'cp',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
-            visualizer: this.visualizer !== null ? this.visualizer.getData() : null,
+            visualizer: this.visualizer?.getData() ?? null,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -867,15 +860,8 @@ class ImageTile {
         this.img = this.tile.querySelector('.tileImg');
         const imageUpload = this.tile.querySelector('.tileImgUpload');
         const imageReplace = this.tile.querySelector('.tileImgReplace');
-        const fileTypes = [
-            'image/bmp',
-            'image/jpeg',
-            'image/png',
-            'image/svg+xml',
-            'image/webp',
-        ];
         imageUpload.addEventListener('change', (e) => {
-            if (imageUpload.files.length > 0 && fileTypes.includes(imageUpload.files[0].type)) {
+            if (imageUpload.files.length > 0 && imageUpload.files[0].type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.img.src = reader.result;
@@ -886,7 +872,7 @@ class ImageTile {
             }
         });
         imageReplace.addEventListener('change', (e) => {
-            if (imageReplace.files.length > 0 && fileTypes.includes(imageReplace.files[0].type)) {
+            if (imageReplace.files.length > 0 && imageReplace.files[0].type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     this.img.src = reader.result;
@@ -1270,34 +1256,34 @@ let onDragMove = (e) => {
                 let halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     // uhhh doesnt work when orientation is horizontal??
-                    if (parent != null && parent != GroupTile.root && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
+                    if (parent !== null && parent != GroupTile.root && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 1);
                     }
                 } else if (relY > rect.height - halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
-                    if (parent != null && parent != GroupTile.root && parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
+                    if (parent !== null && parent != GroupTile.root && parent.orientation == 1 && relY > rect.height - halfBoxHeight * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 1);
                     }
                 } else if (relX < halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent != null && parent != GroupTile.root && parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
+                    if (parent !== null && parent != GroupTile.root && parent.orientation == 0 && relX < halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile), false);
                     } else {
                         setLayout(currTile, 0, true, 0);
                     }
                 } else if (relX > rect.width - halfBoxWidth && relY > halfHeight - halfBoxHeight && relY < halfHeight + halfBoxHeight) {
-                    if (parent != null && parent != GroupTile.root && parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
+                    if (parent !== null && parent != GroupTile.root && parent.orientation == 0 && relX > rect.width - halfBoxWidth * 0.5) {
                         setLayout(currTile, parent.getChildIndex(currTile) + 1, false);
                     } else {
                         setLayout(currTile, 1, true, 0);
                     }
-                } else if (parent != null && (currTile instanceof GroupTile ? currTile.children.every(v => visited.has(v)) : true)) {
+                } else if (parent !== null && (currTile instanceof GroupTile ? currTile.children.every(v => visited.has(v)) : true)) {
                     currTile = parent;
                     continue traverse;
                 }
-            } else if (currTile.parent != null) {
+            } else if (currTile.parent !== null) {
                 currTile = currTile.parent;
                 continue traverse;
             }
@@ -1346,8 +1332,8 @@ document.addEventListener('mouseup', onDragEnd);
 document.addEventListener('touchend', onDragEnd);
 // touch cancel: oof
 setInterval(() => {
-    if (drag.dragging && (drag.scrollDir.x != 0 || drag.scrollDir.y != 0)) display.scrollBy(8 * drag.scrollDir.x, 8 * drag.scrollDir.y);
-}, 20);
+    if (drag.dragging && (drag.scrollDir.x != 0 || drag.scrollDir.y != 0)) display.scrollBy(16 * drag.scrollDir.x, 16 * drag.scrollDir.y);
+}, 40);
 const tileControlDivList = [...display.querySelectorAll('.tileControls')];
 GroupTile.addUpdateListener(() => {
     tileControlDivList.length = 0;
@@ -1358,7 +1344,6 @@ display.addEventListener('wheel', (e) => {
     e.preventDefault();
     let targetControlDiv = tileControlDivList.find((el) => el.contains(e.target));
     if (e.target.matches('.tileVisualizerVolumeInput')) {
-
     } else if (e.target.matches('.tileControls') || targetControlDiv != undefined) {
         targetControlDiv.scrollBy(e.deltaX, e.deltaY);
         const rect = targetControlDiv.getBoundingClientRect();

@@ -17,7 +17,6 @@
     "start_url": "/?pwa=1",
     "background_color": "#333333",
     "display": "standalone",
-    "display_override": ["window-controls-overlay"],
     "orientation": "landscape-primary",
     "scope": "/",
     "shortcuts": [],

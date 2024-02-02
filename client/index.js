@@ -28,6 +28,14 @@ window.onerror = (e, filename, lineno, colno, err) => {
 // PWA stuff
 const urlParams = new URLSearchParams(window.location.search);
 const isPWA = urlParams.get('pwa') != null;
+if (navigator.serviceWorker !== undefined) {
+    try {
+        navigator.serviceWorker.register('./serviceWorker.js', { scope: '/' });
+    } catch (err) {
+        console.error('Service worker installation failed:');
+        console.error(err);
+    }
+}
 
 // modal
 const modalContainer = document.getElementById('modalContainer');
