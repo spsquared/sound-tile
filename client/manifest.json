@@ -22,7 +22,7 @@
     "shortcuts": [],
     "file_handlers": [
         {
-            "action": "/",
+            "action": "/?pwa=1",
             "accept": {
                 "application/octet-stream": [".soundtile"]
             }

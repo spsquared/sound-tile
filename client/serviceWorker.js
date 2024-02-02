@@ -70,19 +70,22 @@ let getCached = async (request, preloadResponse) => {
             cache.put(request.url, networked.clone());
             return networked;
         } catch (err) {
-            const preloaded = await preloadResponse;
-            if (preloaded !== undefined) {
-                cache.put(request.url, preloaded.clone());
-                return preloaded;
+            try {
+                const preloaded = await preloadResponse;
+                if (preloaded !== undefined) {
+                    cache.put(request.url, preloaded.clone());
+                    return preloaded;
+                }
+            } finally {
+                const cached = await cache.match(request);
+                if (cached !== undefined) {
+                    return cached;
+                }
+                return new Response('not cached; timed out', {
+                    status: 408,
+                    headers: { "Content-Type": "text/plain" },
+                });
             }
-            const cached = await cache.match(request);
-            if (cached !== undefined) {
-                return cached;
-            }
-            return new Response('not cached; timed out', {
-                status: 408,
-                headers: { "Content-Type": "text/plain" },
-            });
         }
     } catch (err) {
         console.error(err);
