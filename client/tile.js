@@ -1181,6 +1181,7 @@ let onDragMove = (e) => {
             }
         }
         let foundDrop = false;
+        if (currTile == GroupTile.root) return;
         let setLayout = (tile, index, createGroup, groupOrientation) => {
             if (createGroup) drag.drop.tile = tile;
             else drag.drop.tile = tile.parent;

@@ -3,6 +3,7 @@
 class ColorInput {
     static #template = document.getElementById('colorInputTemplate');
     static #container = document.getElementById('colorInputMasterContainer');
+    static #copiedColor = null;
 
     // store input fields and current state
     #popup = null;
@@ -119,6 +120,13 @@ class ColorInput {
         this.#addGradientColorStop();
         // disable options that don't do anything
         this.#inputs.modeSelectors[0].onclick(); // forced reflow oof
+        // copy/paste
+        this.#popup.querySelector('.colorInputCopy').onclick = (e) => {
+            ColorInput.#copiedColor = this.value;
+        };
+        this.#popup.querySelector('.colorInputPaste').onclick = (e) => {
+            if (ColorInput.#copiedColor !== null) this.value = ColorInput.#copiedColor;
+        };
     }
     #addGradientColorStop() {
         // maybe should use a template instead
@@ -260,6 +268,7 @@ class ColorInput {
                     inputs[0].value = stop[0] * 100;
                     inputs[1].value = stop[1];
                 }
+                this.#inputs.gradient.pattern.oninput();
                 this.#oninput();
                 this.#refreshBadge();
                 break;
@@ -644,6 +653,7 @@ playButton.onclick = async (e) => {
 };
 loopToggle.onclick = (e) => {
     mediaControls.loop = loopToggle.checked;
+    mDatPlaylistLoop.checked = loopToggle.checked;
     window.localStorage.setItem('loop', mediaControls.loop);
 };
 document.addEventListener('visibilitychange', async (e) => {
@@ -657,6 +667,8 @@ const mDatToggle = document.getElementById('mediaDataTabCheckbox');
 const mDatImage = document.getElementById('mediaDataCoverArt');
 const mDatTitle = document.getElementById('mediaDataTitle');
 const mDatSubtitle = document.getElementById('mediaDataSubtitle');
+const mDatPlaylistShuffle = document.getElementById('mediaDataPlaylistShuffleToggle');
+const mDatPlaylistLoop = document.getElementById('mediaDataPlaylistLoopToggle');
 function updateTitle() {
     if (mDatTitle.value.replaceAll(' ', '').length > 0) {
         if (isPWA) title.innerText = `${mDatTitle.value.trim()}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim()}`;
@@ -714,6 +726,8 @@ mDatImage.addEventListener('drop', (e) => {
         reader.readAsDataURL(e.dataTransfer.files[0]);
     }
 });
+mDatPlaylistLoop.onclick = (e) => loopToggle.click();
+mDatPlaylistLoop.checked = mediaControls.loop;
 
 // picture-in-picture
 let pipWindow = null;

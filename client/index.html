@@ -126,7 +126,22 @@
                 <img id="mediaDataCoverArt" src="./assets/default-cover.png" title="Album cover (double-click to change)">
                 <input id="mediaDataTitle" type="text" placeholder="Title" autocomplete="off" spellcheck="false">
                 <input id="mediaDataSubtitle" type="text" placeholder="Artist - Album" autocomplete="off" spellcheck="false">
-                <div id="mediaDataPlaylist"></div>
+                <div id="mediaDataPlaylist">
+                    <div id="mediaDataPlaylistOptions">
+                        <input id="mediaDataPlaylistShuffleToggle" type="checkbox">
+                        <label id="mediaDataPlaylistShuffleLabel" for="mediaDataPlaylistShuffleToggle" title="Shuffle playlist"></label>
+                        <!-- dont play the same thing twice in a row -->
+                        <input id="mediaDataPlaylistLoopToggle" type="checkbox" checked>
+                        <label id="mediaDataPlaylistLoopLabel" for="mediaDataPlaylistLoopToggle" title="Loop song"></label>
+                        <!-- synced with other loop toggle -->
+                    </div>
+                    <div id="mediaDataPlaylistNextup"></div>
+                    <!-- show next up? auto scroll to top when hover ends -->
+                    <div id="mediaDataPlaylistItems">
+                        <!-- mini album cover that is also the play button, title, subtitle/artist -->
+                        <!-- default Unnamed? -->
+                    </div>
+                </div>
             </div>
             <label id="mediaDataTab" for="mediaDataTabCheckbox" title="Toggle media metadata"></label>
         </div>
@@ -147,7 +162,7 @@
                 <div>
                     <label class="toggle" title="Loop song">
                         <input type="checkbox" id="loopToggle" class="toggleInput" checked>
-                        <span class="toggleSlider"></span>
+                        <span id="loopToggleSlider" class="toggleSlider"></span>
                     </label>
                 </div>
             </div>
@@ -266,8 +281,10 @@
     </div>
     <template id="colorInputTemplate">
         <div class="colorInputContainer colorInputContainerHidden">
-            <input type="button" class="colorInputModeSolid" value="Solid">
-            <input type="button" class="colorInputModeGradient" value="Gradient">
+            <input type="button" class="colorInputModeSolid" value="Solid" title="Solid color">
+            <input type="button" class="colorInputModeGradient" value="Gradient" title="Gradient color">
+            <input type="button" class="colorInputCopy" title="Copy color value">
+            <input type="button" class="colorInputPaste" title="Paste color value">
             <div class="colorInputSolidContainer">
                 <input type="color" class="colorInputSolidColor colorBox" value="#ffffff">
             </div>

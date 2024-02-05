@@ -36,6 +36,7 @@ self.addEventListener('install', (e) => {
             './assets/volume.svg',
             './assets/play.svg',
             './assets/pause.svg',
+            './assets/shuffle.svg',
             './assets/loop.svg',
             './assets/picture-in-picture.svg',
             './assets/picture-in-picture-exit.svg',
@@ -48,6 +49,8 @@ self.addEventListener('install', (e) => {
             './assets/visualizer-text-tile.png',
             './assets/visualizer-image-tile.png',
             './assets/blank-tile.png',
+            './assets/copy.svg',
+            './assets/paste.svg',
             './assets/delete.svg',
             './assets/noise.png'
         ]);
@@ -66,16 +69,16 @@ let getCached = async (request, preloadResponse) => {
     try {
         const cache = await caches.open('page');
         try {
-            const networked = await fetch(request);
-            cache.put(request.url, networked.clone());
-            return networked;
-        } catch (err) {
+            const preloaded = await preloadResponse;
+            if (preloaded !== undefined) {
+                cache.put(request.url, preloaded.clone());
+                return preloaded;
+            }
+        } finally {
             try {
-                const preloaded = await preloadResponse;
-                if (preloaded !== undefined) {
-                    cache.put(request.url, preloaded.clone());
-                    return preloaded;
-                }
+                const networked = await fetch(request);
+                cache.put(request.url, networked.clone());
+                return networked;
             } finally {
                 const cached = await cache.match(request);
                 if (cached !== undefined) {
@@ -88,7 +91,6 @@ let getCached = async (request, preloadResponse) => {
             }
         }
     } catch (err) {
-        console.error(err);
         return new Response('cache error', {
             status: 502,
             headers: { "Content-Type": "text/plain" },
