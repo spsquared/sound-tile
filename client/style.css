@@ -1510,7 +1510,13 @@ input[type=button] {
     font-family: 'Source Code Pro', Courier, monospace;
     border: 4px solid white;
     background-color: black;
+    opacity: 0;
+    transition: 500ms linear opacity;
     z-index: 7;
+}
+#pipDisplayCover {
+    display: block;
+    pointer-events: none;
 }
 #uploadingCover {
     cursor: wait;

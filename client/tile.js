@@ -9,7 +9,7 @@ function setDefaultTileControls() {
     const backgroundColorSelect = this.tile.querySelector('.tileBackgroundColor');
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
-    this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
+    this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e), { passive: true });
     this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.addEventListener('input', (e) => {
@@ -267,7 +267,7 @@ class GroupTile {
         if (orientation) this.childBox.classList.add('tileGroupVertical');
         this.controls.dragBar = this.tile.querySelector('.tileDrag');
         this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
-        this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e));
+        this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e), { passive: true });
         this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');

@@ -68,33 +68,41 @@ self.addEventListener("activate", (e) => {
 let getCached = async (request, preloadResponse) => {
     try {
         const cache = await caches.open('page');
-        try {
-            const preloaded = await preloadResponse;
-            if (preloaded !== undefined) {
-                cache.put(request.url, preloaded.clone());
-                return preloaded;
-            }
-        } finally {
-            try {
-                const networked = await fetch(request);
-                cache.put(request.url, networked.clone());
-                return networked;
-            } finally {
-                const cached = await cache.match(request);
-                if (cached !== undefined) {
-                    return cached;
-                }
-                return new Response('not cached; timed out', {
-                    status: 408,
-                    headers: { "Content-Type": "text/plain" },
-                });
-            }
+        // serve from cache while also updating the cache if possible
+        const cached = await cache.match(request);
+        if (cached !== undefined) {
+            updateCache(cache, request, preloadResponse);
+            return cached;
+        } else {
+            return await updateCache(cache, request, preloadResponse);
         }
     } catch (err) {
         return new Response('cache error', {
             status: 502,
             headers: { "Content-Type": "text/plain" },
         });
+    }
+};
+let updateCache = async (cache, request, preloadResponse) => {
+    try {
+        const preloaded = await preloadResponse;
+        if (preloaded !== undefined && preloaded.ok) {
+            cache.put(request.url, preloaded.clone());
+            return preloaded;
+        }
+    } finally {
+        try {
+            const networked = await fetch(request);
+            if (networked.ok) {
+                cache.put(request.url, networked.clone());
+                return networked;
+            }
+        } finally {
+            return new Response('timed out', {
+                status: 408,
+                headers: { "Content-Type": "text/plain" },
+            });
+        }
     }
 };
 self.addEventListener("fetch", (e) => {

@@ -289,6 +289,7 @@ uploadButton.oninput = async (e) => {
         uploadButton.disabled = true;
         mDatTitle.disabled = true;
         mDatSubtitle.disabled = true;
+        uploadingCover.style.opacity = 1;
         uploadingCover.style.display = 'block';
         mediaControls.stopPlayback();
         const reader = new FileReader();
@@ -300,7 +301,8 @@ uploadButton.oninput = async (e) => {
                     modificationLock--;
                     downloadButton.disabled = false;
                     uploadButton.disabled = false;
-                    uploadingCover.style.display = '';
+                    uploadingCover.style.opacity = 0;
+                    setTimeout(() => uploadingCover.style.display = '', 500);
                     return;
                 }
                 if (tree.version > 0) {
@@ -397,7 +399,8 @@ uploadButton.oninput = async (e) => {
                 uploadButton.disabled = false;
                 mDatTitle.disabled = false;
                 mDatSubtitle.disabled = false;
-                uploadingCover.style.display = '';
+                uploadingCover.style.opacity = 0;
+                setTimeout(() => uploadingCover.style.display = '', 500);
             } catch (err) {
                 console.error(err);
                 modificationLock--;
@@ -406,7 +409,8 @@ uploadButton.oninput = async (e) => {
                 uploadButton.disabled = false;
                 mDatTitle.disabled = false;
                 mDatSubtitle.disabled = false;
-                uploadingCover.style.display = '';
+                uploadingCover.style.opacity = 0;
+                setTimeout(() => uploadingCover.style.display = '', 500);
                 modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
@@ -670,9 +674,10 @@ const mDatSubtitle = document.getElementById('mediaDataSubtitle');
 const mDatPlaylistShuffle = document.getElementById('mediaDataPlaylistShuffleToggle');
 const mDatPlaylistLoop = document.getElementById('mediaDataPlaylistLoopToggle');
 function updateTitle() {
-    if (mDatTitle.value.replaceAll(' ', '').length > 0) {
-        if (isPWA) title.innerText = `${mDatTitle.value.trim()}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim()}`;
-        else title.innerText = `Sound Tile - ${mDatTitle.value.trim()}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim()}`
+    if (mDatTitle.value.trim().length > 0) {
+        let text = `${mDatTitle.value.trim().substring(0, 32)}${mDatTitle.value.trim().length > 32 ? '...' : ''}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim().substring(0, 32)}${mDatSubtitle.value.trim().length > 32 ? '...' : ''}`;
+        if (isPWA) title.innerText = text;
+        else title.innerText = `Sound Tile - ${text}`
     } else title.innerText = 'Sound Tile';
 };
 mDatTitle.addEventListener('input', updateTitle);
@@ -750,7 +755,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 pipWindow = null;
                 displayWindow = window;
                 display.appendChild(GroupTile.root.tile);
-                pipDisplayCover.style.display = '';
+                pipDisplayCover.style.opacity = 0;
                 pipButton.checked = false;
                 let inefficientWait = setInterval(() => {
                     if ([...display.children].includes(GroupTile.root.tile)) {
@@ -786,7 +791,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 mediaControls.setTime(pipTimeSeekInput.value);
             };
             pipContainer.appendChild(GroupTile.root.tile);
-            pipDisplayCover.style.display = 'block';
+            pipDisplayCover.style.opacity = 1;
             pipWindow.addEventListener('resize', (e) => {
                 GroupTile.root.refresh();
             });
@@ -822,7 +827,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
         documentPictureInPicture.window.close();
         pipWindow = null;
         displayWindow = window;
-        pipDisplayCover.style.display = '';
+        pipDisplayCover.style.opacity = 0;
         pipButton.checked = false;
         let inefficientWait = setInterval(() => {
             if ([...display.children].includes(GroupTile.root.tile)) {
@@ -838,7 +843,7 @@ const tileSourceTemplate = document.getElementById('tileSourceTemplate');
 const tileSourceContainer = document.getElementById('tileSource');
 tileSourceContainer.addEventListener('wheel', (e) => {
     tileSourceContainer.scrollBy(e.deltaY, 0);
-});
+}, { passive: true });
 function createTileSource(tileClass, img, alt) {
     const source = tileSourceTemplate.content.cloneNode(true).children[0];
     source.querySelector('.tileSourceImg').src = img;
