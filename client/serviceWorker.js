@@ -2,7 +2,6 @@
 
 self.addEventListener('install', (e) => {
     e.waitUntil(new Promise(async (resolve, reject) => {
-        self.skipWaiting();
         const cache = await caches.open('page');
         await cache.addAll([
             '/',
@@ -14,7 +13,7 @@ self.addEventListener('install', (e) => {
             './fflate.min.js',
             './index.js',
             './tile.js',
-            './sound.js',
+            './sound.js', 
             './visualizerWorker.js',
             // './export.js',
             './controls.js',
@@ -60,7 +59,6 @@ self.addEventListener('install', (e) => {
 self.addEventListener("activate", (e) => {
     let activate = async () => {
         await Promise.all((await caches.keys()).filter((key) => key != 'page').map((key) => caches.delete(key)));
-        await self.clients.claim();
         await self.registration.navigationPreload?.enable();
     }
     e.waitUntil(activate());
@@ -71,7 +69,7 @@ let getCached = async (request, preloadResponse) => {
         // serve from cache while also updating the cache if possible
         const cached = await cache.match(request);
         if (cached !== undefined) {
-            updateCache(cache, request, preloadResponse);
+            updateCache(cache, request, undefined);
             return cached;
         } else {
             return await updateCache(cache, request, preloadResponse);
@@ -93,10 +91,8 @@ let updateCache = async (cache, request, preloadResponse) => {
     } finally {
         try {
             const networked = await fetch(request);
-            if (networked.ok) {
-                cache.put(request.url, networked.clone());
-                return networked;
-            }
+            if (networked.ok) cache.put(request.url, networked.clone());
+            return networked;
         } finally {
             return new Response('timed out', {
                 status: 408,

@@ -102,9 +102,7 @@
             }
         </style>
     </div>
-    <div id="display">
-
-    </div>
+    <div id="display"></div>
     <div id="colorInputMasterContainer"></div>
     <div id="pipDisplayCover">
         Picture-in-Picture
@@ -116,7 +114,7 @@
     <div id="dropdown">
         <img id="logo" src="./assets/logo.png" title="Sound Tile | Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0">
         <div id="fileControls">
-            <input type="file" id="uploadButton" accept=".soundtile">
+            <input type="file" id="uploadButton" accept=".soundtile" multiple>
             <label id="uploadButtonLabel" for="uploadButton" title="Upload Tiles from computer"></label>
             <input type="button" id="downloadButton" title="Download current Tiles to computer">
         </div>
@@ -141,6 +139,7 @@
                         <!-- mini album cover that is also the play button, title, subtitle/artist -->
                         <!-- default Unnamed? -->
                     </div>
+                    <!-- <input id="mediaDataPlaylistAddButton" type="button" value="+" title="Upload more Tiles to add to playlist"> -->
                 </div>
             </div>
             <label id="mediaDataTab" for="mediaDataTabCheckbox" title="Toggle media metadata"></label>
@@ -724,7 +723,8 @@
                 <option value="3">Freq (1x Fill)</option>
                 <option value="5">Freq (2x Fill)</option>
                 <option value="8">Freq (Lumi)</option>
-                <option value="4">Wave (Line)</option>
+                <option value="4">Wave (Direct)</option>
+                <option value="9">Wave (Corr)</option>
             </select>
             <label title="FFT Size (higher = more resolution)">
                 FFT:
@@ -785,15 +785,29 @@
                         <option value="2">Freq. High</option>
                     </select>
                 </label>
-                <label title="Smoothing factor (Blackman window)">
+                <label title="Smoothing factor (Blackman window weight)">
                     Smoothing:
                     <input class="tileVisualizerFrequencySmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.8">
                 </label>
             </span>
-            <span class="tileVisualizerWaveformOptions" title="Vertical scale of waveform">
-                <label>
+            <span class="tileVisualizerWaveformOptions">
+                <label title="Vertical scale of waveform">
                     Scale:
                     <input class="tileVisualizerWaveformScale numberBox" type="number" min="0.1" max="10" step="0.1" value="1">
+                </label>
+            </span>
+            <span class="tileVisualizerCorrWaveOptions">
+                <label title="Number of sample points for gradient descent">
+                    Samples:
+                    <input class="tileVisualizerCorrWaveSamples numberBox" type="number" min="1" max="32" step="1" value="4">
+                </label>
+                <label title="How aggressive the gradient descent should be">
+                    Speed:
+                    <input class="tileVisualizerCorrWaveWeight numberBox" type="number" min="0.1" max="2" step="0.1" value="0.5">
+                </label>
+                <label title="Smoothing factor">
+                    Smoothing:
+                    <input class="tileVisualizerCorrWaveSmoothing numberBox" type="number" min="0" max="1" step="0.1" value="0.5">
                 </label>
             </span>
             <label title="Flip in x-direction">

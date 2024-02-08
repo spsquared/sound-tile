@@ -46,12 +46,20 @@ class Visualizer {
     symmetry = 0;
     scale = 1;
     lineWidth = 2;
+    corrSamples = 4;
+    corrWeight = 0.5;
+    corrSmoothing = 0.5;
     flippedX = false;
     flippedY = false;
     rotated = false;
     ready = false;
     drawing = false;
     loadPromise = new Promise(() => { });
+    /**
+     * @param {ArrayBuffer} arrbuf 
+     * @param {HTMLCanvasElement} canvas 
+     * @param {Function | undefined} oncreate 
+     */
     constructor(arrbuf, canvas, oncreate) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
@@ -112,12 +120,12 @@ class Visualizer {
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
                 else VisualizerWorker.draw.call(this, null);
-            } else if (this.mode <= 3 || this.mode == 5 || this.mode >= 7) {
+            } else if (this.mode <= 3 || this.mode == 5 || this.mode == 7 || this.mode == 8) {
                 const data = new Uint8Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getByteFrequencyData(data);
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
                 else VisualizerWorker.draw.call(this, data);
-            } else if (this.mode == 4) {
+            } else if (this.mode == 4 || this.mode == 9) {
                 const data = new Float32Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getFloatTimeDomainData(data);
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
@@ -157,6 +165,9 @@ class Visualizer {
             symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
+            corrSamples: this.corrSamples,
+            corrWeight: this.corrWeight,
+            corrSmoothing: this.corrSmoothing,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated
@@ -181,10 +192,10 @@ class Visualizer {
     get color2() {
         return this.#color2;
     }
-    set smoothingTimeConstant(c) {
+    set smoothing(c) {
         this.analyzer.smoothingTimeConstant = Math.max(0, Math.min(1, c));
     }
-    get smoothingTimeConstant() {
+    get smoothing() {
         return this.analyzer.smoothingTimeConstant;
     }
     set fftSize(size) {
@@ -221,6 +232,9 @@ class Visualizer {
             symmetry: this.symmetry,
             scale: this.scale,
             lineWidth: this.lineWidth,
+            corrSamples: this.corrSamples,
+            corrWeight: this.corrWeight,
+            corrSmoothing: this.corrSmoothing,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated,
@@ -255,6 +269,9 @@ class Visualizer {
         visualizer.symmetry = data.symmetry ?? 0;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
+        visualizer.corrSamples = data.corrSamples ?? 4;
+        visualizer.corrWeight = data.corrWeight ?? 0.5;
+        visualizer.corrSmoothing = data.corrSmoothing ?? 0.5;
         visualizer.flippedX = data.flippedX ?? false;
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;
@@ -305,13 +322,23 @@ class ChannelPeakVisualizer extends Visualizer {
     analyzers = [];
     smoothing = 0.5;
 
+    /**
+     * @param {ArrayBuffer} arrbuf 
+     * @param {HTMLCanvasElement} canvas 
+     * @param {Function | undefined} oncreate 
+     */
     constructor(arrbuf, canvas, oncreate) {
         super(arrbuf, canvas, oncreate);
         this.mode = 6;
+        delete this.color2;
+        delete this.fillAlpha;
         delete this.barCrop;
+        delete this.symmetry;
         delete this.scale;
         delete this.lineWidth;
-        delete this.smoothingTimeConstant;
+        delete this.corrSamples;
+        delete this.corrWeight;
+        delete this.corrSmoothing;
         this.analyzer.disconnect();
         delete this.analyzer;
         this.channelCount = 2;
@@ -380,8 +407,8 @@ class ChannelPeakVisualizer extends Visualizer {
     }
     set fftSize(size) { }
     get fftSize() { }
-    set smoothingTimeConstant(c) { }
-    get smoothingTimeConstant() { }
+    set smoothing(c) { }
+    get smoothing() { }
     set muteOutput(mute) {
         if (mute) this.gain.disconnect(globalVolume);
         else this.gain.connect(globalVolume);

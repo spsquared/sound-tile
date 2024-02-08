@@ -282,6 +282,74 @@ const uploadButtonLabel = document.getElementById('uploadButtonLabel');
 const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
 const uploadingCover = document.getElementById('uploadingCover');
+async function compressTree(tree) {
+    let promises = []
+    let curr;
+    let stack = [tree];
+    while (stack.length) {
+        curr = stack.pop();
+        if (curr.children !== undefined) {
+            for (let child of curr.children) stack.push(child);
+            continue;
+        }
+        if (curr.visualizer != null) {
+            let visualizer = curr.visualizer;
+            if (Worker !== undefined) {
+                promises.push(new Promise((resolve, reject) => {
+                    fflate.gzip(new Uint8Array(visualizer.buffer), {
+                        level: 4
+                    }, (err, data) => {
+                        if (err) throw err;
+                        visualizer.buffer = data.buffer;
+                        resolve();
+                    });
+                }));
+            } else {
+                visualizer.buffer = fflag.gzipSync(new Uint8Array(visualizer.buffer), { level: 4 }).buffer;
+            }
+        }
+    }
+    await Promise.all(promises);
+    return tree;
+};
+async function decompressTree(file) {
+    const tree = msgpack.decode(new Uint8Array(file));
+    if (tree.version > 1) {
+        modal('Unsupported version!', `The uploaded Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
+        return;
+    }
+    if (tree.version > 0) {
+        // decompress audio
+        let promises = [];
+        let curr;
+        let stack = [tree.root];
+        while (stack.length) {
+            curr = stack.pop();
+            if (curr.children !== undefined) {
+                for (let child of curr.children) stack.push(child);
+                continue;
+            }
+            if (curr.visualizer != null) {
+                let visualizer = curr.visualizer;
+                if (Worker !== undefined) {
+                    promises.push(new Promise((resolve, reject) => {
+                        fflate.decompress(new Uint8Array(visualizer.buffer), {
+                            consume: true
+                        }, (err, data) => {
+                            if (err) throw err;
+                            visualizer.buffer = data.buffer;
+                            resolve();
+                        });
+                    }));
+                } else {
+                    visualizer.buffer = fflate.decompressSync(new Uint8Array(visualizer.buffer)).buffer;
+                }
+            }
+        }
+        await Promise.all(promises);
+    }
+    return tree;
+};
 uploadButton.oninput = async (e) => {
     if (!uploadButton.disabled && modificationLock == 0 && uploadButton.files.length > 0 && uploadButton.files[0].name.endsWith('.soundtile')) {
         modificationLock++;
@@ -292,48 +360,19 @@ uploadButton.oninput = async (e) => {
         uploadingCover.style.opacity = 1;
         uploadingCover.style.display = 'block';
         mediaControls.stopPlayback();
+        // clear playlist
+        // assign rest of files in upload list to playlist
         const reader = new FileReader();
         reader.onload = async (e) => {
             try {
-                const tree = msgpack.decode(new Uint8Array(reader.result));
-                if (tree.version > 1) {
-                    modal('Unsupported version!', `The uploaded Tile version (${tree.version} )is newer than the current Sound Tile Version (1)!<br>Try again on a newer version.`);
+                const tree = await decompressTree(reader.result);
+                if (tree == undefined) {
                     modificationLock--;
                     downloadButton.disabled = false;
                     uploadButton.disabled = false;
                     uploadingCover.style.opacity = 0;
                     setTimeout(() => uploadingCover.style.display = '', 500);
                     return;
-                }
-                if (tree.version > 0) {
-                    // decompress audio
-                    let promises = [];
-                    let curr;
-                    let stack = [tree.root];
-                    while (stack.length) {
-                        curr = stack.pop();
-                        if (curr.children !== undefined) {
-                            for (let child of curr.children) stack.push(child);
-                            continue;
-                        }
-                        if (curr.visualizer != null) {
-                            let visualizer = curr.visualizer;
-                            if (Worker !== undefined) {
-                                promises.push(new Promise((resolve, reject) => {
-                                    fflate.decompress(new Uint8Array(visualizer.buffer), {
-                                        consume: true
-                                    }, (err, data) => {
-                                        if (err) throw err;
-                                        visualizer.buffer = data.buffer;
-                                        resolve();
-                                    });
-                                }));
-                            } else {
-                                visualizer.buffer = fflate.decompressSync(new Uint8Array(visualizer.buffer)).buffer;
-                            }
-                        }
-                    }
-                    await Promise.all(promises);
                 }
                 // jank
                 for (let child of GroupTile.root.children) {
@@ -455,33 +494,7 @@ downloadButton.onclick = async (e) => {
                 subtitle: mDatSubtitle.value
             }
         };
-        let promises = []
-        let curr;
-        let stack = [tree.root];
-        while (stack.length) {
-            curr = stack.pop();
-            if (curr.children !== undefined) {
-                for (let child of curr.children) stack.push(child);
-                continue;
-            }
-            if (curr.visualizer != null) {
-                let visualizer = curr.visualizer;
-                if (Worker !== undefined) {
-                    promises.push(new Promise((resolve, reject) => {
-                        fflate.gzip(new Uint8Array(visualizer.buffer), {
-                            level: 4
-                        }, (err, data) => {
-                            if (err) throw err;
-                            visualizer.buffer = data.buffer;
-                            resolve();
-                        });
-                    }));
-                } else {
-                    visualizer.buffer = fflag.gzipSync(new Uint8Array(visualizer.buffer), { level: 4 }).buffer;
-                }
-            }
-        }
-        await Promise.all(promises);
+        await compressTree(tree.root);
         const download = document.createElement('a');
         let current = new Date();
         download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
@@ -530,6 +543,12 @@ window.launchQueue?.setConsumer((params) => {
         });
     }
 });
+
+// playlists
+// store in weird limbo state where the tree is decompressed
+// send to service worker to store as temp file?
+// hook unload event to tell service worker to remove temp files
+// probably should fix big lag caused by forced reflow
 
 // volume
 const volumeControlInput = document.getElementById('volume');
@@ -850,7 +869,7 @@ function createTileSource(tileClass, img, alt) {
     source.querySelector('.tileSourceImg').alt = alt;
     source.querySelector('.tileSourcePopup').innerText = alt;
     source.addEventListener('mousedown', (e) => {
-        if (drag.dragging || e.button != 0) return;
+        if (pipWindow != null || drag.dragging || e.button != 0) return;
         const tile = new tileClass();
         drag.tile = tile;
         const rect = source.getBoundingClientRect();

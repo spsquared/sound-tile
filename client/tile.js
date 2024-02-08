@@ -48,9 +48,12 @@ function setVisualizerControls() {
             this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
             this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
             this.visualizer.symmetry = Number(visualizerSymmetry.value);
-            this.visualizer.smoothingTimeConstant = Number(visualizerSmoothing.value);
+            this.visualizer.smoothing = Number(visualizerSmoothing.value);
             this.visualizer.scale = Number(visualizerWaveformScale.value);
             this.visualizer.lineWidth = Number(visualizerLineWidth.value);
+            this.visualizer.corrSamples = Number(visualizerCorrWaveSamples.value);
+            this.visualizer.corrWeight = Number(visualizerCorrWaveWeight.value);
+            this.visualizer.corrSmoothing = Number(visualizerCorrWaveSmoothing.value);
             this.visualizer.flippedX = visualizerFlip.checked;
             this.visualizer.flippedY = visualizerFlip2.checked;
             this.visualizer.rotated = visualizerRotate.checked;
@@ -88,26 +91,24 @@ function setVisualizerControls() {
     const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
+    const visualizerCorrWaveOptions = this.tile.querySelector('.tileVisualizerCorrWaveOptions');
     visualizerMode.addEventListener('input', (e) => {
         let mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
-        if (mode <= 3 || mode == 5 || mode >= 7) {
-            visualizerFrequencyOptions.classList.remove('hidden');
-            visualizerWaveformOptions.classList.add('hidden');
-        } else {
-            visualizerFrequencyOptions.classList.add('hidden');
-            visualizerWaveformOptions.classList.remove('hidden');
-        }
-        if (mode < 2 || mode == 8) {
-            visualizerBarOptions.classList.remove('hidden');
-            visualizerLineOptions.classList.add('hidden');
-        } else {
-            visualizerBarOptions.classList.add('hidden');
-            visualizerLineOptions.classList.remove('hidden');
-        }
+        visualizerFrequencyOptions.classList.add('hidden');
+        visualizerWaveformOptions.classList.add('hidden');
+        visualizerBarOptions.classList.add('hidden');
+        visualizerLineOptions.classList.add('hidden');
+        visualizerCorrWaveOptions.classList.add('hidden');
+        if (mode <= 3 || mode == 5 || mode == 7 || mode == 8) visualizerFrequencyOptions.classList.remove('hidden');
+        else visualizerWaveformOptions.classList.remove('hidden');
+        if (mode < 2 || mode == 8) visualizerBarOptions.classList.remove('hidden');
+        else visualizerLineOptions.classList.remove('hidden');
+        if (mode == 9) visualizerCorrWaveOptions.classList.remove('hidden');
     });
     visualizerWaveformOptions.classList.add('hidden');
     visualizerLineOptions.classList.add('hidden');
+    visualizerCorrWaveOptions.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     visualizerFFTSize.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.fftSize = Number(visualizerFFTSize.value);
@@ -141,8 +142,10 @@ function setVisualizerControls() {
     const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
     const visualizerFrequencyCropDisplay = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay');
     visualizerFrequencyCrop.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
-        visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * this.visualizer.barCrop;
+        if (this.visualizer !== null) {
+            this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100
+            visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * this.visualizer.barCrop;
+        }
     });
     const visualizerVolumeCrop = this.tile.querySelector('.tileVisualizerFrequencyVolumeCrop');
     visualizerVolumeCrop.addEventListener('input', (e) => {
@@ -154,12 +157,25 @@ function setVisualizerControls() {
     });
     const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
     visualizerSmoothing.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.smoothingTimeConstant = Number(visualizerSmoothing.value);
+        if (this.visualizer !== null) this.visualizer.smoothing = Number(visualizerSmoothing.value);
     });
     // waveform mode options
     const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
     visualizerWaveformScale.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.scale = Number(visualizerWaveformScale.value);
+    });
+    // correlation waveform mode options
+    const visualizerCorrWaveSamples = this.tile.querySelector('.tileVisualizerCorrWaveSamples');
+    visualizerCorrWaveSamples.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.corrSamples = Number(visualizerCorrWaveSamples.value);
+    });
+    const visualizerCorrWaveWeight = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
+    visualizerCorrWaveWeight.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.corrWeight = Number(visualizerCorrWaveWeight.value);
+    });
+    const visualizerCorrWaveSmoothing = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
+    visualizerCorrWaveSmoothing.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.corrSmoothing = Number(visualizerCorrWaveSmoothing.value);
     });
     // more visualizer options
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
@@ -210,18 +226,16 @@ function applyVisualizerControls(tile, data) {
     }
     tile.tile.querySelector('.tileVisualizerFillAlpha').value = (data.visualizer.fillAlpha ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode >= 7) {
-        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
-    } else {
-        tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
-        tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
-    }
-    if (data.visualizer.mode < 2 || data.visualizer.mode == 8) {
-        tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
-    } else {
-        tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
-        tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
-    }
+    tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.add('hidden');
+    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.remove('hidden');
+    else tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
+    if (data.visualizer.mode < 2 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerBarOptions').classList.remove('hidden');
+    else tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
+    if (data.visualizer.mode == 9) tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.remove('hidden');
     tile.tile.querySelector('.tileVisualizerFrequencySmoothing').value = data.visualizer.smoothing ?? 0.8;
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
@@ -234,6 +248,9 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerFrequencySymmetry').value = data.visualizer.symmetry ?? 0;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
+    tile.tile.querySelector('.tileVisualizerCorrWaveSamples').value = data.visualizer.corrSamples ?? 4;
+    tile.tile.querySelector('.tileVisualizerCorrWaveWeight').value = data.visualizer.corrWeight ?? 0.5;
+    tile.tile.querySelector('.tileVisualizerCorrWaveSmoothing').value = data.visualizer.corrSmoothing ?? 0.5;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
@@ -543,6 +560,7 @@ class VisualizerImageTile {
         if (data.image !== '') {
             tile.img.src = data.image;
             tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
+            tile.tile.querySelector('.tileImgReplaceLabelText').innerText = 'Change Image';
         }
         if (data.imageBackground) tile.tile.querySelector('.tileImgBackdrop').click();
         if (data.smoothing === false) tile.tile.querySelector('.tileImgSmoothing').click();
@@ -1131,7 +1149,7 @@ const drag = {
     dragging: false
 };
 function startDrag(e) {
-    if (modificationLock > 0 || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
+    if (modificationLock > 0 || pipWindow != null || drag.dragging || this.parent === null || e.target.matches('.tileRemove') || e.button != 0 || (GroupTile.root.children.length == 1 && GroupTile.root.children[0] == this)) return;
     drag.tile = this;
     drag.from.tile = this.parent;
     drag.from.index = this.parent.getChildIndex(this);
@@ -1151,7 +1169,7 @@ function startDrag(e) {
     drag.dragging = true;
     drag.drop.tile = null;
 };
-let onDragMove = (e) => {
+function onDragMove(e) {
     if (drag.dragging) {
         if (e instanceof TouchEvent) e = e.touches[0];
         drag.scrollDir.x = 0;
@@ -1307,7 +1325,7 @@ let onDragMove = (e) => {
         // }
     }
 };
-let onDragEnd = (e) => {
+function onDragEnd(e) {
     if (drag.dragging && drag.drop.tile !== null) {
         if (drag.drop.createGroup) {
             const newGroup = new GroupTile(drag.drop.groupOrientation);

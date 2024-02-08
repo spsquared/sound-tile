@@ -41,6 +41,9 @@ class VisualizerWorker {
         }
     }
 
+    /**
+     * @param {Uint8Array | Float32Array} data 
+     */
     static draw(data) {
         let width = this.canvas.width;
         let height = this.canvas.height;
@@ -60,6 +63,7 @@ class VisualizerWorker {
         }
         if (VisualizerWorker.#persistentData.get(this.persistenceId) === undefined) VisualizerWorker.#persistentData.set(this.persistenceId, {});
         const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
+        if (this.mode != 9) persistentData.lastWaveform = null;
         // it's-a spaghetti time!
         if (data === null) { // Loading spinner
             this.ctx.fillStyle = 'white';
@@ -85,20 +89,20 @@ class VisualizerWorker {
                 default:
                 case 0:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
                         this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
                     }
                     break;
                 case 1:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
                         this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
                         this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, height, barWidth, -barHeight);
                     }
                     break;
                 case 2:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
                         this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
                         this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
                     }
@@ -124,20 +128,20 @@ class VisualizerWorker {
                 default:
                 case 0:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
                         this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
                     break;
                 case 1:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
                         this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                         this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
                     break;
                 case 2:
                     for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale;
+                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
                         this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                         this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
                     }
@@ -375,7 +379,7 @@ class VisualizerWorker {
                     this.ctx.fillRect(0, i, width, blockHeight);
                 }
             }
-        } else if (this.mode == 4) { // Waveform
+        } else if (this.mode == 4) { // Direct waveform
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
             this.ctx.lineWidth = this.lineWidth;
             this.ctx.lineJoin = 'round';
@@ -386,6 +390,54 @@ class VisualizerWorker {
             this.ctx.moveTo(0, data[0] * yScale + yOffset);
             for (let i = 1; i < data.length; i++) {
                 this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
+            }
+            this.ctx.stroke();
+        } else if (this.mode == 9) { // Correlated waveform
+            if (persistentData.lastWaveform == undefined || persistentData.lastWaveform.length != data.length) persistentData.lastWaveform = new Float32Array(data);
+            // find lowest error by subtracting shifted window of buffer from smoothed temporal data
+            let windowSize = data.length / 2;
+            let samples = Math.min(windowSize, this.corrSamples);
+            let centerOffset = Math.floor((data.length - windowSize) / 2);
+            let lowestError = Infinity;
+            let bestShift = 0;
+            let lastShift = Infinity;
+            for (let i = 0; i < samples; i++) {
+                let shift = Math.round(windowSize * i / (samples - 1));
+                if (samples == 1) shift = centerOffset;
+                if (shift == lastShift) continue;
+                lastShift = shift;
+                let error = 0;
+                for (let j = 0; j < windowSize; j++) {
+                    error += Math.abs(persistentData.lastWaveform[centerOffset + j] - data[shift + j]);
+                }
+                console.log(persistentData.lastWaveform[centerOffset], persistentData.lastWaveform[centerOffset + windowSize - 1], data[shift], data[shift + windowSize - 1])
+                if (error < lowestError) {
+                    lowestError = error;
+                    bestShift = shift;
+                }
+                // gradient descent to reduce jitter without lots of laggy sampling
+
+                // maybe test without gradient descent first and then add later ot see performance without it
+                // make sure to not go out of bounds when doing gradient descent (if edge of buffer is reached stop the gradient descent)
+            }
+            let copyMin = Math.max(0, bestShift - centerOffset);
+            let copyMax = Math.min(data.length, data.length - centerOffset + bestShift);
+            let copyOffset = centerOffset - bestShift;
+            let corrSmoothing2 = 1 - this.corrSmoothing;
+            for (let i = copyMin; i < copyMax; i++) {
+                persistentData.lastWaveform[copyOffset + i] = this.corrSmoothing * persistentData.lastWaveform[copyOffset + i] + corrSmoothing2 * data[i];
+            }
+            // draw only the window portion
+            VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
+            this.ctx.lineWidth = this.lineWidth;
+            this.ctx.lineJoin = 'round';
+            let xStep = width / (windowSize - 1);
+            let yOffset = height / 2;
+            let yScale = this.scale * 128;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, data[bestShift] * yScale + yOffset);
+            for (let i = 0; i < windowSize; i++) {
+                this.ctx.lineTo(i * xStep, data[bestShift + i] * yScale + yOffset);
             }
             this.ctx.stroke();
         } else if (this.mode == 6) { // Channel peak
