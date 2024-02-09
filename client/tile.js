@@ -248,9 +248,9 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerFrequencySymmetry').value = data.visualizer.symmetry ?? 0;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
-    tile.tile.querySelector('.tileVisualizerCorrWaveSamples').value = data.visualizer.corrSamples ?? 4;
+    tile.tile.querySelector('.tileVisualizerCorrWaveSamples').value = data.visualizer.corrSamples ?? 32;
     tile.tile.querySelector('.tileVisualizerCorrWaveWeight').value = data.visualizer.corrWeight ?? 0.5;
-    tile.tile.querySelector('.tileVisualizerCorrWaveSmoothing').value = data.visualizer.corrSmoothing ?? 0.5;
+    tile.tile.querySelector('.tileVisualizerCorrWaveSmoothing').value = data.visualizer.corrSmoothing ?? 0.9;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();

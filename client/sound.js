@@ -46,9 +46,9 @@ class Visualizer {
     symmetry = 0;
     scale = 1;
     lineWidth = 2;
-    corrSamples = 4;
+    corrSamples = 32;
     corrWeight = 0.5;
-    corrSmoothing = 0.5;
+    corrSmoothing = 0.9;
     flippedX = false;
     flippedY = false;
     rotated = false;
@@ -131,7 +131,7 @@ class Visualizer {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
                 else VisualizerWorker.draw.call(this, data);
             } else {
-                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, []]);
+                if (this.worker !== null) this.worker.postMessage([0, this.#workerData, new Uint8Array()]);
                 else VisualizerWorker.draw.call(this, null);
             }
             if (this.worker === null) this.drawing = false;
@@ -269,9 +269,9 @@ class Visualizer {
         visualizer.symmetry = data.symmetry ?? 0;
         visualizer.scale = data.scale;
         visualizer.lineWidth = data.lineWidth;
-        visualizer.corrSamples = data.corrSamples ?? 4;
+        visualizer.corrSamples = data.corrSamples ?? 32;
         visualizer.corrWeight = data.corrWeight ?? 0.5;
-        visualizer.corrSmoothing = data.corrSmoothing ?? 0.5;
+        visualizer.corrSmoothing = data.corrSmoothing ?? 0.9;
         visualizer.flippedX = data.flippedX ?? false;
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;

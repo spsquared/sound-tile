@@ -393,39 +393,49 @@ class VisualizerWorker {
             }
             this.ctx.stroke();
         } else if (this.mode == 9) { // Correlated waveform
-            if (persistentData.lastWaveform == undefined || persistentData.lastWaveform.length != data.length) persistentData.lastWaveform = new Float32Array(data);
             // find lowest error by subtracting shifted window of buffer from smoothed temporal data
             let windowSize = data.length / 2;
+            if (persistentData.lastWaveform == undefined || persistentData.lastWaveform.length != windowSize) persistentData.lastWaveform = new Float32Array(data.slice(Math.floor((data.length - windowSize) / 2), data.length - windowSize / 2));
             let samples = Math.min(windowSize, this.corrSamples);
-            let centerOffset = Math.floor((data.length - windowSize) / 2);
             let lowestError = Infinity;
             let bestShift = 0;
             let lastShift = Infinity;
             for (let i = 0; i < samples; i++) {
                 let shift = Math.round(windowSize * i / (samples - 1));
-                if (samples == 1) shift = centerOffset;
+                if (samples == 1) shift = Math.floor((data.length - windowSize) / 2);
                 if (shift == lastShift) continue;
                 lastShift = shift;
                 let error = 0;
                 for (let j = 0; j < windowSize; j++) {
-                    error += Math.abs(persistentData.lastWaveform[centerOffset + j] - data[shift + j]);
+                    error += Math.abs(persistentData.lastWaveform[j] - data[shift + j]);
                 }
-                console.log(persistentData.lastWaveform[centerOffset], persistentData.lastWaveform[centerOffset + windowSize - 1], data[shift], data[shift + windowSize - 1])
                 if (error < lowestError) {
                     lowestError = error;
                     bestShift = shift;
                 }
-                // gradient descent to reduce jitter without lots of laggy sampling
-
-                // maybe test without gradient descent first and then add later ot see performance without it
-                // make sure to not go out of bounds when doing gradient descent (if edge of buffer is reached stop the gradient descent)
             }
-            let copyMin = Math.max(0, bestShift - centerOffset);
-            let copyMax = Math.min(data.length, data.length - centerOffset + bestShift);
-            let copyOffset = centerOffset - bestShift;
-            let corrSmoothing2 = 1 - this.corrSmoothing;
-            for (let i = copyMin; i < copyMax; i++) {
-                persistentData.lastWaveform[copyOffset + i] = this.corrSmoothing * persistentData.lastWaveform[copyOffset + i] + corrSmoothing2 * data[i];
+            // do gradient descent on the lowest error to reduce it even more
+            for (let i = 0; i < 16; i++) {
+                let adjError = 0;
+                if (bestShift == windowSize) {
+                    for (let j = 0; j < windowSize; j++) {
+                        adjError -= Math.abs(persistentData.lastWaveform[j] - data[bestShift - 1 + j]);
+                    }
+                } else {
+                    for (let j = 0; j < windowSize; j++) {
+                        adjError += Math.abs(persistentData.lastWaveform[j] - data[bestShift + 1 + j]);
+                    }
+                }
+                if (Math.abs(lowestError - adjError) < 0.01) break;
+                bestShift = Math.min(windowSize, Math.max(0, bestShift + Math.ceil(Math.abs((lowestError - adjError) * this.corrWeight * (1 - i / 16))) * Math.sign(lowestError - adjError)));
+                lowestError = 0;
+                for (let j = 0; j < windowSize; j++) {
+                    lowestError += Math.abs(persistentData.lastWaveform[j] - data[bestShift + j]);
+                }
+            }
+            // average the shifted buffer with previous buffer
+            for (let i = 0; i < windowSize; i++) {
+                persistentData.lastWaveform[i] = this.corrSmoothing * persistentData.lastWaveform[i] + (1 - this.corrSmoothing) * data[bestShift + i];
             }
             // draw only the window portion
             VisualizerWorker.setColor.call(this, this.color, 'strokeStyle', 0);
@@ -440,6 +450,12 @@ class VisualizerWorker {
                 this.ctx.lineTo(i * xStep, data[bestShift + i] * yScale + yOffset);
             }
             this.ctx.stroke();
+        } else if (this.mode == 10) { // Spectrogram
+            this.ctx.fillStyle = 'white';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.font = '40px Arial';
+            this.ctx.fillText('lol nope', width / 2, height / 2);
         } else if (this.mode == 6) { // Channel peak
             persistentData.lastFrames = persistentData.lastFrames ?? [];
             let peaks = [];
@@ -477,9 +493,8 @@ class VisualizerWorker {
             this.ctx.fillStyle = 'red';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
-            this.ctx.font = '16px Arial';
+            this.ctx.font = '20px Arial';
             this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
-            this.ctx.clearRect(0, 0, width, height);
         }
         persistentData.lastMode = this.mode;
     }
