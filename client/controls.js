@@ -145,6 +145,9 @@ class ColorInput {
             this.#oninput();
             this.#refreshBadge();
         });
+        offset.addEventListener('blur', (e) => {
+            if (Number(offset.value) < 0 || Number(offset.value) > 100) offset.value = Math.max(0, Math.min(100, Number(offset.value)));
+        });
         const color = document.createElement('input');
         color.classList.add('colorInputGradientStopColor');
         color.type = 'color';

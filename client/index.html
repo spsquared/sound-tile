@@ -725,6 +725,7 @@
                 <option value="8">Freq (Lumi)</option>
                 <option value="4">Wave (Direct)</option>
                 <option value="9">Wave (Corr)</option>
+                <option value="10">Spectrogram</option>
             </select>
             <label title="FFT Size (higher = more resolution)">
                 FFT:
@@ -777,6 +778,10 @@
                     Vol scale:
                     <input class="tileVisualizerFrequencyVolumeCrop numberBox" type="number" min="25" max="300" step="25" value="100">%
                 </label>
+                <label title="Minimum decibel value of a frequency to be shown in visualizer">
+                    Min thresh:
+                    <input class="tileVisualizerFrequencyMinDB numberBox" type="number" min="-100" max="-16" step="5" value="-100">dB
+                </label>
                 <label title="Symmetry to follow when drawing">
                     Symmetry:
                     <select class="tileVisualizerFrequencySymmetry selectBox">
@@ -808,6 +813,16 @@
                 <label title="Smoothing factor">
                     Smoothing:
                     <input class="tileVisualizerCorrWaveSmoothing numberBox" type="number" min="0.5" max="1" step="0.02" value="0.9">
+                </label>
+            </span>
+            <span class="tileVisualizerSpectrogramOptions">
+                <label title="Number of frames to keep in history">
+                    History:
+                    <input class="tileVisualizerSpectrogramHistory numberBox" type="number" min="30" max="600" step="1" value="300">
+                </label>
+                <label title="Discrete (non-continuous) levels of intensity - can increase performance with gradients. Setting this to less than 2 will disable it. Too high of a value may result in worse performance.">
+                    Discrete:
+                    <input class="tileVisualizerSpectrogramDiscreteValues numberBox" type="number" min="0" max="64" step="1" value="0">
                 </label>
             </span>
             <label title="Flip in x-direction">

@@ -49,6 +49,8 @@ class Visualizer {
     corrSamples = 32;
     corrWeight = 0.5;
     corrSmoothing = 0.9;
+    spectHistoryLength = 120;
+    spectDiscreteVals = 0;
     flippedX = false;
     flippedY = false;
     rotated = false;
@@ -92,6 +94,7 @@ class Visualizer {
         });
         this.analyzer.connect(globalVolume);
         this.analyzer.fftSize = 512;
+        this.analyzer.maxDecibels = -15;
         this.gain.connect(this.analyzer);
         Visualizer.#list.add(this);
     }
@@ -120,7 +123,7 @@ class Visualizer {
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
                 else VisualizerWorker.draw.call(this, null);
-            } else if (this.mode <= 3 || this.mode == 5 || this.mode == 7 || this.mode == 8) {
+            } else if (this.mode <= 3 || this.mode == 5 || this.mode == 7 || this.mode == 8 || this.mode == 10) {
                 const data = new Uint8Array(this.analyzer.frequencyBinCount);
                 this.analyzer.getByteFrequencyData(data);
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, data], [data.buffer]);
@@ -168,16 +171,49 @@ class Visualizer {
             corrSamples: this.corrSamples,
             corrWeight: this.corrWeight,
             corrSmoothing: this.corrSmoothing,
+            spectHistoryLength: this.spectHistoryLength,
+            spectDiscreteVals: this.spectDiscreteVals,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
-            rotated: this.rotated
+            rotated: this.rotated,
+            playing: this.playing
         };
     }
 
     get persistenceId() {
         return this.#persistenceId;
     }
+    get playing() {
+        return audioContext.state == 'running';
+    }
 
+    set fftSize(size) {
+        this.analyzer.fftSize = size;
+    }
+    get fftSize() {
+        return this.analyzer.fftSize;
+    }
+    set barMinDecibels(db) {
+        this.analyzer.minDecibels = Math.min(db, -16);
+    }
+    get barMinDecibels() {
+        return this.analyzer.minDecibels;
+    }
+    set smoothing(c) {
+        this.analyzer.smoothingTimeConstant = Math.max(0, Math.min(1, c));
+    }
+    get smoothing() {
+        return this.analyzer.smoothingTimeConstant;
+    }
+    set spectHistoryLength(len) {
+        this.spectHistoryLength = Math.max(1, len);
+    }
+    set volume(v) {
+        this.gain.gain.setValueAtTime(v, audioContext.currentTime);
+    }
+    get volume() {
+        return this.gain.gain.value;
+    }
     set color(c) {
         this.#color = c;
         this.colorChanged = true;
@@ -191,24 +227,6 @@ class Visualizer {
     }
     get color2() {
         return this.#color2;
-    }
-    set smoothing(c) {
-        this.analyzer.smoothingTimeConstant = Math.max(0, Math.min(1, c));
-    }
-    get smoothing() {
-        return this.analyzer.smoothingTimeConstant;
-    }
-    set fftSize(size) {
-        this.analyzer.fftSize = size;
-    }
-    get fftSize() {
-        return this.analyzer.fftSize;
-    }
-    set volume(v) {
-        this.gain.gain.setValueAtTime(v, audioContext.currentTime);
-    }
-    get volume() {
-        return this.gain.gain.value;
     }
     get sampleRate() {
         return this.buffer.sampleRate;
@@ -226,6 +244,7 @@ class Visualizer {
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
+            barMinDecibels: this.barMinDecibels,
             barLEDEffect: this.barLEDEffect,
             barLEDCount: this.barLEDCount,
             barLEDSize: this.barLEDSize,
@@ -235,6 +254,8 @@ class Visualizer {
             corrSamples: this.corrSamples,
             corrWeight: this.corrWeight,
             corrSmoothing: this.corrSmoothing,
+            spectHistoryLength: this.spectHistoryLength,
+            spectDiscreteVals: this.spectDiscreteVals,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated,
@@ -244,7 +265,6 @@ class Visualizer {
     static fromData(data, canvas) {
         const visualizer = new Visualizer(data.buffer, canvas);
         visualizer.mode = data.mode;
-        visualizer.smoothingTimeConstant = data.smoothing ?? 0.8;
         visualizer.fftSize = data.fftSize;
         if (typeof data.color == 'string') {
             visualizer.color = {
@@ -263,6 +283,7 @@ class Visualizer {
         visualizer.barWidthPercent = data.barWidthPercent;
         visualizer.barCrop = data.barCrop;
         visualizer.barScale = data.barScale ?? 1;
+        visualizer.smoothing = data.smoothing ?? 0.8;
         visualizer.barLEDEffect = data.barLEDEffect ?? false;
         visualizer.barLEDCount = data.barLEDCount ?? 16;
         visualizer.barLEDSize = data.barLEDSize ?? 0.8;
@@ -272,6 +293,9 @@ class Visualizer {
         visualizer.corrSamples = data.corrSamples ?? 32;
         visualizer.corrWeight = data.corrWeight ?? 0.5;
         visualizer.corrSmoothing = data.corrSmoothing ?? 0.9;
+        visualizer.spectHistoryLength = data.spectHistoryLength ?? 120;
+        visualizer.spectDiscreteVals = data.spectDiscreteVals ?? 0;
+        visualizer.barMinDecibels = data.barMinDecibels ?? -100;
         visualizer.flippedX = data.flippedX ?? false;
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;
@@ -339,6 +363,8 @@ class ChannelPeakVisualizer extends Visualizer {
         delete this.corrSamples;
         delete this.corrWeight;
         delete this.corrSmoothing;
+        delete this.spectHistoryLength;
+        delete this.spectDiscreteVals;
         this.analyzer.disconnect();
         delete this.analyzer;
         this.channelCount = 2;
@@ -385,7 +411,8 @@ class ChannelPeakVisualizer extends Visualizer {
             smoothing: this.smoothing,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
-            rotated: this.rotated
+            rotated: this.rotated,
+            playing: this.playing
         };
     }
 
@@ -407,6 +434,8 @@ class ChannelPeakVisualizer extends Visualizer {
     }
     set fftSize(size) { }
     get fftSize() { }
+    set barMinDecibels(db) { }
+    get barMinDecibels() { }
     set smoothing(c) { }
     get smoothing() { }
     set muteOutput(mute) {

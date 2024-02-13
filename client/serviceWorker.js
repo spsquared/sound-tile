@@ -53,6 +53,7 @@ self.addEventListener('install', (e) => {
             './assets/delete.svg',
             './assets/noise.png'
         ]);
+        self.skipWaiting();
         resolve();
     }));
 });
@@ -60,6 +61,7 @@ self.addEventListener("activate", (e) => {
     let activate = async () => {
         await Promise.all((await caches.keys()).filter((key) => key != 'page').map((key) => caches.delete(key)));
         await self.registration.navigationPreload?.enable();
+        await self.clients.claim();
     }
     e.waitUntil(activate());
 });
@@ -77,7 +79,7 @@ let getCached = async (request, preloadResponse) => {
     } catch (err) {
         return new Response('cache error', {
             status: 502,
-            headers: { "Content-Type": "text/plain" },
+            headers: { "Content-Type": "text/plain" }
         });
     }
 };
@@ -96,11 +98,22 @@ let updateCache = async (cache, request, preloadResponse) => {
         } finally {
             return new Response('timed out', {
                 status: 408,
-                headers: { "Content-Type": "text/plain" },
+                headers: { "Content-Type": "text/plain" }
             });
         }
     }
 };
 self.addEventListener("fetch", (e) => {
-    e.respondWith(getCached(e.request, e.preloadResponse));
+    if (e.request.url.replace(/^https?:\/\//, '').startsWith(self.location.hostname)) {
+        e.respondWith(getCached(e.request, e.preloadResponse));
+    } else {
+        try {
+            e.respondWith(fetch(request));
+        } catch (err) {
+            return new Response('timed out', {
+                status: 408,
+                headers: { "Content-Type": "text/plain" }
+            });
+        }
+    }
 });

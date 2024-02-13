@@ -19,6 +19,29 @@ function setDefaultTileControls() {
 };
 function setVisualizerControls() {
     this.tile.querySelector('.tileVisualizerControls').appendChild(visualizerOptionsTemplate.content.cloneNode(true).children[0]);
+    // helper moment
+    const inputs = [];
+    let addNumberInput = (input, property) => {
+        let update = (e) => {
+            if (this.visualizer !== null) this.visualizer[property] = Number(input.value);
+        };
+        input.addEventListener('input', update);
+        inputs.push(update);
+    };
+    let addPercentInput = (input, property) => {
+        let update = (e) => {
+            if (this.visualizer !== null) this.visualizer[property] = Number(input.value) / 100;
+        };
+        input.addEventListener('input', update);
+        inputs.push(update);
+    };
+    let addBooleanInput = (input, property) => {
+        let update = (e) => {
+            if (this.visualizer !== null) this.visualizer[property] = input.checked;
+        };
+        input.addEventListener('input', update);
+        inputs.push(update);
+    };
     // audio controls
     let uploadAudio = async (files) => {
         if (files.length > 0 && files[0].type.startsWith('audio/')) {
@@ -40,27 +63,12 @@ function setVisualizerControls() {
             this.visualizer.destroy();
             this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
             this.visualizer.mode = Number(visualizerMode.value);
-            this.visualizer.fftSize = Number(visualizerFFTSize.value);
-            this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
             this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
-            this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
             this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
-            this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
-            this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
-            this.visualizer.symmetry = Number(visualizerSymmetry.value);
-            this.visualizer.smoothing = Number(visualizerSmoothing.value);
-            this.visualizer.scale = Number(visualizerWaveformScale.value);
-            this.visualizer.lineWidth = Number(visualizerLineWidth.value);
-            this.visualizer.corrSamples = Number(visualizerCorrWaveSamples.value);
-            this.visualizer.corrWeight = Number(visualizerCorrWaveWeight.value);
-            this.visualizer.corrSmoothing = Number(visualizerCorrWaveSmoothing.value);
-            this.visualizer.flippedX = visualizerFlip.checked;
-            this.visualizer.flippedY = visualizerFlip2.checked;
-            this.visualizer.rotated = visualizerRotate.checked;
             this.visualizer.color = this.colorSelect1.value;
             this.visualizer.color2 = this.colorSelect2.value;
-            this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
             this.visualizer.volume = Number(volumeInput.value) / 100;
+            for (let update of inputs) update();
             audioReplace.value = '';
         }
     };
@@ -85,13 +93,14 @@ function setVisualizerControls() {
         volumeInput.value = Number(volumeInput.value) - Math.round(e.deltaY / 20);
         volumeInput.oninput();
     }, { passive: true });
-    // visualizer options
+    // general visualizer options
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
     const visualizerLineOptions = this.tile.querySelector('.tileVisualizerLineOptions');
     const visualizerFrequencyOptions = this.tile.querySelector('.tileVisualizerFrequencyOptions');
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     const visualizerCorrWaveOptions = this.tile.querySelector('.tileVisualizerCorrWaveOptions');
+    const visualizerSpectrogramOptions = this.tile.querySelector('.tileVisualizerSpectrogramOptions');
     visualizerMode.addEventListener('input', (e) => {
         let mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
@@ -100,44 +109,37 @@ function setVisualizerControls() {
         visualizerBarOptions.classList.add('hidden');
         visualizerLineOptions.classList.add('hidden');
         visualizerCorrWaveOptions.classList.add('hidden');
-        if (mode <= 3 || mode == 5 || mode == 7 || mode == 8) visualizerFrequencyOptions.classList.remove('hidden');
+        visualizerSpectrogramOptions.classList.add('hidden');
+        if (mode <= 3 || mode == 5 || mode == 7 || mode == 8 || mode == 10) visualizerFrequencyOptions.classList.remove('hidden');
         else visualizerWaveformOptions.classList.remove('hidden');
         if (mode < 2 || mode == 8) visualizerBarOptions.classList.remove('hidden');
         else visualizerLineOptions.classList.remove('hidden');
         if (mode == 9) visualizerCorrWaveOptions.classList.remove('hidden');
+        if (mode == 10) visualizerSpectrogramOptions.classList.remove('hidden');
     });
     visualizerWaveformOptions.classList.add('hidden');
     visualizerLineOptions.classList.add('hidden');
     visualizerCorrWaveOptions.classList.add('hidden');
+    visualizerSpectrogramOptions.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
-    visualizerFFTSize.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.fftSize = Number(visualizerFFTSize.value);
-    });
+    addNumberInput(visualizerFFTSize, 'fftSize');
     // bar options
     const visualizerWidth = this.tile.querySelector('.tileVisualizerBarWidth');
-    visualizerWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barWidthPercent = Number(visualizerWidth.value) / 100;
-    });
+    addPercentInput(visualizerWidth, 'barWidthPercent');
+    const visualizerLEDOptions = this.tile.querySelector('.tileVisualizerLEDOptions');
     const visualizerLEDToggle = this.tile.querySelector('.tileVisualizerBarLEDEffect');
     visualizerLEDToggle.addEventListener('input', (e) => {
         if (this.visualizer !== null) this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
         if (visualizerLEDToggle.checked) visualizerLEDOptions.classList.remove('hidden');
         else visualizerLEDOptions.classList.add('hidden');
     });
-    const visualizerLEDOptions = this.tile.querySelector('.tileVisualizerLEDOptions');
     const visualizerLEDCount = this.tile.querySelector('.tileVisualizerBarLEDCount');
-    visualizerLEDCount.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barLEDCount = Number(visualizerLEDCount.value);
-    });
+    addNumberInput(visualizerLEDCount, 'barLEDCount');
     const visualizerLEDSize = this.tile.querySelector('.tileVisualizerBarLEDSize');
-    visualizerLEDSize.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barLEDSize = Number(visualizerLEDSize.value) / 100;
-    });
+    addPercentInput(visualizerLEDSize, 'barLEDSize');
     // line options
     const visualizerLineWidth = this.tile.querySelector('.tileVisualizerLineWidth');
-    visualizerLineWidth.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.lineWidth = Number(visualizerLineWidth.value);
-    });
+    addNumberInput(visualizerLineWidth, 'lineWidth');
     // frequency mode options
     const visualizerFrequencyCrop = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop');
     const visualizerFrequencyCropDisplay = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay');
@@ -148,48 +150,35 @@ function setVisualizerControls() {
         }
     });
     const visualizerVolumeCrop = this.tile.querySelector('.tileVisualizerFrequencyVolumeCrop');
-    visualizerVolumeCrop.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.barScale = Number(visualizerVolumeCrop.value) / 100;
-    });
+    addPercentInput(visualizerVolumeCrop, 'barScale');
+    const visualizerMinDB = this.tile.querySelector('.tileVisualizerFrequencyMinDB');
+    addNumberInput(visualizerMinDB, 'barMinDecibels');
     const visualizerSymmetry = this.tile.querySelector('.tileVisualizerFrequencySymmetry');
-    visualizerSymmetry.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.symmetry = Number(visualizerSymmetry.value);
-    });
+    addNumberInput(visualizerSymmetry, 'symmetry');
     const visualizerSmoothing = this.tile.querySelector('.tileVisualizerFrequencySmoothing');
-    visualizerSmoothing.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.smoothing = Number(visualizerSmoothing.value);
-    });
+    addNumberInput(visualizerSmoothing, 'smoothing');
     // waveform mode options
     const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
-    visualizerWaveformScale.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.scale = Number(visualizerWaveformScale.value);
-    });
+    addNumberInput(visualizerWaveformScale, 'scale');
     // correlation waveform mode options
     const visualizerCorrWaveSamples = this.tile.querySelector('.tileVisualizerCorrWaveSamples');
-    visualizerCorrWaveSamples.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.corrSamples = Number(visualizerCorrWaveSamples.value);
-    });
+    addNumberInput(visualizerCorrWaveSamples, 'corrSamples');
     const visualizerCorrWaveWeight = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
-    visualizerCorrWaveWeight.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.corrWeight = Number(visualizerCorrWaveWeight.value);
-    });
+    addNumberInput(visualizerCorrWaveWeight, 'corrWeight');
     const visualizerCorrWaveSmoothing = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
-    visualizerCorrWaveSmoothing.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.corrSmoothing = Number(visualizerCorrWaveSmoothing.value);
-    });
+    addNumberInput(visualizerCorrWaveSmoothing, 'corrSmoothing');
+    // spectrogram options
+    const visualizerSpectrogramHistory = this.tile.querySelector('.tileVisualizerSpectrogramHistory');
+    addNumberInput(visualizerSpectrogramHistory, 'spectHistoryLength');
+    const visualizerSpectrogramDiscreteValues = this.tile.querySelector('.tileVisualizerSpectrogramDiscreteValues');
+    addNumberInput(visualizerSpectrogramDiscreteValues, 'spectDiscreteVals');
     // more visualizer options
     const visualizerFlip = this.tile.querySelector('.tileVisualizerFlip');
-    visualizerFlip.addEventListener('click', (e) => {
-        if (this.visualizer !== null) this.visualizer.flippedX = visualizerFlip.checked;
-    });
+    addBooleanInput(visualizerFlip, 'flippedX');
     const visualizerFlip2 = this.tile.querySelector('.tileVisualizerFlip2');
-    visualizerFlip2.addEventListener('click', (e) => {
-        if (this.visualizer !== null) this.visualizer.flippedY = visualizerFlip2.checked;
-    });
+    addBooleanInput(visualizerFlip2, 'flippedY');
     const visualizerRotate = this.tile.querySelector('.tileVisualizerRotate');
-    visualizerRotate.addEventListener('click', (e) => {
-        if (this.visualizer !== null) this.visualizer.rotated = visualizerRotate.checked;
-    });
+    addBooleanInput(visualizerRotate, 'rotated');
     // colors!!!
     this.colorSelect1 = new ColorInput(this.tile.querySelector('.tileVisualizerColor1'));
     this.colorSelect2 = new ColorInput(this.tile.querySelector('.tileVisualizerColor2'));
@@ -200,9 +189,7 @@ function setVisualizerControls() {
         if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
     };
     const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
-    fillAlpha.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.fillAlpha = Number(fillAlpha.value) / 100;
-    });
+    addPercentInput(fillAlpha, 'fillAlpha');
 };
 function applyDefaultTileControls(tile, data) {
     tile.tile.querySelector('.tileBackgroundColor').value = data.backgroundColor;
@@ -231,16 +218,18 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
     tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
     tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.add('hidden');
-    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.remove('hidden');
+    if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7 || data.visualizer.mode == 8 || data.visualizer.mode == 10) tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.remove('hidden');
     else tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     if (data.visualizer.mode < 2 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerBarOptions').classList.remove('hidden');
     else tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
     if (data.visualizer.mode == 9) tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.remove('hidden');
+    if (data.visualizer.mode == 10) tile.tile.querySelector('.tileVisualizerSpectrogramOptions').classList.remove('hidden');
     tile.tile.querySelector('.tileVisualizerFrequencySmoothing').value = data.visualizer.smoothing ?? 0.8;
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value = data.visualizer.barCrop * 100;
     tile.tile.querySelector('.tileVisualizerFrequencyVolumeCrop').value = (data.visualizer.barScale ?? 1) * 100;
+    tile.tile.querySelector('.tileVisualizerFrequencyMinDB').value = data.visualizer.barMinDecibels ?? -100;
     tile.tile.querySelector('.tileVisualizerBarLEDEffect').checked = data.visualizer.barLEDEffect ?? false;
     if (data.visualizer.barLEDEffect) tile.tile.querySelector('.tileVisualizerLEDOptions').classList.remove('hidden');
     tile.tile.querySelector('.tileVisualizerBarLEDCount').value = data.visualizer.barLEDCount ?? 16;
@@ -251,6 +240,8 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerCorrWaveSamples').value = data.visualizer.corrSamples ?? 32;
     tile.tile.querySelector('.tileVisualizerCorrWaveWeight').value = data.visualizer.corrWeight ?? 0.5;
     tile.tile.querySelector('.tileVisualizerCorrWaveSmoothing').value = data.visualizer.corrSmoothing ?? 0.9;
+    tile.tile.querySelector('.tileVisualizerSpectrogramHistory').value = data.visualizer.spectHistoryLength ?? 300;
+    tile.tile.querySelector('.tileVisualizerSpectrogramDiscreteValues').value = data.visualizer.spectDiscreteVals ?? 0;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
     if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
