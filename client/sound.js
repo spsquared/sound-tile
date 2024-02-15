@@ -35,6 +35,7 @@ class Visualizer {
     #color = { mode: 0, value: '#ffffff' };
     #color2 = { mode: 0, value: '#ffffff' };
     fillAlpha = 100;
+    altColor = false;
     colorChanged = false;
     mode = 0;
     barWidthPercent = 0.8;
@@ -157,6 +158,7 @@ class Visualizer {
             color: this.#color,
             color2: this.#color2,
             fillAlpha: this.fillAlpha,
+            altColor: this.altColor,
             colorChanged: this.colorChanged,
             mode: this.mode,
             barWidthPercent: this.barWidthPercent,
@@ -241,6 +243,7 @@ class Visualizer {
             color: this.#color,
             color2: this.#color2,
             fillAlpha: this.fillAlpha,
+            altColor: this.altColor,
             barWidthPercent: this.barWidthPercent,
             barCrop: this.barCrop,
             barScale: this.barScale,
@@ -278,6 +281,7 @@ class Visualizer {
         } else {
             visualizer.color = data.color;
             visualizer.color2 = data.color2;
+            visualizer.altColor = data.altColor ?? false;
         }
         visualizer.fillAlpha = data.fillAlpha ?? 1;
         visualizer.barWidthPercent = data.barWidthPercent;
@@ -356,6 +360,7 @@ class ChannelPeakVisualizer extends Visualizer {
         this.mode = 6;
         delete this.color2;
         delete this.fillAlpha;
+        delete this.altColor;
         delete this.barCrop;
         delete this.symmetry;
         delete this.scale;

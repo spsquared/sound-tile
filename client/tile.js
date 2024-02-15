@@ -101,6 +101,8 @@ function setVisualizerControls() {
     const visualizerWaveformOptions = this.tile.querySelector('.tileVisualizerWaveformOptions');
     const visualizerCorrWaveOptions = this.tile.querySelector('.tileVisualizerCorrWaveOptions');
     const visualizerSpectrogramOptions = this.tile.querySelector('.tileVisualizerSpectrogramOptions');
+    const visualizerSecondaryColorContainer = this.tile.querySelector('.tileVisualizerColor2Container');
+    const visualizerAltColorContainer = this.tile.querySelector('.tileVisualizerAltColorContainer');
     visualizerMode.addEventListener('input', (e) => {
         let mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
@@ -113,14 +115,20 @@ function setVisualizerControls() {
         if (mode <= 3 || mode == 5 || mode == 7 || mode == 8 || mode == 10) visualizerFrequencyOptions.classList.remove('hidden');
         else visualizerWaveformOptions.classList.remove('hidden');
         if (mode < 2 || mode == 8) visualizerBarOptions.classList.remove('hidden');
-        else visualizerLineOptions.classList.remove('hidden');
+        else if (mode != 10) visualizerLineOptions.classList.remove('hidden');
         if (mode == 9) visualizerCorrWaveOptions.classList.remove('hidden');
         if (mode == 10) visualizerSpectrogramOptions.classList.remove('hidden');
+        visualizerSecondaryColorContainer.classList.add('hidden');
+        if (mode == 3 || mode == 5) visualizerSecondaryColorContainer.classList.remove('hidden');
+        visualizerAltColorContainer.classList.add('hidden');
+        if (mode == 0 || mode == 1 || mode == 8) visualizerAltColorContainer.classList.remove('hidden');
     });
     visualizerWaveformOptions.classList.add('hidden');
     visualizerLineOptions.classList.add('hidden');
     visualizerCorrWaveOptions.classList.add('hidden');
     visualizerSpectrogramOptions.classList.add('hidden');
+    visualizerSecondaryColorContainer.classList.add('hidden');
+    visualizerAltColorContainer.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     addNumberInput(visualizerFFTSize, 'fftSize');
     // bar options
@@ -188,6 +196,8 @@ function setVisualizerControls() {
     this.colorSelect2.oninput = (e) => {
         if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
     };
+    const visualizerAltColor = this.tile.querySelector('.tileVisualizerAltColor');
+    addBooleanInput(visualizerAltColor, 'altColor')
     const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
     addPercentInput(fillAlpha, 'fillAlpha');
 };
@@ -210,20 +220,18 @@ function applyVisualizerControls(tile, data) {
     } else {
         tile.colorSelect1.value = data.visualizer.color;
         tile.colorSelect2.value = data.visualizer.color2;
+        tile.tile.querySelector('.tileVisualizerAltColor').checked = data.visualizer.altColor ?? false;
     }
     tile.tile.querySelector('.tileVisualizerFillAlpha').value = (data.visualizer.fillAlpha ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
-    tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
-    tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
-    tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
-    tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
-    tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.add('hidden');
     if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7 || data.visualizer.mode == 8 || data.visualizer.mode == 10) tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.remove('hidden');
     else tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     if (data.visualizer.mode < 2 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerBarOptions').classList.remove('hidden');
-    else tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
+    else if (data.visualizer.mode != 10) tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
     if (data.visualizer.mode == 9) tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.remove('hidden');
     if (data.visualizer.mode == 10) tile.tile.querySelector('.tileVisualizerSpectrogramOptions').classList.remove('hidden');
+    if (data.visualizer.mode == 3 || data.visualizer.mode == 5) tile.tile.querySelector('.tileVisualizerColor2Container').classList.remove('hidden');
+    if (data.visualizer.mode == 0 || data.visualizer.mode == 1 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerAltColorContainer').classList.remove('hidden');
     tile.tile.querySelector('.tileVisualizerFrequencySmoothing').value = data.visualizer.smoothing ?? 0.8;
     tile.tile.querySelector('.tileVisualizerFFTSize').value = data.visualizer.fftSize;
     tile.tile.querySelector('.tileVisualizerBarWidth').value = data.visualizer.barWidthPercent * 100;

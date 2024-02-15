@@ -142,11 +142,12 @@ class ColorInput {
         offset.value = 0;
         offset.addEventListener('input', (e) => {
             if (Number(offset.value) < 0 || Number(offset.value) > 100) offset.value = Math.max(0, Math.min(100, Number(offset.value)));
+            else if (isNaN(Number(offset.value))) offset.value = 0;
             this.#oninput();
             this.#refreshBadge();
         });
         offset.addEventListener('blur', (e) => {
-            if (Number(offset.value) < 0 || Number(offset.value) > 100) offset.value = Math.max(0, Math.min(100, Number(offset.value)));
+            offset.value = Number(offset.value);
         });
         const color = document.createElement('input');
         color.classList.add('colorInputGradientStopColor');
@@ -163,8 +164,11 @@ class ColorInput {
             let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
             if (index > 0) {
                 let val = color.value;
+                let off = offset.value;
                 color.value = this.#inputs.gradient.stops[index - 1][1].value;
+                offset.value = this.#inputs.gradient.stops[index - 1][0].value;
                 this.#inputs.gradient.stops[index - 1][1].value = val;
+                this.#inputs.gradient.stops[index - 1][0].value = off;
                 this.#oninput();
                 this.#refreshBadge();
             }
@@ -176,8 +180,11 @@ class ColorInput {
             let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
             if (index < this.#inputs.gradient.stops.length - 1) {
                 let val = color.value;
+                let off = offset.value;
                 color.value = this.#inputs.gradient.stops[index + 1][1].value;
+                offset.value = this.#inputs.gradient.stops[index + 1][0].value;
                 this.#inputs.gradient.stops[index + 1][1].value = val;
+                this.#inputs.gradient.stops[index + 1][0].value = off;
                 this.#oninput();
                 this.#refreshBadge();
             }
@@ -210,13 +217,13 @@ class ColorInput {
         } else if (this.#state.mode == 1) {
             switch (Number(this.#inputs.gradient.pattern.value)) {
                 case 0:
-                    this.#badge.style.background = `linear-gradient(${180 - Number(this.#inputs.gradient.angle.value)}deg${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    this.#badge.style.background = `linear-gradient(${180 - Number(this.#inputs.gradient.angle.value)}deg${this.#inputs.gradient.stops.sort((a, b) => a[0] - b[0]).reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
                     break;
                 case 1:
-                    this.#badge.style.background = `radial-gradient(circle ${Number(this.#inputs.gradient.r.value) * 0.2}px at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    this.#badge.style.background = `radial-gradient(circle ${Number(this.#inputs.gradient.r.value) * 0.2}px at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.sort((a, b) => a[0] - b[0]).reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
                     break;
                 case 2:
-                    this.#badge.style.background = `conic-gradient(from ${90 + Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
+                    this.#badge.style.background = `conic-gradient(from ${90 + Number(this.#inputs.gradient.angle.value)}deg at ${this.#inputs.gradient.x.value}% ${this.#inputs.gradient.y.value}%${this.#inputs.gradient.stops.sort((a, b) => a[0] - b[0]).reduce((acc, curr) => acc + `, ${curr[1].value} ${curr[0].value}%`, '')})`;
                     break;
             }
         }
@@ -245,7 +252,7 @@ class ColorInput {
                     y: Number(this.#inputs.gradient.y.value) / 100,
                     r: Number(this.#inputs.gradient.r.value) / 100,
                     angle: Number(this.#inputs.gradient.angle.value),
-                    stops: this.#inputs.gradient.stops.map(inputs => [Number(inputs[0].value) / 100, inputs[1].value])
+                    stops: this.#inputs.gradient.stops.map(inputs => [Number(inputs[0].value) / 100, inputs[1].value]).sort((a, b) => a[0] - b[0])
                 }
             };
         }

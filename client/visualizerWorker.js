@@ -7,7 +7,7 @@ class VisualizerWorker {
 
     static setColor(color, target, cid) {
         const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
-        if (persistentData.colors === undefined) persistentData.colors = [];
+        persistentData.colors = persistentData.colors ?? [];
         if (this.colorChanged || this.resized || persistentData.colors[cid] === undefined) {
             if (color.mode == 0) {
                 persistentData.colors[cid] = color.value;
@@ -40,6 +40,38 @@ class VisualizerWorker {
             }
         } else {
             this.ctx[target] = persistentData.colors[cid];
+        }
+    }
+    static parseStops(stops, cid) {
+        const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
+        persistentData.colorStops = persistentData.colorStops ?? [];
+        if (this.colorChanged || this.resized || persistentData.colorStops[cid] === undefined) {
+            const sorted = stops.sort((a, b) => a[0] - b[0]);
+            const parsedStops = [];
+            for (const stop of sorted) {
+                parsedStops.push([stop[0], parseInt(stop[1].slice(1, 3), 16), parseInt(stop[1].slice(3, 5), 16), parseInt(stop[1].slice(5, 7), 16)]);
+            }
+            persistentData.colorStops[cid] = parsedStops;
+        }
+    }
+    static interpGradientColor(cid, target) {
+        const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
+        const stops = persistentData?.colorStops?.at(cid);
+        if (stops !== undefined) {
+            for (let j = 0, k = 1; ; j++, k++) {
+                if (j == stops.length - 1) {
+                    if (target >= stops[j][0]) return `rgb(${stops[j][1]}, ${stops[j][2]}, ${stops[j][3]})`;
+                    else return `rgb(${stops[0][1]}, ${stops[0][2]}, ${stops[0][3]})`;
+                }
+                if (stops[j][0] <= target && stops[k][0] > target) {
+                    if (stops[j][0] == target) {
+                        return stops[j][1];
+                    } else {
+                        let t = (target - stops[j][0]) / (stops[k][0] - stops[j][0]);
+                        return `rgb(${Math.round(stops[j][1] * (1 - t) + stops[k][1] * t)}, ${Math.round(stops[j][2] * (1 - t) + stops[k][2] * t)}, ${Math.round(stops[j][3] * (1 - t) + stops[k][3] * t)})`;
+                    }
+                }
+            }
         }
     }
 
@@ -85,35 +117,66 @@ class VisualizerWorker {
             this.ctx.fill();
             this.ctx.resetTransform();
         } else if (this.mode == 0) { // Frequency 1x bar
-            VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
+            if (this.altColor && this.color.mode == 1) VisualizerWorker.parseStops.call(this, this.color.value.stops, 0);
+            else VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
             let stepMultiplier = 256 / (this.barLEDEffect ? this.barLEDCount : 256);
-            let yScale = height / 257 * stepMultiplier;
-            switch (this.symmetry) {
-                default:
-                case 0:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
-                        this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
-                    }
-                    break;
-                case 1:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
-                        this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
-                        this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, height, barWidth, -barHeight);
-                    }
-                    break;
-                case 2:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
-                        this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
-                        this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
-                    }
-                    break;
+            let yScale = height / 256 * stepMultiplier;
+            if (this.altColor && this.color.mode == 1) {
+                let yScale2 = stepMultiplier / 256;
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                }
+            } else {
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, height, barWidth, -barHeight);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, height, barWidth, -barHeight);
+                        }
+                        break;
+                }
             }
             if (this.barLEDEffect) {
                 this.ctx.globalCompositeOperation = 'destination-out';
@@ -124,35 +187,66 @@ class VisualizerWorker {
                 }
             }
         } else if (this.mode == 1) { // Frequency 2x bar
-            VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
+            if (this.altColor && this.color.mode == 1) VisualizerWorker.parseStops.call(this, this.color.value.stops, 0);
+            else VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
             let stepMultiplier = 256 / (this.barLEDEffect ? this.barLEDCount : 256);
             let yScale = height / (256 + stepMultiplier / 2);
-            switch (this.symmetry) {
-                default:
-                case 0:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
-                        this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-                    }
-                    break;
-                case 1:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
-                        this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-                        this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-                    }
-                    break;
-                case 2:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
-                        this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-                        this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
-                    }
-                    break;
+            if (this.altColor && this.color.mode == 1) {
+                let yScale2 = stepMultiplier / 256;
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, Math.ceil((data[i] * this.barScale + 1) / stepMultiplier) * yScale2);
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                }
+            } else {
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            let barHeight = Math.max(1, ((Math.ceil(data[i] * this.barScale / stepMultiplier) + 0.5) * stepMultiplier) * yScale);
+                            this.ctx.fillRect(i * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, (height - barHeight) / 2, barWidth, barHeight);
+                        }
+                        break;
+                }
             }
             if (this.barLEDEffect) {
                 this.ctx.globalCompositeOperation = 'destination-out';
@@ -348,34 +442,64 @@ class VisualizerWorker {
             this.ctx.globalAlpha = 1;
             this.ctx.stroke();
         } else if (this.mode == 8) { // Frequency luminance bars
-            VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
+            if (this.altColor && this.color.mode == 1) VisualizerWorker.parseStops.call(this, this.color.value.stops, 0);
+            else VisualizerWorker.setColor.call(this, this.color, 'fillStyle', 0);
             let croppedFreq = Math.ceil(data.length * this.barCrop);
             let barSpace = (width / (croppedFreq * (this.symmetry ? 2 : 1)));
             let barWidth = Math.max(1, barSpace * this.barWidthPercent);
             let barShift = (barSpace - barWidth) / 2;
             let lumiScale = this.barScale / 256;
-            switch (this.symmetry) {
-                default:
-                case 0:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
-                        this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
-                    }
-                    break;
-                case 1:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
-                        this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
-                        this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, 0, barWidth, height);
-                    }
-                    break;
-                case 2:
-                    for (let i = 0; i < croppedFreq; i++) {
-                        this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
-                        this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
-                        this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
-                    }
-                    break;
+            if (this.altColor && this.color.mode == 1) {
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, (data[i] * this.barScale + 1) / 256);
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, (data[i] * this.barScale + 1) / 256);
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, (data[i] * this.barScale + 1) / 256);
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                }
+            } else {
+                switch (this.symmetry) {
+                    default:
+                    case 0:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                    case 1:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect((croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                            this.ctx.fillRect((croppedFreq + i) * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                    case 2:
+                        for (let i = 0; i < croppedFreq; i++) {
+                            this.ctx.globalAlpha = Math.min(1, data[i] * lumiScale);
+                            this.ctx.fillRect(i * barSpace + barShift, 0, barWidth, height);
+                            this.ctx.fillRect((2 * croppedFreq - i - 1) * barSpace + barShift, 0, barWidth, height);
+                        }
+                        break;
+                }
             }
             if (this.barLEDEffect) {
                 this.ctx.globalAlpha = 1;
@@ -469,8 +593,8 @@ class VisualizerWorker {
         } else if (this.mode == 10) { // Spectrogram
             // create a history canvas of frequency height and time width (each pixel is 1x1)
             let forceRedraw = false;
-            if (persistentData.lastSpectrogramFrame == null || persistentData.lastSpectrogramFrame.width != this.spectHistoryLength || persistentData.lastSpectrogramFrame.height != data.length * (1 + (this.symmetry > 0))) {
-                persistentData.lastSpectrogramFrame = new OffscreenCanvas(this.spectHistoryLength, data.length * (1 + (this.symmetry > 0)));
+            if (persistentData.lastSpectrogramFrame == null || persistentData.lastSpectrogramFrame.width != this.spectHistoryLength || persistentData.lastSpectrogramFrame.height != data.length) {
+                persistentData.lastSpectrogramFrame = new OffscreenCanvas(this.spectHistoryLength, data.length);
                 persistentData.lastSpectrogramContext = persistentData.lastSpectrogramFrame.getContext('2d');
                 persistentData.lastSpectrogramContext.imageSmoothingEnabled = false;
                 forceRedraw = true;
@@ -503,7 +627,7 @@ class VisualizerWorker {
                         }
                     } else {
                         for (let i = 0; i < croppedFreq; i++) {
-                            spectCtx.globalAlpha = data[i] * scale;
+                            spectCtx.globalAlpha = Math.min(1, data[i] * scale);
                             spectCtx.fillRect(this.spectHistoryLength, i, -1, 1);
                         }
                     }
@@ -511,29 +635,12 @@ class VisualizerWorker {
                     // batch draws by color and then consecutive indices
                     let discreteVals = Math.floor(this.spectDiscreteVals) > 1 ? Math.round(this.spectDiscreteVals) - 1 : 255;
                     const data2 = Array.from(data).map((v, i) => [Math.floor(Math.min(1, v * scale) * discreteVals), i]).sort((a, b) => (a[0] * data.length + a[1]) - (b[0] * data.length + b[1]));
-                    const colorStops = this.color.value.stops.sort((a, b) => a[0] - b[0]);
+                    VisualizerWorker.parseStops.call(this, this.color.value.stops, 0);
                     for (let i = 0; i < data2.length;) {
                         let intensity = data2[i][0];
                         // interpolate the color (i should use binary search or interval tree if for some reason there's thousands of stops)
                         let interpTarget = intensity / discreteVals;
-                        for (let j = 0; ; j++) {
-                            if (j == colorStops.length - 1) {
-                                if (interpTarget == colorStops[colorStops.length - 1][0]) spectCtx.fillStyle = colorStops[colorStops.length - 1][1];
-                                else spectCtx.fillStyle = colorStops[0][1];
-                                break;
-                            }
-                            if (colorStops[j][0] <= interpTarget && colorStops[j + 1][0] > interpTarget) {
-                                if (colorStops[j][0] == interpTarget) {
-                                    spectCtx.fillStyle = colorStops[j][1];
-                                } else {
-                                    let before = [parseInt(colorStops[j][1].slice(1, 3), 16), parseInt(colorStops[j][1].slice(3, 5), 16), parseInt(colorStops[j][1].slice(5, 7), 16)];
-                                    let after = [parseInt(colorStops[j + 1][1].slice(1, 3), 16), parseInt(colorStops[j + 1][1].slice(3, 5), 16), parseInt(colorStops[j + 1][1].slice(5, 7), 16)];
-                                    let t = (interpTarget - colorStops[j][0]) / (colorStops[j + 1][0] - colorStops[j][0]);
-                                    spectCtx.fillStyle = `rgb(${Math.round(before[0] * (1 - t) + after[0] * t)}, ${Math.round(before[1] * (1 - t) + after[1] * t)}, ${Math.round(before[2] * (1 - t) + after[2] * t)})`;
-                                }
-                                break;
-                            }
-                        }
+                        spectCtx.fillStyle = VisualizerWorker.interpGradientColor.call(this, 0, interpTarget);
                         while (i < data2.length && data2[i][0] == intensity) {
                             let height = 0;
                             do i++, height++;
@@ -543,9 +650,23 @@ class VisualizerWorker {
                     }
                 }
             }
-            // draw scaled canvas (upside down)
+            // draw scaled canvas (upside down and with other transformations)
             this.ctx.scale(1, -1);
-            this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, -height, width, height);
+            switch (this.symmetry) {
+                case 0:
+                    this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, -height, width, height);
+                    break;
+                case 1:
+                    this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, -height / 2, width, height / 2);
+                    this.ctx.scale(1, -1);
+                    this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, height / 2, width, height / 2);
+                    break;
+                case 2:
+                    this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, -height, width, height / 2);
+                    this.ctx.scale(1, -1);
+                    this.ctx.drawImage(spectFrame, 0, 0, this.spectHistoryLength, croppedFreq, 0, 0, width, height / 2);
+                    break;
+            }
         } else if (this.mode == 6) { // Channel peak
             persistentData.lastFrames = persistentData.lastFrames ?? [];
             let peaks = [];

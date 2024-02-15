@@ -104,7 +104,8 @@ let updateCache = async (cache, request, preloadResponse) => {
     }
 };
 self.addEventListener("fetch", (e) => {
-    if (e.request.url.replace(/^https?:\/\//, '').startsWith(self.location.hostname)) {
+    if (e.request.method != 'GET') return;
+    if (e.request.url.startsWith(self.location.origin)) {
         e.respondWith(getCached(e.request, e.preloadResponse));
     } else {
         try {

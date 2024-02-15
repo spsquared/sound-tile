@@ -365,12 +365,18 @@
                     <span title="Visualizer color">
                         Visualizer:
                         <span class="tileVisualizerColor1"></span>
-                        <span class="tileVisualizerColor2"></span>
-                        <label title="Fill opacity">
-                            A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
-                        </label>
+                        <span class="tileVisualizerColor2Container">
+                            <span class="tileVisualizerColor2"></span>
+                            <label title="Fill opacity">
+                                A:
+                                <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
+                            </label>
+                        </span>
                     </span>
+                    <label class="tileVisualizerAltColorContainer" title="Alternate color mode (usually changes the gradient effect)">
+                        Alt Color:
+                        <input class="tileVisualizerAltColor checkBox" type="checkbox">
+                    </label>
                 </div>
             </div>
         </div>
@@ -426,10 +432,16 @@
                     <span title="Visualizer color">
                         Visualizer:
                         <span class="tileVisualizerColor1"></span>
-                        <span class="tileVisualizerColor2"></span>
-                        <label title="Fill opacity">
-                            A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
+                        <span class="tileVisualizerColor2Container">
+                            <span class="tileVisualizerColor2"></span>
+                            <label title="Fill opacity">
+                                A:
+                                <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
+                            </label>
+                        </span>
+                        <label class="tileVisualizerAltColorContainer" title="Alternate color mode (usually changes the gradient effect)">
+                            Alt Color:
+                            <input class="tileVisualizerAltColor checkBox" type="checkbox">
                         </label>
                     </span>
                 </div>
@@ -485,10 +497,16 @@
                     <span title="Visualizer color">
                         Visualizer:
                         <span class="tileVisualizerColor1"></span>
-                        <span class="tileVisualizerColor2"></span>
-                        <label title="Fill opacity">
-                            A:
-                            <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
+                        <span class="tileVisualizerColor2Container">
+                            <span class="tileVisualizerColor2"></span>
+                            <label title="Fill opacity">
+                                A:
+                                <input class="tileVisualizerFillAlpha numberBox" type="number" min="0" max="100" step="5" value="100">%
+                            </label>
+                        </span>
+                        <label class="tileVisualizerAltColorContainer" title="Alternate color mode (usually changes the gradient effect)">
+                            Alt Color:
+                            <input class="tileVisualizerAltColor checkBox" type="checkbox">
                         </label>
                     </span>
                     <label title="Text color">
@@ -700,7 +718,6 @@
         </div>
     </template>
     <!-- oh and radial style -->
-    <!-- spectrogram?? -->
     <template id="visualizerOptionsTemplate">
         <span>
             <label class="tileAudioReplaceLabel buttonLabel">
@@ -818,7 +835,7 @@
             <span class="tileVisualizerSpectrogramOptions">
                 <label title="Number of frames to keep in history">
                     History:
-                    <input class="tileVisualizerSpectrogramHistory numberBox" type="number" min="30" max="600" step="1" value="300">
+                    <input class="tileVisualizerSpectrogramHistory numberBox" type="number" min="60" max="600" step="60" value="300">
                 </label>
                 <label title="Discrete (non-continuous) levels of intensity - can increase performance with gradients. Setting this to less than 2 will disable it. Too high of a value may result in worse performance.">
                     Discrete:
