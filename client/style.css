@@ -488,6 +488,10 @@ input[type=button] {
     box-sizing: border-box;
     font-family: 'Source Code Pro', Courier, monospace;
 }
+#mediaDataTitle:focus-visible, #mediaDataSubtitle:focus-visible {
+    appearance: none;
+    background-color: #222;
+}
 #mediaDataTitle {
     height: 24px;
     margin-top: 2px;

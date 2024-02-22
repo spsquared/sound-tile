@@ -1365,7 +1365,10 @@ display.addEventListener('wheel', (e) => {
     } else if (e.target.matches('.tileControls') || targetControlDiv != undefined) {
         targetControlDiv.scrollBy(e.deltaX, e.deltaY);
         const rect = targetControlDiv.getBoundingClientRect();
-        display.scrollBy((targetControlDiv.scrollTop == 0 || targetControlDiv.scrollWidth - targetControlDiv.scrollLeft <= rect.width) ? e.deltaX : 0, (targetControlDiv.scrollTop == 0 || targetControlDiv.scrollHeight - targetControlDiv.scrollTop <= rect.height) ? e.deltaY : 0);
+        display.scrollBy(
+            ((targetControlDiv.scrollTop == 0 && e.deltaX < 0) || (targetControlDiv.scrollWidth - targetControlDiv.scrollLeft <= rect.width && e.deltaX > 0)) ? e.deltaX : 0,
+            ((targetControlDiv.scrollTop == 0 && e.deltaY < 0) || (targetControlDiv.scrollHeight - targetControlDiv.scrollTop <= rect.height && e.deltaY > 0)) ? e.deltaY : 0
+        );
     } else {
         display.scrollBy(e.deltaX, e.deltaY);
     }

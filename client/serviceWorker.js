@@ -77,6 +77,7 @@ let getCached = async (request, preloadResponse) => {
             return await updateCache(cache, request, preloadResponse);
         }
     } catch (err) {
+        console.error(err)
         return new Response('cache error', {
             status: 502,
             headers: { "Content-Type": "text/plain" }
@@ -95,7 +96,8 @@ let updateCache = async (cache, request, preloadResponse) => {
             const networked = await fetch(request);
             if (networked.ok) cache.put(request.url, networked.clone());
             return networked;
-        } finally {
+        } catch (err) {
+            console.error(err)
             return new Response('timed out', {
                 status: 408,
                 headers: { "Content-Type": "text/plain" }
@@ -109,8 +111,9 @@ self.addEventListener("fetch", (e) => {
         e.respondWith(getCached(e.request, e.preloadResponse));
     } else {
         try {
-            e.respondWith(fetch(request));
+            e.respondWith(fetch(e.request));
         } catch (err) {
+            console.error(err)
             return new Response('timed out', {
                 status: 408,
                 headers: { "Content-Type": "text/plain" }
