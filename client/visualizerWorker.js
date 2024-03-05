@@ -668,7 +668,7 @@ class VisualizerWorker {
                     break;
             }
         } else if (this.mode == 6) { // Channel peak
-            persistentData.lastFrames = persistentData.lastFrames ?? [];
+            persistentData.lastFrames ??= [];
             let peaks = [];
             if (this.playing || persistentData.lastFrames.length == 0) {
                 for (let i in data) {
