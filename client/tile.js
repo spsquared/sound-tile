@@ -177,7 +177,7 @@ function setVisualizerControls() {
     addNumberInput(visualizerCorrWaveSamples, 'corrSamples');
     const visualizerCorrWaveWeight = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
     addNumberInput(visualizerCorrWaveWeight, 'corrWeight');
-    const visualizerCorrWaveSmoothing = this.tile.querySelector('.tileVisualizerCorrWaveWeight');
+    const visualizerCorrWaveSmoothing = this.tile.querySelector('.tileVisualizerCorrWaveSmoothing');
     addNumberInput(visualizerCorrWaveSmoothing, 'corrSmoothing');
     // spectrogram options
     const visualizerSpectrogramHistory = this.tile.querySelector('.tileVisualizerSpectrogramHistory');
