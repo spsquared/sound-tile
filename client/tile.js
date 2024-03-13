@@ -1383,7 +1383,6 @@ display.addEventListener('wheel', (e) => {
     } else {
         display.scrollBy(e.deltaX, e.deltaY);
     }
-    window.resizeBy(e.deltaZ, e.deltaZ);
 });
 
 window.addEventListener('load', (e) => {
