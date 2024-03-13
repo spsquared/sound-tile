@@ -93,6 +93,10 @@ function setVisualizerControls() {
         volumeInput.value = Number(volumeInput.value) - Math.round(e.deltaY / 20);
         volumeInput.oninput();
     }, { passive: true });
+    const muteInput = this.tile.querySelector('.tileVisualizerMute');
+    muteInput.addEventListener('input', (e) => {
+        if (this.visualizer !== null) this.visualizer.muteOutput = muteInput.checked;
+    });
     // general visualizer options
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
@@ -252,6 +256,7 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerSpectrogramDiscreteValues').value = data.visualizer.spectDiscreteVals ?? 0;
     tile.tile.querySelector('.tileVisualizerVolumeInput').value = (data.visualizer.volume ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerVolumeInput').oninput();
+    tile.tile.querySelector('.tileVisualizerMute').checked = data.visualizer.muted ?? false;
     if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
     if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();

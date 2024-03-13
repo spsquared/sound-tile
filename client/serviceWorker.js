@@ -13,7 +13,7 @@ self.addEventListener('install', (e) => {
             './fflate.min.js',
             './index.js',
             './tile.js',
-            './sound.js', 
+            './sound.js',
             './visualizerWorker.js',
             // './export.js',
             './controls.js',
@@ -62,7 +62,7 @@ self.addEventListener("activate", (e) => {
         await Promise.all((await caches.keys()).filter((key) => key != 'page').map((key) => caches.delete(key)));
         await self.registration.navigationPreload?.enable();
         await self.clients.claim();
-    }
+    };
     e.waitUntil(activate());
 });
 let getCached = async (request, preloadResponse) => {
@@ -91,18 +91,17 @@ let updateCache = async (cache, request, preloadResponse) => {
             cache.put(request.url, preloaded.clone());
             return preloaded;
         }
-    } finally {
-        try {
-            const networked = await fetch(request);
-            if (networked.ok) cache.put(request.url, networked.clone());
-            return networked;
-        } catch (err) {
-            if (preloadResponse != undefined) console.error(err);
-            return new Response('timed out', {
-                status: 408,
-                headers: { "Content-Type": "text/plain" }
-            });
-        }
+    } finally { }
+    try {
+        const networked = await fetch(request);
+        if (networked.ok) cache.put(request.url, networked.clone());
+        return networked;
+    } catch (err) {
+        if (preloadResponse != undefined) console.error(err);
+        return new Response('timed out', {
+            status: 408,
+            headers: { "Content-Type": "text/plain" }
+        });
     }
 };
 self.addEventListener("fetch", (e) => {

@@ -210,6 +210,14 @@ class Visualizer {
     set spectHistoryLength(len) {
         this.spectHistoryLength = Math.max(1, len);
     }
+    set muteOutput(mute) {
+
+        if (mute) this.analyzer.disconnect(globalVolume);
+        else this.analyzer.connect(globalVolume);
+    }
+    get muteOutput() {
+        return this.analyzer.numberOfOutputs == 1;
+    }
     set volume(v) {
         this.gain.gain.setValueAtTime(v, audioContext.currentTime);
     }
@@ -262,7 +270,8 @@ class Visualizer {
             flippedX: this.flippedX,
             flippedY: this.flippedY,
             rotated: this.rotated,
-            volume: this.gain.gain.value
+            volume: this.gain.gain.value,
+            muted: this.muteOutput
         };
     }
     static fromData(data, canvas) {
@@ -304,6 +313,7 @@ class Visualizer {
         visualizer.flippedY = data.flippedY ?? false;
         visualizer.rotated = data.rotated ?? false;
         visualizer.volume = data.volume ?? 1;
+        visualizer.muteOutput = data.muted ?? false;
         return visualizer;
     }
     destroy() {
