@@ -216,7 +216,7 @@ class Visualizer {
         else this.analyzer.connect(globalVolume);
     }
     get muteOutput() {
-        return this.analyzer.numberOfOutputs == 1;
+        return this.analyzer.numberOfOutputs == 0;
     }
     set volume(v) {
         this.gain.gain.setValueAtTime(v, audioContext.currentTime);

@@ -228,8 +228,14 @@ function applyVisualizerControls(tile, data) {
     }
     tile.tile.querySelector('.tileVisualizerFillAlpha').value = (data.visualizer.fillAlpha ?? 1) * 100;
     tile.tile.querySelector('.tileVisualizerMode').value = data.visualizer.mode;
+    tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerBarOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerLineOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.add('hidden');
+    tile.tile.querySelector('.tileVisualizerSpectrogramOptions').classList.add('hidden');
     if (data.visualizer.mode <= 3 || data.visualizer.mode == 5 || data.visualizer.mode == 7 || data.visualizer.mode == 8 || data.visualizer.mode == 10) tile.tile.querySelector('.tileVisualizerFrequencyOptions').classList.remove('hidden');
-    else tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
+    else if (data.visualizer.mode != 10) tile.tile.querySelector('.tileVisualizerWaveformOptions').classList.remove('hidden');
     if (data.visualizer.mode < 2 || data.visualizer.mode == 8) tile.tile.querySelector('.tileVisualizerBarOptions').classList.remove('hidden');
     else if (data.visualizer.mode != 10) tile.tile.querySelector('.tileVisualizerLineOptions').classList.remove('hidden');
     if (data.visualizer.mode == 9) tile.tile.querySelector('.tileVisualizerCorrWaveOptions').classList.remove('hidden');
