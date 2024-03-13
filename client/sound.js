@@ -211,12 +211,17 @@ class Visualizer {
         this.spectHistoryLength = Math.max(1, len);
     }
     set muteOutput(mute) {
-
         if (mute) this.analyzer.disconnect(globalVolume);
         else this.analyzer.connect(globalVolume);
     }
     get muteOutput() {
-        return this.analyzer.numberOfOutputs == 0;
+        try {
+            this.analyzer.disconnect(globalVolume);
+            this.analyzer.connect(globalVolume);
+            return false;
+        } catch {
+            return true;
+        }
     }
     set volume(v) {
         this.gain.gain.setValueAtTime(v, audioContext.currentTime);

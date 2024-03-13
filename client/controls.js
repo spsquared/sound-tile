@@ -672,11 +672,6 @@ timeSeekInput.oninput = (e) => {
     mediaControls.setTime(timeSeekInput.value);
 };
 playButton.onclick = async (e) => {
-    if (modificationLock > 0) {
-        playButton.checked = mediaControls.playing;
-        pipPlayButton.checked = mediaControls.playing;
-        return;
-    }
     if (mediaControls.currentTime >= mediaControls.duration) {
         mediaControls.currentTime = 0;
         mediaControls.startTime = performance.now();
