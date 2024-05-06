@@ -103,6 +103,7 @@ class VisualizerWorker {
             persistentData.lastSpectrogramContext = null;
             if (!this.ctx.imageSmoothingEnabled) this.ctx.imageSmoothingEnabled = true;
         }
+        this.resolution = Math.max(1, Math.round(this.resolution));
         // it's-a spaghetti time!
         if (data === null) { // Loading spinner
             this.ctx.fillStyle = 'white';
@@ -519,7 +520,7 @@ class VisualizerWorker {
             let yScale = this.scale * 128;
             this.ctx.beginPath();
             this.ctx.moveTo(0, data[0] * yScale + yOffset);
-            for (let i = 1; i < data.length; i++) {
+            for (let i = 1; i < data.length; i += this.resolution) {
                 this.ctx.lineTo(i * xStep, data[i] * yScale + yOffset);
             }
             this.ctx.stroke();
@@ -586,7 +587,7 @@ class VisualizerWorker {
             let yScale = this.scale * 128;
             this.ctx.beginPath();
             this.ctx.moveTo(0, data[bestShift] * yScale + yOffset);
-            for (let i = 0; i < windowSize; i++) {
+            for (let i = 0; i < windowSize; i += this.resolution) {
                 this.ctx.lineTo(i * xStep, data[bestShift + i] * yScale + yOffset);
             }
             this.ctx.stroke();
@@ -714,6 +715,29 @@ class VisualizerWorker {
             this.ctx.fillText('Invalid mode ' + this.mode, width / 2, height / 2);
         }
         persistentData.lastMode = this.mode;
+        if (data === null) return null;
+        let max = 0;
+        if (Array.isArray(data)) {
+            for (const channel of data) for (let i in channel) {
+                let v = Math.abs(channel[i]);
+                if (v > max) max = v;
+            }
+            max = max / 255;
+        } else if (data instanceof Uint8Array) {
+            for (let i in data) {
+                let v = Math.abs(data[i]);
+                if (v > max) max = v;
+            }
+            max = max / 255;
+        } else if (data instanceof Float32Array) {
+            for (let i in data) if (data[i] > max) {
+                let v = Math.abs(data[i]);
+                if (v > max) max = v;
+            }
+        }
+        return {
+            peak: max
+        };
     }
 }
 
@@ -726,10 +750,10 @@ onmessage = (e) => {
     onmessage = (e) => {
         if (e.data[0] == 0) {
             try {
-                VisualizerWorker.draw.call({ canvas, ctx, resized, ...e.data[1] }, e.data[2]);
+                const data = VisualizerWorker.draw.call({ canvas, ctx, resized, ...e.data[1] }, e.data[2]);
                 resized = false;
                 const bitmap = canvas.transferToImageBitmap();
-                postMessage([bitmap], [bitmap]);
+                postMessage([bitmap, data], [bitmap]);
             } catch (err) {
                 console.error(err);
                 postMessage([null]);

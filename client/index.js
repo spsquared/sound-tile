@@ -25,6 +25,8 @@ window.onerror = (e, filename, lineno, colno, err) => {
     loaded = false;
 };
 
+window.addEventListener('beforeunload', (e) => e.preventDefault());
+
 // PWA stuff
 const urlParams = new URLSearchParams(window.location.search);
 const isPWA = urlParams.get('pwa') != null;

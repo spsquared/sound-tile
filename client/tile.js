@@ -53,7 +53,7 @@ function setVisualizerControls() {
                 replaceAudio(files);
                 return;
             }
-            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
+            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh(), (d) => this.ondraw(d));
             this.tile.querySelector('.tileSourceUploadCover').remove();
             this.visualizer.loadPromise.then(() => visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * (Number(visualizerFrequencyCrop.value) / 100));
         }
@@ -61,7 +61,7 @@ function setVisualizerControls() {
     let replaceAudio = async (files) => {
         if (files.length > 0 && files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
-            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
+            this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh(), (d) => this.ondraw(d));
             this.visualizer.mode = Number(visualizerMode.value);
             this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
             this.visualizer.barLEDEffect = visualizerLEDToggle.checked;
@@ -172,6 +172,8 @@ function setVisualizerControls() {
     // waveform mode options
     const visualizerWaveformScale = this.tile.querySelector('.tileVisualizerWaveformScale');
     addNumberInput(visualizerWaveformScale, 'scale');
+    const visualizerWaveformResolution = this.tile.querySelector('.tileVisualizerWaveformResolution');
+    addNumberInput(visualizerWaveformResolution, 'resolution');
     // correlation waveform mode options
     const visualizerCorrWaveSamples = this.tile.querySelector('.tileVisualizerCorrWaveSamples');
     addNumberInput(visualizerCorrWaveSamples, 'corrSamples');
@@ -254,6 +256,7 @@ function applyVisualizerControls(tile, data) {
     tile.tile.querySelector('.tileVisualizerBarLEDSize').value = (data.visualizer.barLEDSize ?? 0.8) * 100;
     tile.tile.querySelector('.tileVisualizerFrequencySymmetry').value = data.visualizer.symmetry ?? 0;
     tile.tile.querySelector('.tileVisualizerWaveformScale').value = data.visualizer.scale;
+    tile.tile.querySelector('.tileVisualizerWaveformResolution').value = data.visualizer.resolution ?? 1;
     tile.tile.querySelector('.tileVisualizerLineWidth').value = data.visualizer.lineWidth;
     tile.tile.querySelector('.tileVisualizerCorrWaveSamples').value = data.visualizer.corrSamples ?? 32;
     tile.tile.querySelector('.tileVisualizerCorrWaveWeight').value = data.visualizer.corrWeight ?? 0.5;
@@ -266,7 +269,7 @@ function applyVisualizerControls(tile, data) {
     if (data.visualizer.flippedX) tile.tile.querySelector('.tileVisualizerFlip').click();
     if (data.visualizer.flippedY) tile.tile.querySelector('.tileVisualizerFlip2').click();
     if (data.visualizer.rotated) tile.tile.querySelector('.tileVisualizerRotate').click();
-    tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas);
+    tile.visualizer = Visualizer.fromData(data.visualizer, tile.canvas, () => tile.refresh(), (d) => tile.ondraw(d));
     tile.visualizer.loadPromise.then(() => tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay').innerText = tile.visualizer.sampleRate / 2 * (Number(tile.tile.querySelector('.tileVisualizerFrequencyFrequencyCrop').value) / 100));
 };
 
@@ -434,6 +437,9 @@ class VisualizerTile {
         };
     }
 
+    ondraw(data) {
+    }
+
     #resize = () => { }
     refresh() {
         this.#resize();
@@ -472,6 +478,9 @@ class VisualizerImageTile {
     ctx = null;
     img = null;
     visualizer = null;
+    imageReactive = false;
+    imageReactiveMin = 0.5;
+    imageReactiveMax = 1.5;
     constructor() {
         this.tile = VisualizerImageTile.#template.content.cloneNode(true).children[0];
         setDefaultTileControls.call(this);
@@ -512,7 +521,7 @@ class VisualizerImageTile {
             if (imageSmoothing.checked) this.img.style.imageRendering = 'auto';
             else this.img.style.imageRendering = 'pixelated';
         });
-        const imageBackdrop = this.tile.querySelector('.tileImgBackdrop');
+        const imageBackdrop = this.tile.querySelector('.tileVisualizerImgBackdrop');
         imageBackdrop.addEventListener('click', (e) => {
             if (imageBackdrop.checked) {
                 canvasContainer.insertBefore(this.img, this.canvas)
@@ -523,6 +532,22 @@ class VisualizerImageTile {
             }
             this.#resize();
         });
+        const reactiveImage = this.tile.querySelector('.tileVisualizerImgReactive');
+        const reactiveImageOptions = this.tile.querySelector('.tileVisualizerImgOptions');
+        reactiveImage.addEventListener('click', (e) => {
+            this.imageReactive = reactiveImage.checked;
+            if (this.imageReactive) {
+                reactiveImageOptions.style.display = '';
+            } else {
+                reactiveImageOptions.style.display = 'none';
+                this.img.style.transform = '';
+            }
+        });
+        const reactiveImageMin = this.tile.querySelector('.tileVisualizerImgReactiveMin');
+        const reactiveImageMax = this.tile.querySelector('.tileVisualizerImgReactiveMax');
+        reactiveImageMin.addEventListener('input', (e) => this.imageReactiveMin = Number(reactiveImageMin.value));
+        reactiveImageMax.addEventListener('input', (e) => this.imageReactiveMax = Number(reactiveImageMax.value));
+        reactiveImageOptions.style.display = 'none';
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
@@ -544,6 +569,11 @@ class VisualizerImageTile {
         };
     }
 
+    ondraw(data) {
+        if (data == null || !this.imageReactive) return;
+        this.img.style.transform = `scale(${(data.peak * (this.imageReactiveMax - this.imageReactiveMin)) + this.imageReactiveMin})`
+    }
+
     #resize = () => { }
     refresh() {
         this.#resize();
@@ -556,7 +586,10 @@ class VisualizerImageTile {
             visualizer: this.visualizer?.getData() ?? null,
             image: this.img.src,
             smoothing: this.tile.querySelector('.tileImgSmoothing').checked,
-            imageBackground: this.tile.querySelector('.tileImgBackdrop').checked,
+            imageBackground: this.tile.querySelector('.tileVisualizerImgBackdrop').checked,
+            imageReactive: this.imageReactive,
+            imageReactiveMin: this.imageReactiveMin,
+            imageReactiveMax: this.imageReactiveMax,
             flex: this.tile.querySelector('.tileFlex').value
         };
     }
@@ -572,8 +605,13 @@ class VisualizerImageTile {
             tile.tile.querySelector('.tileImgUploadCoverSmall').remove();
             tile.tile.querySelector('.tileImgReplaceLabelText').innerText = 'Change Image';
         }
-        if (data.imageBackground) tile.tile.querySelector('.tileImgBackdrop').click();
         if (data.smoothing === false) tile.tile.querySelector('.tileImgSmoothing').click();
+        if (data.imageBackground) tile.tile.querySelector('.tileVisualizerImgBackdrop').click();
+        if (data.imageReactive) tile.tile.querySelector('.tileVisualizerImgReactive').click();
+        tile.imageReactiveMin = data.imageReactiveMin ?? 0.5;
+        tile.imageReactiveMax = data.imageReactiveMax ?? 1.5;
+        tile.tile.querySelector('.tileVisualizerImgReactiveMin').value = data.imageReactiveMin ?? 0.5;
+        tile.tile.querySelector('.tileVisualizerImgReactiveMax').value = data.imageReactiveMax ?? 1.5;
         return tile;
     };
     destroy() {
@@ -654,6 +692,9 @@ class VisualizerTextTile {
             editContainer.style.height = rect2.height + 'px';
             draw();
         };
+    }
+
+    ondraw(data) {
     }
 
     #resize = () => { }

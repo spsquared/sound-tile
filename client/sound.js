@@ -46,6 +46,7 @@ class Visualizer {
     barLEDSize = 0.8;
     symmetry = 0;
     scale = 1;
+    resolution = 1;
     lineWidth = 2;
     corrSamples = 32;
     corrWeight = 0.5;
@@ -58,12 +59,9 @@ class Visualizer {
     ready = false;
     drawing = false;
     loadPromise = new Promise(() => { });
-    /**
-     * @param {ArrayBuffer} arrbuf 
-     * @param {HTMLCanvasElement} canvas 
-     * @param {Function | undefined} oncreate 
-     */
-    constructor(arrbuf, canvas, oncreate) {
+    #drawCallback = null;
+
+    constructor(arrbuf, canvas, oncreate, ondraw) {
         if (!(arrbuf instanceof ArrayBuffer)) throw new TypeError('Visualizer arrbuf must be an ArrayBuffer');
         if (!(canvas instanceof HTMLCanvasElement)) throw new TypeError('Visualizer canvas must be a HTMLCanvasElement');
         this.#persistenceId = Visualizer.#persistenceIdCounter++;
@@ -77,6 +75,7 @@ class Visualizer {
                     oncreate();
                 };
                 this.worker.addEventListener('message', res);
+                this.worker.addEventListener('error', (err) => { throw err; });
             }
             this.worker.postMessage([this.workerCanvas], [this.workerCanvas]);
             this.ctx = canvas.getContext('bitmaprenderer');
@@ -85,6 +84,7 @@ class Visualizer {
             this.ctx.imageSmoothingEnabled = false;
             this.ctx.webkitImageSmoothingEnabled = false;
         }
+        this.#drawCallback = ondraw;
         this.loadPromise = new Promise((resolve, reject) => {
             audioContext.decodeAudioData(arrbuf, buf => {
                 this.buffer = buf;
@@ -114,12 +114,12 @@ class Visualizer {
     }
     async draw() {
         if (this.drawing) return;
-        await new Promise((resolve, reject) => {
+        const data = await new Promise((resolve, reject) => {
             this.drawing = true;
             if (this.worker !== null) this.worker.onmessage = (e) => {
                 if (e.data[0] !== null) this.ctx.transferFromImageBitmap(e.data[0]);
                 this.drawing = false;
-                resolve();
+                resolve(e.data[1]);
             };
             if (this.buffer === null) {
                 if (this.worker !== null) this.worker.postMessage([0, this.#workerData, null]);
@@ -142,6 +142,7 @@ class Visualizer {
             this.colorChanged = false;
             this.resized = false;
         });
+        if (data !== null && typeof this.#drawCallback == 'function') this.#drawCallback(data);
     }
     resize(w, h) {
         if (w <= 0 || h <= 0 || !isFinite(w) || !isFinite(h)) return;
@@ -169,6 +170,7 @@ class Visualizer {
             barLEDSize: this.barLEDSize,
             symmetry: this.symmetry,
             scale: this.scale,
+            resolution: this.resolution,
             lineWidth: this.lineWidth,
             corrSamples: this.corrSamples,
             corrWeight: this.corrWeight,
@@ -266,6 +268,7 @@ class Visualizer {
             barLEDSize: this.barLEDSize,
             symmetry: this.symmetry,
             scale: this.scale,
+            resolution: this.resolution,
             lineWidth: this.lineWidth,
             corrSamples: this.corrSamples,
             corrWeight: this.corrWeight,
@@ -279,8 +282,8 @@ class Visualizer {
             muted: this.muteOutput
         };
     }
-    static fromData(data, canvas) {
-        const visualizer = new Visualizer(data.buffer, canvas);
+    static fromData(data, canvas, oncreate, ondraw) {
+        const visualizer = new Visualizer(data.buffer, canvas, oncreate, ondraw);
         visualizer.mode = data.mode;
         visualizer.fftSize = data.fftSize;
         if (typeof data.color == 'string') {
@@ -307,6 +310,7 @@ class Visualizer {
         visualizer.barLEDSize = data.barLEDSize ?? 0.8;
         visualizer.symmetry = data.symmetry ?? 0;
         visualizer.scale = data.scale;
+        visualizer.resolution = data.resolution ?? 1;
         visualizer.lineWidth = data.lineWidth;
         visualizer.corrSamples = data.corrSamples ?? 32;
         visualizer.corrWeight = data.corrWeight ?? 0.5;

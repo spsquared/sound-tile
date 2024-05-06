@@ -460,7 +460,8 @@ uploadButton.oninput = async (e) => {
                 mDatSubtitle.disabled = false;
                 uploadingCover.style.opacity = 0;
                 setTimeout(() => uploadingCover.style.display = '', 500);
-                modal('Could not load Tiles:', `An error occured while loading your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
+                if (err) modal('Could not load Tiles:', `An error occured while loading your Tiles:<br><span style="color: red;">${err.message}<br>${err.filename} ${err.lineno}:${err.colno}</span>`, false);
+                else modal('Could not load Tiles:', 'An error occured while loading your Tiles.');
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
                 const tile = new TextTile();
@@ -511,7 +512,9 @@ downloadButton.onclick = async (e) => {
         download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
         download.click();
     } catch (err) {
-        modal('Could not save Tiles:', `An error occured while saving your tiles:<br><span style="color: red;">${e.message}<br>${e.filename} ${e.lineno}:${e.colno}</span>`, false);
+        console.error(err);
+        if (err) modal('Could not save Tiles:', `An error occured while saving your Tiles:<br><span style="color: red;">${err.message}<br>${err.filename} ${err.lineno}:${err.colno}</span>`, false);
+        else modal('Could not save Tiles:', 'An error occured while saving your Tiles.');
     } finally {
         modificationLock--;
         downloadButton.disabled = false;
