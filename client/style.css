@@ -393,6 +393,7 @@ input[type=button] {
 
 #logo {
     image-rendering: pixelated;
+    cursor: pointer;
 }
 
 /* controls */

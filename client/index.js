@@ -96,6 +96,11 @@ function modal(title, subtitle, confirmation = false) {
 };
 let modificationLock = 0;
 
+// copyright and stuff
+function showCopyrightNotice() {
+    modal('Sound Tile', '<b>Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0</b><br>Source code is available on GitHub at <a href="https://github.com/spsquared/sound-tile" target="_blank" style="color: dodgerblue;">github.com/spsquared/sound-tile</a>.')
+};
+
 function superSecretScanlines() {
     document.getElementById('superSecretDiv').style.display = 'block';
 };
