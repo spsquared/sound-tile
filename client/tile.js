@@ -1144,7 +1144,7 @@ class GrassTile {
             }
         };
         this.updateLoop = setInterval(() => {
-            this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg';
+            this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg?' + Math.random();
         }, 5000);
         this.img.src = 'https://webcama1.watching-grass-grow.com/current.jpg';
         this.#resize();
@@ -1169,6 +1169,7 @@ class GrassTile {
     };
     destroy() {
         if (this.parent) this.parent.removeChild(this);
+        clearInterval(this.updateLoop);
     }
 }
 

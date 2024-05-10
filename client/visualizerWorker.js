@@ -58,6 +58,7 @@ class VisualizerWorker {
         const persistentData = VisualizerWorker.#persistentData.get(this.persistenceId);
         const stops = persistentData?.colorStops?.at(cid);
         if (stops !== undefined) {
+            if (target <= stops[0][0]) return `rgb(${stops[0][1]}, ${stops[0][2]}, ${stops[0][3]})`;
             for (let j = 0, k = 1; ; j++, k++) {
                 if (j == stops.length - 1) {
                     if (target >= stops[j][0]) return `rgb(${stops[j][1]}, ${stops[j][2]}, ${stops[j][3]})`;

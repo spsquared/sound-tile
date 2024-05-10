@@ -99,4 +99,4 @@ let modificationLock = 0;
 function superSecretScanlines() {
     document.getElementById('superSecretDiv').style.display = 'block';
 };
-if (urlParams.get('superSecretScanlines')) superSecretScanlines();
+if (urlParams.get('superSecretScanlines') != null) superSecretScanlines();

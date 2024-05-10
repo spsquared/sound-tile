@@ -413,10 +413,6 @@
                         <input class="tileImgReplace button" type="file" accept="image/bmp, image/jpeg, image/png, image/svg+xml, image/webp">
                     </label>
                     <span class="tileVisualizerControls"></span>
-                    <label title="Ratio of size relative to other tiles">
-                        Size:
-                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
-                    </label>
                     <label title="Smooth image rendering">
                         Smooth Img:
                         <input class="tileImgSmoothing checkBox" type="checkbox" checked>
@@ -425,7 +421,7 @@
                         Image BG:
                         <input class="tileVisualizerImgBackdrop checkBox" type="checkbox">
                     </label>
-                    <label title="Image size reacts to channel volume">
+                    <label title="Image size reacts to channel volume (works better with waveform)">
                         Reactive Img:
                         <input class="tileVisualizerImgReactive checkBox" type="checkbox">
                     </label>
@@ -439,6 +435,10 @@
                             <input class="tileVisualizerImgReactiveMax numberBox" type="number" min="1" max="2" step="0.1" value="1.5">
                         </label>
                     </span>
+                    <label title="Ratio of size relative to other tiles">
+                        Size:
+                        <input class="tileFlex numberBox" type="number" min="0.2" max="10" step="0.2" value="1">
+                    </label>
                     <label title="Background color">
                         Background:
                         <input type="color" class="tileBackgroundColor colorBox" value="#000000">
