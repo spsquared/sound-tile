@@ -657,12 +657,12 @@ class VisualizerTextTile {
         const textAlign = this.tile.querySelector('.tileTextAlign');
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
+            let size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
             this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
-            this.ctx2.font = `${displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1)}px Source Code Pro`;
+            this.ctx2.font = `${size}px Source Code Pro`;
             this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let size = displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100 * (displayWindow.devicePixelRatio ?? 1);
             let x = this.canvas2.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
@@ -1027,12 +1027,12 @@ class TextTile {
         const textAlign = this.tile.querySelector('.tileTextAlign');
         const textColor = this.tile.querySelector('.tileTextColor');
         let draw = () => {
+            let size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            this.ctx.font = `${displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1)}px Source Code Pro`;
+            this.ctx.font = `${size}px Source Code Pro`;
             this.ctx.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
-            let size = Number(fontSize.value) + 2;
             let x = this.canvas.width * Number(textAlign.value);
             let text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
