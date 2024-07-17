@@ -283,6 +283,7 @@ class GroupTile {
     children = [];
     orientation = 0;
     tile = null;
+    selfBox = null;
     childBox = null; // uhhh
     controls = {
         dragBar: null,
@@ -292,6 +293,7 @@ class GroupTile {
     };
     constructor(orientation = false) {
         this.tile = GroupTile.#template.content.cloneNode(true).children[0];
+        this.selfBox = this.tile.querySelector('.tileGroupSelf');
         this.childBox = this.tile.querySelector('.tileGroupChildren');
         this.orientation = orientation;
         if (orientation) this.childBox.classList.add('tileGroupVertical');
@@ -389,8 +391,8 @@ class GroupTile {
         return tile;
     }
     destroy() {
-        for (const child of this.children) child.destroy();
         if (this.parent) this.parent.removeChild(this);
+        for (const child of this.children) child.destroy();
     }
 
     static addUpdateListener(cb) {
@@ -877,7 +879,6 @@ class ChannelPeakTile {
     }
 
     getData() {
-        console.log(this.visualizer?.getData())
         return {
             type: 'cp',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
@@ -886,7 +887,6 @@ class ChannelPeakTile {
         };
     }
     static fromData(data) {
-        console.log(data)
         const tile = new ChannelPeakTile();
         applyDefaultTileControls(tile, data);
         if (data.visualizer !== null) {
@@ -1318,8 +1318,9 @@ function onDragMove(e) {
             dfs(GroupTile.root, drag.layoutPreview);
         };
         traverse: while (true) {
-            const rect = currTile.tile.getBoundingClientRect();
-            if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+            const boundingRect = currTile.tile.getBoundingClientRect();
+            if (e.clientX >= boundingRect.left && e.clientX <= boundingRect.right && e.clientY >= boundingRect.top && e.clientY <= boundingRect.bottom) {
+                const rect = currTile instanceof GroupTile && GroupTile.treeMode ? currTile.selfBox.getBoundingClientRect() : boundingRect;
                 let relX = e.clientX - rect.left;
                 let relY = e.clientY - rect.top;
                 const parent = currTile.parent;

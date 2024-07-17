@@ -364,6 +364,7 @@ class Visualizer {
         Visualizer.#list.forEach(visualizer => visualizer.destroy());
     }
 }
+
 class ChannelPeakVisualizer extends Visualizer {
     splitter = audioContext.createChannelSplitter(2);
     analyzers = [];
@@ -470,10 +471,8 @@ class ChannelPeakVisualizer extends Visualizer {
         try {
             this.gain.disconnect(globalVolume);
             this.gain.connect(globalVolume);
-            console.log(false)
             return false;
         } catch {
-            console.log(true)
             return true;
         }
     }
