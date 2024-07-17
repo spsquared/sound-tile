@@ -94,9 +94,7 @@ function setVisualizerControls() {
         volumeInput.oninput();
     }, { passive: true });
     const muteInput = this.tile.querySelector('.tileVisualizerMute');
-    muteInput.addEventListener('input', (e) => {
-        if (this.visualizer !== null) this.visualizer.muteOutput = muteInput.checked;
-    });
+    addBooleanInput(muteInput, 'muteOutput');
     // general visualizer options
     const visualizerMode = this.tile.querySelector('.tileVisualizerMode');
     const visualizerBarOptions = this.tile.querySelector('.tileVisualizerBarOptions');
