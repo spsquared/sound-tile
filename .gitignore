@@ -128,3 +128,5 @@ dist
 
 # Definitely don't want these on GitHub
 *.pem
+
+*.code-workspace

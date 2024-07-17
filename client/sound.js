@@ -467,7 +467,15 @@ class ChannelPeakVisualizer extends Visualizer {
         else this.gain.connect(globalVolume);
     }
     get muteOutput() {
-        return this.gain.numberOfOutputs == 1;
+        try {
+            this.gain.disconnect(globalVolume);
+            this.gain.connect(globalVolume);
+            console.log(false)
+            return false;
+        } catch {
+            console.log(true)
+            return true;
+        }
     }
 
     getData() {

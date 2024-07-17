@@ -877,6 +877,7 @@ class ChannelPeakTile {
     }
 
     getData() {
+        console.log(this.visualizer?.getData())
         return {
             type: 'cp',
             backgroundColor: this.tile.querySelector('.tileBackgroundColor').value,
@@ -885,6 +886,7 @@ class ChannelPeakTile {
         };
     }
     static fromData(data) {
+        console.log(data)
         const tile = new ChannelPeakTile();
         applyDefaultTileControls(tile, data);
         if (data.visualizer !== null) {
