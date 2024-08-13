@@ -1,6 +1,6 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
-let displayWindow = window;
+const displayWindow = window;
 const display = document.getElementById('display');
 
 // helpers for setup
@@ -21,29 +21,29 @@ function setVisualizerControls() {
     this.tile.querySelector('.tileVisualizerControls').appendChild(visualizerOptionsTemplate.content.cloneNode(true).children[0]);
     // helper moment
     const inputs = [];
-    let addNumberInput = (input, property) => {
-        let update = (e) => {
+    const addNumberInput = (input, property) => {
+        const update = (e) => {
             if (this.visualizer !== null) this.visualizer[property] = Number(input.value);
         };
         input.addEventListener('input', update);
         inputs.push(update);
     };
-    let addPercentInput = (input, property) => {
-        let update = (e) => {
+    const addPercentInput = (input, property) => {
+        const update = (e) => {
             if (this.visualizer !== null) this.visualizer[property] = Number(input.value) / 100;
         };
         input.addEventListener('input', update);
         inputs.push(update);
     };
-    let addBooleanInput = (input, property) => {
-        let update = (e) => {
+    const addBooleanInput = (input, property) => {
+        const update = (e) => {
             if (this.visualizer !== null) this.visualizer[property] = input.checked;
         };
         input.addEventListener('input', update);
         inputs.push(update);
     };
     // audio controls
-    let uploadAudio = async (files) => {
+    const uploadAudio = async (files) => {
         if (files.length > 0 && files[0].type.startsWith('audio/')) {
             this.tile.ondrop = (e) => {
                 e.preventDefault();
@@ -58,7 +58,7 @@ function setVisualizerControls() {
             this.visualizer.loadPromise.then(() => visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * (Number(visualizerFrequencyCrop.value) / 100));
         }
     };
-    let replaceAudio = async (files) => {
+    const replaceAudio = async (files) => {
         if (files.length > 0 && files[0].type.startsWith('audio/')) {
             this.visualizer.destroy();
             this.visualizer = new Visualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh(), (d) => this.ondraw(d));
@@ -68,7 +68,7 @@ function setVisualizerControls() {
             this.visualizer.color = this.colorSelect1.value;
             this.visualizer.color2 = this.colorSelect2.value;
             this.visualizer.volume = Number(volumeInput.value) / 100;
-            for (let update of inputs) update();
+            for (const update of inputs) update();
             audioReplace.value = '';
         }
     };
@@ -106,7 +106,7 @@ function setVisualizerControls() {
     const visualizerSecondaryColorContainer = this.tile.querySelector('.tileVisualizerColor2Container');
     const visualizerAltColorContainer = this.tile.querySelector('.tileVisualizerAltColorContainer');
     visualizerMode.addEventListener('input', (e) => {
-        let mode = Number(visualizerMode.value);
+        const mode = Number(visualizerMode.value);
         if (this.visualizer !== null) this.visualizer.mode = mode;
         visualizerFrequencyOptions.classList.add('hidden');
         visualizerWaveformOptions.classList.add('hidden');
@@ -357,7 +357,7 @@ class GroupTile {
         return this.children.indexOf(child);
     }
     refresh() {
-        for (let child of this.children) {
+        for (const child of this.children) {
             child.refresh();
         }
     }
@@ -365,8 +365,8 @@ class GroupTile {
         if (this.parent === null) return;
         if (this.children.length === 0) this.destroy();
         if (this.children.length === 1) {
-            let parent = this.parent;
-            let child = this.children[0];
+            const parent = this.parent;
+            const child = this.children[0];
             parent.replaceChild(this, child);
             this.children = [];
             this.destroy();
@@ -430,7 +430,7 @@ class VisualizerTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            let scale = window.devicePixelRatio ?? 1;
+            const scale = window.devicePixelRatio ?? 1;
             this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
@@ -552,7 +552,7 @@ class VisualizerImageTile {
         const imageContainer = this.tile.querySelector('.tileImgContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            let scale = displayWindow.devicePixelRatio ?? 1;
+            const scale = displayWindow.devicePixelRatio ?? 1;
             this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
@@ -656,15 +656,15 @@ class VisualizerTextTile {
         const fontSize = this.tile.querySelector('.tileTextSize');
         const textAlign = this.tile.querySelector('.tileTextAlign');
         const textColor = this.tile.querySelector('.tileTextColor');
-        let draw = () => {
-            let size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
+        const draw = () => {
+            const size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
             this.ctx2.clearRect(0, 0, this.canvas2.width, this.canvas2.height);
             this.ctx2.font = `${size}px Source Code Pro`;
             this.ctx2.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx2.textBaseline = 'middle';
             this.ctx2.fillStyle = textColor.value;
-            let x = this.canvas2.width * Number(textAlign.value);
-            let text = this.text.split('\n');
+            const x = this.canvas2.width * Number(textAlign.value);
+            const text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
                 this.ctx2.fillText(text[i], x, (i + 0.5) * size);
             }
@@ -677,8 +677,8 @@ class VisualizerTextTile {
         this.canvas.style.top = '0px';
         this.canvas2.style.bottom = '0px';
         this.#resize = () => {
-            let scale = displayWindow.devicePixelRatio ?? 1;
-            let textHeight = this.text.split('\n').length * displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100;
+            const scale = displayWindow.devicePixelRatio ?? 1;
+            const textHeight = this.text.split('\n').length * displayWindow.innerHeight * (Number(fontSize.value) + 0.5) / 100;
             const rect = canvasContainer.getBoundingClientRect();
             this.visualizer?.resize(Math.round(rect.width * scale), Math.round((rect.height - textHeight - 8) * scale));
             this.canvas.style.width = rect.width + 'px';
@@ -750,7 +750,7 @@ class ChannelPeakTile {
         this.canvas.height = 500;
         // visualizer controls
         // audio controls
-        let uploadAudio = async (files) => {
+        const uploadAudio = async (files) => {
             if (files.length > 0 && files[0].type.startsWith('audio/')) {
                 this.tile.ondrop = (e) => {
                     e.preventDefault();
@@ -764,7 +764,7 @@ class ChannelPeakTile {
                 this.tile.querySelector('.tileSourceUploadCover').remove();
             }
         };
-        let replaceAudio = async (files) => {
+        const replaceAudio = async (files) => {
             if (files.length > 0 && files[0].type.startsWith('audio/')) {
                 this.visualizer.destroy();
                 this.visualizer = new ChannelPeakVisualizer(await files[0].arrayBuffer(), this.canvas, () => this.refresh());
@@ -864,7 +864,7 @@ class ChannelPeakTile {
         const canvasContainer = this.tile.querySelector('.tileCanvasContainer');
         this.#resize = () => {
             const rect = canvasContainer.getBoundingClientRect();
-            let scale = displayWindow.devicePixelRatio ?? 1;
+            const scale = displayWindow.devicePixelRatio ?? 1;
             this.visualizer?.resize(Math.round(rect.width * scale), Math.round(rect.height * scale));
             this.canvas.style.width = rect.width + 'px';
             this.canvas.style.height = rect.height + 'px';
@@ -1026,15 +1026,15 @@ class TextTile {
         const fontSize = this.tile.querySelector('.tileTextSize');
         const textAlign = this.tile.querySelector('.tileTextAlign');
         const textColor = this.tile.querySelector('.tileTextColor');
-        let draw = () => {
-            let size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
+        const draw = () => {
+            const size = displayWindow.innerHeight * Number(fontSize.value) / 100 * (displayWindow.devicePixelRatio ?? 1);
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.font = `${size}px Source Code Pro`;
             this.ctx.textAlign = Number(textAlign.value) == 1 ? 'right' : (Number(textAlign.value) == 0.5 ? 'center' : 'left');
             this.ctx.textBaseline = 'middle';
             this.ctx.fillStyle = textColor.value;
-            let x = this.canvas.width * Number(textAlign.value);
-            let text = this.text.split('\n');
+            const x = this.canvas.width * Number(textAlign.value);
+            const text = this.text.split('\n');
             for (let i = 0; i < text.length; i++) {
                 this.ctx.fillText(text[i], x, (this.canvas.height / 2) - (((text.length / 2) - i - 0.5) * size));
             }
@@ -1049,7 +1049,7 @@ class TextTile {
             editContainer.style.width = rect.width + 'px';
             editContainer.style.height = rect.height + 'px';
             const rect2 = canvasContainer.getBoundingClientRect();
-            let scale = displayWindow.devicePixelRatio ?? 1;
+            const scale = displayWindow.devicePixelRatio ?? 1;
             this.canvas.width = Math.round(rect2.width * scale);
             this.canvas.height = Math.round(rect2.height * scale);
             this.canvas.style.width = rect2.width + 'px';
@@ -1243,7 +1243,7 @@ function onDragMove(e) {
         const visited = new Set();
         let currTile = GroupTile.root;
         visited.add(currTile);
-        for (let child of currTile.children) {
+        for (const child of currTile.children) {
             const rect2 = child.tile.getBoundingClientRect();
             if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
                 currTile = child;
@@ -1252,7 +1252,7 @@ function onDragMove(e) {
         }
         let foundDrop = false;
         if (currTile == GroupTile.root) return;
-        let setLayout = (tile, index, createGroup, groupOrientation) => {
+        const setLayout = (tile, index, createGroup, groupOrientation) => {
             if (createGroup) drag.drop.tile = tile;
             else drag.drop.tile = tile.parent;
             drag.drop.index = index;
@@ -1260,14 +1260,14 @@ function onDragMove(e) {
             drag.drop.groupOrientation = groupOrientation;
             foundDrop = true;
         };
-        let simulateLayout = () => {
+        const simulateLayout = () => {
             const ddiv = document.createElement('div');
             ddiv.classList.add('pTileDrop');
             ddiv.style.flexGrow = drag.tile.tile.style.flexGrow;
             if (drag.tile instanceof GroupTile) {
                 ddiv.classList.add('pGroupTile');
                 if (drag.tile.orientation) ddiv.classList.add('pGroupTileVertical');
-                let dfs = (group, div) => {
+                const dfs = (group, div) => {
                     for (const child of group.children) {
                         const tdiv = document.createElement('div');
                         if (child.children !== undefined) tdiv.classList.add('pGroupTile');
@@ -1282,8 +1282,8 @@ function onDragMove(e) {
                 };
                 dfs(drag.tile, ddiv);
             } else ddiv.classList.add('pTile');
-            let dfs = (group, div) => {
-                for (let i in group.children) {
+            const dfs = (group, div) => {
+                for (const i in group.children) {
                     const child = group.children[i];
                     const tdiv = document.createElement('div');
                     if (child.children !== undefined) tdiv.classList.add('pGroupTile');
@@ -1319,13 +1319,13 @@ function onDragMove(e) {
             const boundingRect = currTile.tile.getBoundingClientRect();
             if (e.clientX >= boundingRect.left && e.clientX <= boundingRect.right && e.clientY >= boundingRect.top && e.clientY <= boundingRect.bottom) {
                 const rect = currTile instanceof GroupTile && GroupTile.treeMode ? currTile.selfBox.getBoundingClientRect() : boundingRect;
-                let relX = e.clientX - rect.left;
-                let relY = e.clientY - rect.top;
+                const relX = e.clientX - rect.left;
+                const relY = e.clientY - rect.top;
                 const parent = currTile.parent;
-                let halfBoxWidth = Math.min(12 * Math.log(rect.width + 1), rect.width * 0.6);
-                let halfBoxHeight = Math.min(12 * Math.log(rect.height + 1), rect.height * 0.6);
-                let halfWidth = rect.width / 2;
-                let halfHeight = rect.height / 2;
+                const halfBoxWidth = Math.min(12 * Math.log(rect.width + 1), rect.width * 0.6);
+                const halfBoxHeight = Math.min(12 * Math.log(rect.height + 1), rect.height * 0.6);
+                const halfWidth = rect.width / 2;
+                const halfHeight = rect.height / 2;
                 if (relY < halfBoxHeight && relX > halfWidth - halfBoxWidth && relX < halfWidth + halfBoxWidth) {
                     // uhhh doesnt work when orientation is horizontal??
                     if (parent !== null && parent != GroupTile.root && parent.orientation == 1 && relY < halfBoxHeight * 0.5) {
@@ -1359,7 +1359,7 @@ function onDragMove(e) {
                 currTile = currTile.parent;
                 continue traverse;
             }
-            if (currTile instanceof GroupTile) for (let child of currTile.children) {
+            if (currTile instanceof GroupTile) for (const child of currTile.children) {
                 if (visited.has(child)) continue;
                 const rect2 = child.tile.getBoundingClientRect();
                 if (e.clientX >= rect2.left && e.clientX <= rect2.right && e.clientY >= rect2.top && e.clientY <= rect2.bottom) {
@@ -1414,7 +1414,7 @@ GroupTile.addUpdateListener(() => {
 display.addEventListener('wheel', (e) => {
     // prevent chrome history navigation
     e.preventDefault();
-    let targetControlDiv = tileControlDivList.find((el) => el.contains(e.target));
+    const targetControlDiv = tileControlDivList.find((el) => el.contains(e.target));
     if (e.target.matches('.tileVisualizerVolumeInput')) {
     } else if (e.target.matches('.tileControls') || targetControlDiv != undefined) {
         targetControlDiv.scrollBy(e.deltaX, e.deltaY);
@@ -1431,10 +1431,10 @@ display.addEventListener('wheel', (e) => {
 window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new VisualizerTextTile());
     GroupTile.root.addChild(new VisualizerTile());
-    let subgroup = new GroupTile(1);
+    const subgroup = new GroupTile(1);
     subgroup.addChild(new VisualizerTile())
     subgroup.addChild(new ChannelPeakTile());
-    let subgroup2 = new GroupTile();
+    const subgroup2 = new GroupTile();
     subgroup2.addChild(new VisualizerTile());
     subgroup2.addChild(new TextTile());
     subgroup.addChild(subgroup2, 1);

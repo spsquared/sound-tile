@@ -5,7 +5,7 @@ const globalVolume = audioContext.createGain();
 globalVolume.connect(audioContext.destination);
 
 if (navigator.userActivation) {
-    let waitForInteraction = setInterval(() => {
+    const waitForInteraction = setInterval(() => {
         if (navigator.userActivation.hasBeenActive) {
             audioContext.resume();
             clearInterval(waitForInteraction);
@@ -36,7 +36,6 @@ class Visualizer {
     #color2 = { mode: 0, value: '#ffffff' };
     fillAlpha = 100;
     altColor = false;
-    colorChanged = false;
     mode = 0;
     barWidthPercent = 0.8;
     barCrop = 1;
@@ -55,8 +54,10 @@ class Visualizer {
     spectDiscreteVals = 0;
     flippedX = false;
     flippedY = false;
-    rotated = false;
+    #rotated = false;
     ready = false;
+    colorChanged = false;
+    resized = false;
     drawing = false;
     loadPromise = new Promise(() => { });
     #drawCallback = null;
@@ -70,7 +71,7 @@ class Visualizer {
         this.canvas = canvas;
         if (this.worker !== null) {
             if (typeof oncreate == 'function') {
-                let res = (e) => {
+                const res = (e) => {
                     this.worker.removeEventListener('message', res);
                     oncreate();
                 };
@@ -179,7 +180,7 @@ class Visualizer {
             spectDiscreteVals: this.spectDiscreteVals,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
-            rotated: this.rotated,
+            rotated: this.#rotated,
             playing: this.playing
         };
     }
@@ -245,6 +246,14 @@ class Visualizer {
     get color2() {
         return this.#color2;
     }
+    set rotated(r) {
+        this.#rotated = r;
+        if (this.worker !== null) this.worker.postMessage([2]);
+        else this.resized = true;
+    }
+    get rotated() {
+        return this.#rotated;
+    }
     get sampleRate() {
         return this.buffer.sampleRate;
     }
@@ -277,7 +286,7 @@ class Visualizer {
             spectDiscreteVals: this.spectDiscreteVals,
             flippedX: this.flippedX,
             flippedY: this.flippedY,
-            rotated: this.rotated,
+            rotated: this.#rotated,
             volume: this.gain.gain.value,
             muted: this.muteOutput
         };
@@ -336,7 +345,7 @@ class Visualizer {
     }
 
     static draw() {
-        for (let visualizer of Visualizer.#list) {
+        for (const visualizer of Visualizer.#list) {
             visualizer.draw();
         }
     }
@@ -444,7 +453,7 @@ class ChannelPeakVisualizer extends Visualizer {
     set channelCount(c) {
         this.splitter.disconnect();
         this.splitter = audioContext.createChannelSplitter(c);
-        for (let a of this.analyzers) a.disconnect();
+        for (const a of this.analyzers) a.disconnect();
         this.analyzers = [];
         for (let i = 0; i < c; i++) {
             const analyzer = audioContext.createAnalyser();
@@ -515,7 +524,7 @@ class ChannelPeakVisualizer extends Visualizer {
         return visualizer;
     }
     destroy() {
-        for (let a of this.analyzers) a.disconnect();
+        for (const a of this.analyzers) a.disconnect();
         super.destroy();
     }
 }

@@ -49,7 +49,7 @@ class ColorInput {
                 this.#controlsParent?.classList.remove('tileControlsNoHide');
             }
         };
-        let hideOnClickOff = (e) => {
+        const hideOnClickOff = (e) => {
             if (!document.body.contains(container)) {
                 this.#popup.remove();
                 document.removeEventListener('mousedown', hideOnClickOff);
@@ -107,7 +107,7 @@ class ColorInput {
         this.#inputs.gradient.y = this.#popup.querySelector('.colorInputGradientY');
         this.#inputs.gradient.r = this.#popup.querySelector('.colorInputGradientR');
         this.#inputs.gradient.angle = this.#popup.querySelector('.colorInputGradientAngle');
-        for (let i in this.#inputs.gradient) {
+        for (const i in this.#inputs.gradient) {
             if (this.#inputs.gradient[i] instanceof Element) this.#inputs.gradient[i].addEventListener('input', (e) => {
                 this.#oninput();
                 this.#refreshBadge();
@@ -161,10 +161,10 @@ class ColorInput {
         moveUp.classList.add('colorInputGradientStopMoveUp');
         moveUp.type = 'button';
         moveUp.onclick = (e) => {
-            let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
+            const index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
             if (index > 0) {
-                let val = color.value;
-                let off = offset.value;
+                const val = color.value;
+                const off = offset.value;
                 color.value = this.#inputs.gradient.stops[index - 1][1].value;
                 offset.value = this.#inputs.gradient.stops[index - 1][0].value;
                 this.#inputs.gradient.stops[index - 1][1].value = val;
@@ -177,10 +177,10 @@ class ColorInput {
         moveDown.classList.add('colorInputGradientStopMoveDown');
         moveDown.type = 'button';
         moveDown.onclick = (e) => {
-            let index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
+            const index = this.#inputs.gradient.stops.findIndex((stop) => stop[0] === offset);
             if (index < this.#inputs.gradient.stops.length - 1) {
-                let val = color.value;
-                let off = offset.value;
+                const val = color.value;
+                const off = offset.value;
                 color.value = this.#inputs.gradient.stops[index + 1][1].value;
                 offset.value = this.#inputs.gradient.stops[index + 1][0].value;
                 this.#inputs.gradient.stops[index + 1][1].value = val;
@@ -273,7 +273,7 @@ class ColorInput {
                 this.#inputs.gradient.angle.value = v.value.angle;
                 this.#stopsContainer.innerHTML = '';
                 this.#inputs.gradient.stops = [];
-                for (let stop of v.value.stops) {
+                for (const stop of v.value.stops) {
                     const inputs = this.#addGradientColorStop();
                     inputs[0].value = stop[0] * 100;
                     inputs[1].value = stop[1];
@@ -293,17 +293,17 @@ const uploadButton = document.getElementById('uploadButton');
 const downloadButton = document.getElementById('downloadButton');
 const uploadingCover = document.getElementById('uploadingCover');
 async function compressTree(tree) {
-    let promises = []
+    const promises = []
     let curr;
-    let stack = [tree];
+    const stack = [tree];
     while (stack.length) {
         curr = stack.pop();
         if (curr.children !== undefined) {
-            for (let child of curr.children) stack.push(child);
+            for (const child of curr.children) stack.push(child);
             continue;
         }
         if (curr.visualizer != null) {
-            let visualizer = curr.visualizer;
+            const visualizer = curr.visualizer;
             if (Worker !== undefined) {
                 promises.push(new Promise((resolve, reject) => {
                     fflate.gzip(new Uint8Array(visualizer.buffer), {
@@ -330,17 +330,17 @@ async function decompressTree(file) {
     }
     if (tree.version > 0) {
         // decompress audio
-        let promises = [];
+        const promises = [];
         let curr;
-        let stack = [tree.root];
+        const stack = [tree.root];
         while (stack.length) {
             curr = stack.pop();
             if (curr.children !== undefined) {
-                for (let child of curr.children) stack.push(child);
+                for (const child of curr.children) stack.push(child);
                 continue;
             }
             if (curr.visualizer != null) {
-                let visualizer = curr.visualizer;
+                const visualizer = curr.visualizer;
                 if (Worker !== undefined) {
                     promises.push(new Promise((resolve, reject) => {
                         fflate.decompress(new Uint8Array(visualizer.buffer), {
@@ -385,19 +385,17 @@ uploadButton.oninput = async (e) => {
                     return;
                 }
                 // jank
-                for (let child of GroupTile.root.children) {
-                    child.destroy();
-                }
+                for (const child of GroupTile.root.children) child.destroy();
                 Visualizer.destroyAll();
                 if (wakeLock && !wakeLock.released) wakeLock.release();
                 GroupTile.root.tile.remove();
                 GroupTile.root = new GroupTile(false);
                 if (pipWindow !== null) pipContainer.appendChild(GroupTile.root.tile);
                 else display.appendChild(GroupTile.root.tile);
-                let dfs = (treenode) => {
+                const dfs = (treenode) => {
                     if (treenode.children !== undefined) {
-                        let node = GroupTile.fromData(treenode);
-                        for (let child of treenode.children) {
+                        const node = GroupTile.fromData(treenode);
+                        for (const child of treenode.children) {
                             node.addChild(dfs(child));
                         }
                         return node;
@@ -484,13 +482,13 @@ downloadButton.onclick = async (e) => {
         mDatTitle.disabled = true;
         mDatSubtitle.disabled = true;
         document.body.style.cursor = 'progress';
-        let dfs = (node) => {
+        const dfs = (node) => {
             if (node.children !== undefined) {
-                let treenode = {
+                const treenode = {
                     ...node.getData(),
                     children: []
                 };
-                for (let child of node.children) {
+                for (const child of node.children) {
                     treenode.children.push(dfs(child));
                 }
                 return treenode;
@@ -507,7 +505,7 @@ downloadButton.onclick = async (e) => {
         };
         await compressTree(tree.root);
         const download = document.createElement('a');
-        let current = new Date();
+        const current = new Date();
         download.download = `${current.getHours()}-${current.getMinutes()}_${current.getMonth()}-${current.getDay()}-${current.getFullYear()}.soundtile`;
         download.href = window.URL.createObjectURL(new Blob([msgpack.encode(tree)], { type: 'application/octet-stream' }));
         download.click();
@@ -649,7 +647,7 @@ function getTime(s) {
     return `${Math.trunc(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.trunc(s) % 60}`;
 };
 setInterval(() => {
-    let now = performance.now();
+    const now = performance.now();
     if (mediaControls.currentTime >= mediaControls.duration) {
         if (mediaControls.duration == 0 || !mediaControls.loop) {
             mediaControls.stopPlayback();
@@ -702,7 +700,7 @@ const mDatPlaylistShuffle = document.getElementById('mediaDataPlaylistShuffleTog
 const mDatPlaylistLoop = document.getElementById('mediaDataPlaylistLoopToggle');
 function updateTitle() {
     if (mDatTitle.value.trim().length > 0) {
-        let text = `${mDatTitle.value.trim().substring(0, 32)}${mDatTitle.value.trim().length > 32 ? '...' : ''}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim().substring(0, 32)}${mDatSubtitle.value.trim().length > 32 ? '...' : ''}`;
+        const text = `${mDatTitle.value.trim().substring(0, 32)}${mDatTitle.value.trim().length > 32 ? '...' : ''}${mDatSubtitle.value.replaceAll(' ', '').length > 0 ? ' - ' : ''}${mDatSubtitle.value.trim().substring(0, 32)}${mDatSubtitle.value.trim().length > 32 ? '...' : ''}`;
         if (isPWA) title.innerText = text;
         else title.innerText = `Sound Tile - ${text}`
     } else title.innerText = 'Sound Tile';
@@ -784,7 +782,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                 display.appendChild(GroupTile.root.tile);
                 pipDisplayCover.style.opacity = 0;
                 pipButton.checked = false;
-                let inefficientWait = setInterval(() => {
+                const inefficientWait = setInterval(() => {
                     if ([...display.children].includes(GroupTile.root.tile)) {
                         GroupTile.root.refresh();
                         clearInterval(inefficientWait);
@@ -828,7 +826,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
             pipContainer.addEventListener('wheel', (e) => {
                 e.preventDefault();
             });
-            let inefficientWait = setInterval(() => {
+            const inefficientWait = setInterval(() => {
                 try {
                     // completely doesn't work because the size is just wrong
                     if ([...pipWindow.document.body.children].includes(pipContainer) && [...pipContainer.children].includes(GroupTile.root.tile)) {
@@ -856,7 +854,7 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
         displayWindow = window;
         pipDisplayCover.style.opacity = 0;
         pipButton.checked = false;
-        let inefficientWait = setInterval(() => {
+        const inefficientWait = setInterval(() => {
             if ([...display.children].includes(GroupTile.root.tile)) {
                 GroupTile.root.refresh();
                 clearInterval(inefficientWait);
