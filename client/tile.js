@@ -1428,9 +1428,10 @@ display.addEventListener('wheel', (e) => {
     }
 });
 
+// le defaults
 window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new VisualizerTextTile());
-    GroupTile.root.addChild(new VisualizerTile());
+    GroupTile.root.addChild(new VisualizerImageTile());
     const subgroup = new GroupTile(1);
     subgroup.addChild(new VisualizerTile())
     subgroup.addChild(new ChannelPeakTile());
