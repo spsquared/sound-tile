@@ -1,6 +1,6 @@
 // Copyright (C) 2024 Sampleprovider(sp)
 
-const displayWindow = window;
+let displayWindow = window;
 const display = document.getElementById('display');
 
 // helpers for setup
