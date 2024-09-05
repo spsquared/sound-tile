@@ -98,10 +98,7 @@ let updateCache = async (cache, request, preloadResponse) => {
         return networked;
     } catch (err) {
         if (preloadResponse != undefined) console.error(err);
-        return new Response('timed out', {
-            status: 408,
-            headers: { "Content-Type": "text/plain" }
-        });
+        return Response.error();
     }
 };
 self.addEventListener("fetch", (e) => {
@@ -113,10 +110,7 @@ self.addEventListener("fetch", (e) => {
             e.respondWith(fetch(e.request));
         } catch (err) {
             console.error(err);
-            return new Response('timed out', {
-                status: 408,
-                headers: { "Content-Type": "text/plain" }
-            });
+            return Response.error();
         }
     }
 });
