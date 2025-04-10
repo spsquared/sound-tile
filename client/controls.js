@@ -585,6 +585,26 @@ window.addEventListener('load', (e) => {
     volumeControlInput.oninput();
 });
 
+// dummy audio so features like media session work
+const silenceAudioPromise = new Promise((resolve) => {
+    const audio = new Audio('/assets/silence.mp3');
+    audio.oncanplay = () => resolve(audio);
+    audio.loop = true;
+});
+if (navigator.userActivation) {
+    const waitForInteraction = setInterval(() => {
+        if (navigator.userActivation.hasBeenActive) {
+            clearInterval(waitForInteraction);
+            silenceAudioPromise.then((a) => a.play());
+        }
+    }, 100);
+} else {
+    document.addEventListener('click', function click(e) {
+        document.removeEventListener('click', click);
+        silenceAudioPromise.then((a) => a.play());
+    });
+}
+
 // media controls
 const timeSeekInput = document.getElementById('seeker');
 const timeSeekThumb = document.getElementById('seekerThumb');
@@ -611,6 +631,10 @@ const mediaControls = {
         pipTimeSeekInput.title = timeSeekInput.title;
         mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
+        navigator.mediaSession.setPositionState({
+            duration: mediaControls.duration,
+            position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
+        });
     },
     startPlayback: async () => {
         mediaControls.playing = true;
@@ -649,15 +673,15 @@ function getTime(s) {
 };
 setInterval(() => {
     const now = performance.now();
-    if (mediaControls.currentTime >= mediaControls.duration) {
-        if (mediaControls.duration == 0 || !mediaControls.loop) {
-            mediaControls.stopPlayback();
-            mediaControls.setTime(mediaControls.duration);
-        } else if (mediaControls.playing) {
-            mediaControls.setTime(0);
-        }
-    }
     if (mediaControls.playing) {
+        if (mediaControls.currentTime >= mediaControls.duration) {
+            if (mediaControls.duration == 0 || !mediaControls.loop) {
+                mediaControls.stopPlayback();
+                mediaControls.setTime(mediaControls.duration);
+            } else {
+                mediaControls.setTime(0);
+            }
+        }
         mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
         timeSeekInput.value = mediaControls.currentTime;
         pipTimeSeekInput.value = mediaControls.currentTime;
@@ -668,6 +692,10 @@ setInterval(() => {
     } else {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
+    navigator.mediaSession.setPositionState({
+        duration: mediaControls.duration,
+        position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
+    });
     timeDisplay.innerText = getTime(mediaControls.currentTime);
 }, 20);
 timeSeekInput.oninput = (e) => {
@@ -705,6 +733,7 @@ function updateTitle() {
         if (isPWA) title.innerText = text;
         else title.innerText = `Sound Tile - ${text}`
     } else title.innerText = 'Sound Tile';
+    setMediaSession();
 };
 mDatTitle.addEventListener('input', updateTitle);
 mDatTitle.addEventListener('focus', (e) => mDatTitle.scrollLeft = 0);
@@ -760,6 +789,39 @@ mDatImage.addEventListener('drop', (e) => {
 });
 mDatPlaylistLoop.onclick = (e) => loopToggle.click();
 mDatPlaylistLoop.checked = mediaControls.loop;
+
+// media session
+const mediaSessionEnabled = 'mediaSession' in navigator;
+function setMediaSession() {
+    if (mediaSessionEnabled) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: mDatTitle.value.trim(),
+            artist: mDatSubtitle.value.trim()
+        });
+    }
+}
+if (mediaSessionEnabled) {
+    // navigator.mediaSession.setActionHandler('play', () => {
+    //     mediaControls.startPlayback();
+    //     navigator.mediaSession.playbackState = 'playing';
+    // });
+    navigator.mediaSession.setActionHandler('pause', () => {
+        if (mediaControls.playing) {
+            mediaControls.stopPlayback();
+            navigator.mediaSession.playbackState = 'paused';
+        } else {
+            mediaControls.startPlayback();
+            navigator.mediaSession.playbackState = 'playing';
+        }
+    });
+    navigator.mediaSession.setActionHandler('seekto', (e) => {
+        mediaControls.setTime(mediaControls.duration * e.seekTime);
+    });
+    setMediaSession();
+    audioContext.addEventListener('statechange', () => {
+        navigator.mediaSession.playbackState = audioContext.state == 'running' ? 'playing' : 'paused';
+    });
+}
 
 // picture-in-picture
 let pipWindow = null;
