@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Sampleprovider(sp)
+// Copyright (C) 2025 Sampleprovider(sp)
 
 let loaded = true;
 window.addEventListener('load', (e) => {
@@ -98,7 +98,7 @@ let modificationLock = 0;
 
 // copyright and stuff
 function showCopyrightNotice() {
-    modal('Sound Tile', '<b>Copyright &copy; 2024 Sampleprovider(sp) under GNU GPL v3.0</b><br>Source code is available on GitHub at <a href="https://github.com/spsquared/sound-tile" target="_blank" style="color: dodgerblue;">github.com/spsquared/sound-tile</a>.')
+    modal('Sound Tile', '<b>Copyright &copy; 2025 Sampleprovider(sp) under GNU GPL v3.0</b><br>Source code is available on GitHub at <a href="https://github.com/spsquared/sound-tile" target="_blank" style="color: dodgerblue;">github.com/spsquared/sound-tile</a>.')
 };
 
 function superSecretScanlines() {

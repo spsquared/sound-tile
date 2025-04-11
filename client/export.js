@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Sampleprovider(sp)
+// Copyright (C) 2025 Sampleprovider(sp)
 
 // THIS CODE IS BAD DON'T USE IT
 

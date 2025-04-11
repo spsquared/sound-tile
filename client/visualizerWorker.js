@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Sampleprovider(sp)
+// Copyright (C) 2025 Sampleprovider(sp)
 
 const isWorker = this.window === undefined;
 
