@@ -130,3 +130,7 @@ dist
 *.pem
 
 *.code-workspace
+
+firebase.json
+.firebaserc
+*.cache
