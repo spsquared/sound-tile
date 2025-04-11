@@ -631,10 +631,7 @@ const mediaControls = {
         pipTimeSeekInput.title = timeSeekInput.title;
         mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
-        navigator.mediaSession.setPositionState({
-            duration: mediaControls.duration,
-            position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
-        });
+        updateMediaSessionPosition();
     },
     startPlayback: async () => {
         mediaControls.playing = true;
@@ -667,6 +664,7 @@ Visualizer.onUpdate = () => {
     }
     timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
+    updateMediaSessionPosition();
 };
 function getTime(s) {
     return `${Math.trunc(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.trunc(s) % 60}`;
@@ -692,10 +690,7 @@ setInterval(() => {
     } else {
         mediaControls.startTime = now - (mediaControls.currentTime * 1000);
     }
-    navigator.mediaSession.setPositionState({
-        duration: mediaControls.duration,
-        position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
-    });
+    updateMediaSessionPosition();
     timeDisplay.innerText = getTime(mediaControls.currentTime);
 }, 20);
 timeSeekInput.oninput = (e) => {
@@ -767,6 +762,7 @@ mDatImage.addEventListener('dblclick', (e) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 mDatImage.src = reader.result;
+                setMediaSession();
             };
             reader.readAsDataURL(imageUpload.files[0]);
         }
@@ -796,23 +792,30 @@ function setMediaSession() {
     if (mediaSessionEnabled) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: mDatTitle.value.trim(),
-            artist: mDatSubtitle.value.trim()
+            artist: mDatSubtitle.value.trim(),
+            artwork: [{ src: mDatImage.src }]
         });
     }
 }
+function updateMediaSessionPosition() {
+    navigator.mediaSession.setPositionState({
+        duration: mediaControls.duration,
+        position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
+    });
+}
 if (mediaSessionEnabled) {
-    // navigator.mediaSession.setActionHandler('play', () => {
-    //     mediaControls.startPlayback();
-    //     navigator.mediaSession.playbackState = 'playing';
-    // });
     navigator.mediaSession.setActionHandler('pause', () => {
         if (mediaControls.playing) {
             mediaControls.stopPlayback();
-            navigator.mediaSession.playbackState = 'paused';
         } else {
             mediaControls.startPlayback();
-            navigator.mediaSession.playbackState = 'playing';
         }
+    });
+    navigator.mediaSession.setActionHandler('seekbackward', (e) => {
+        mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
+    });
+    navigator.mediaSession.setActionHandler('seekforward', (e) => {
+        mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
     });
     navigator.mediaSession.setActionHandler('seekto', (e) => {
         mediaControls.setTime(mediaControls.duration * e.seekTime);
