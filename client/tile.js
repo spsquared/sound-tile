@@ -10,7 +10,7 @@ function setDefaultTileControls() {
     backgroundColorSelect.addEventListener('input', (e) => this.tile.style.backgroundColor = backgroundColorSelect.value);
     this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
     this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e), { passive: true });
-    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+    this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy(); });
     const flexGrowInput = this.tile.querySelector('.tileFlex');
     flexGrowInput.addEventListener('input', (e) => {
         this.tile.style.flexGrow = Number(flexGrowInput.value);
@@ -155,7 +155,7 @@ function setVisualizerControls() {
     const visualizerFrequencyCropDisplay = this.tile.querySelector('.tileVisualizerFrequencyFrequencyCropDisplay');
     visualizerFrequencyCrop.addEventListener('input', (e) => {
         if (this.visualizer !== null) {
-            this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100
+            this.visualizer.barCrop = Number(visualizerFrequencyCrop.value) / 100;
             visualizerFrequencyCropDisplay.innerText = this.visualizer.sampleRate / 2 * this.visualizer.barCrop;
         }
     });
@@ -201,7 +201,7 @@ function setVisualizerControls() {
         if (this.visualizer !== null) this.visualizer.color2 = this.colorSelect2.value;
     };
     const visualizerAltColor = this.tile.querySelector('.tileVisualizerAltColor');
-    addBooleanInput(visualizerAltColor, 'altColor')
+    addBooleanInput(visualizerAltColor, 'altColor');
     const fillAlpha = this.tile.querySelector('.tileVisualizerFillAlpha');
     addPercentInput(fillAlpha, 'fillAlpha');
 };
@@ -298,7 +298,7 @@ class GroupTile {
         this.controls.dragBar = this.tile.querySelector('.tileDrag');
         this.tile.querySelector('.tileDrag').addEventListener('mousedown', (e) => startDrag.call(this, e));
         this.tile.querySelector('.tileDrag').addEventListener('touchstart', (e) => startDrag.call(this, e), { passive: true });
-        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy() });
+        this.tile.querySelector('.tileRemove').addEventListener('click', (e) => { if (modificationLock == 0 && GroupTile.root != this && (GroupTile.root.children.length > 1 || GroupTile.root.children[0] != this)) this.destroy(); });
         this.controls.controls = this.tile.querySelector('.tileControls');
         this.controls.flexGrow = this.tile.querySelector('.tileFlex');
         this.controls.flexGrow.addEventListener('input', (e) => {
@@ -440,7 +440,7 @@ class VisualizerTile {
     ondraw(data) {
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -524,7 +524,7 @@ class VisualizerImageTile {
         const imageBackdrop = this.tile.querySelector('.tileVisualizerImgBackdrop');
         imageBackdrop.addEventListener('click', (e) => {
             if (imageBackdrop.checked) {
-                canvasContainer.insertBefore(this.img, this.canvas)
+                canvasContainer.insertBefore(this.img, this.canvas);
                 imageContainer.style.display = 'none';
             } else {
                 imageContainer.appendChild(this.img);
@@ -571,10 +571,10 @@ class VisualizerImageTile {
 
     ondraw(data) {
         if (data == null || !this.imageReactive) return;
-        this.img.style.transform = `scale(${(data.peak * (this.imageReactiveMax - this.imageReactiveMin)) + this.imageReactiveMin})`
+        this.img.style.transform = `scale(${(data.peak * (this.imageReactiveMax - this.imageReactiveMin)) + this.imageReactiveMin})`;
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -697,7 +697,7 @@ class VisualizerTextTile {
     ondraw(data) {
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -871,7 +871,7 @@ class ChannelPeakTile {
         };
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -970,7 +970,7 @@ class ImageTile {
         };
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -1058,7 +1058,7 @@ class TextTile {
         };
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -1150,7 +1150,7 @@ class GrassTile {
         this.#resize();
     }
 
-    #resize = () => { }
+    #resize = () => { };
     refresh() {
         this.#resize();
     }
@@ -1433,7 +1433,7 @@ window.addEventListener('load', (e) => {
     GroupTile.root.addChild(new VisualizerTextTile());
     GroupTile.root.addChild(new VisualizerImageTile());
     const subgroup = new GroupTile(1);
-    subgroup.addChild(new VisualizerTile())
+    subgroup.addChild(new VisualizerTile());
     subgroup.addChild(new ChannelPeakTile());
     const subgroup2 = new GroupTile();
     subgroup2.addChild(new VisualizerTile());

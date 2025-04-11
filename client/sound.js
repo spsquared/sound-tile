@@ -359,7 +359,7 @@ class Visualizer {
     }
     static get duration() {
         let duration = 0;
-        Visualizer.#list.forEach(visualizer => { if (visualizer.ready && visualizer.buffer.duration > duration) duration = visualizer.buffer.duration });
+        Visualizer.#list.forEach(visualizer => { if (visualizer.ready && visualizer.buffer.duration > duration) duration = visualizer.buffer.duration; });
         return duration;
     }
 
