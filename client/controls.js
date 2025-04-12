@@ -804,12 +804,11 @@ function updateMediaSessionPosition() {
     });
 }
 if (mediaSessionEnabled) {
+    navigator.mediaSession.setActionHandler('play', () => {
+        mediaControls.startPlayback();
+    });
     navigator.mediaSession.setActionHandler('pause', () => {
-        if (mediaControls.playing) {
-            mediaControls.stopPlayback();
-        } else {
-            mediaControls.startPlayback();
-        }
+        mediaControls.stopPlayback();
     });
     navigator.mediaSession.setActionHandler('seekbackward', (e) => {
         mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
@@ -821,9 +820,20 @@ if (mediaSessionEnabled) {
         mediaControls.setTime(mediaControls.duration * e.seekTime);
     });
     setMediaSession();
-    audioContext.addEventListener('statechange', () => {
-        navigator.mediaSession.playbackState = audioContext.state == 'running' ? 'playing' : 'paused';
+    audioContext.addEventListener('statechange', async () => {
+        if (audioContext.state == 'running') {
+            navigator.mediaSession.playbackState = 'playing';
+            (await silenceAudioPromise).play();
+        } else {
+            navigator.mediaSession.playbackState = 'paused';
+            (await silenceAudioPromise).pause();
+        }
     });
+    silenceAudioPromise.then((a) => setTimeout(() => {
+        navigator.mediaSession.playbackState = 'paused';
+        console.log(a);
+        a.pause();
+    }, 100));
 }
 
 // picture-in-picture
