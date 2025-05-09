@@ -610,7 +610,8 @@ input[type=button] {
     pointer-events: none;
 }
 #volume {
-    appearance: slider-vertical;
+    writing-mode: vertical-rl;
+    direction: rtl;
     position: absolute;
     top: 0px;
     left: 0px;

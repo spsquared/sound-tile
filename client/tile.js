@@ -130,7 +130,6 @@ function setVisualizerControls() {
     visualizerCorrWaveOptions.classList.add('hidden');
     visualizerSpectrogramOptions.classList.add('hidden');
     visualizerSecondaryColorContainer.classList.add('hidden');
-    visualizerAltColorContainer.classList.add('hidden');
     const visualizerFFTSize = this.tile.querySelector('.tileVisualizerFFTSize');
     addNumberInput(visualizerFFTSize, 'fftSize');
     // bar options

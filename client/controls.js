@@ -629,7 +629,7 @@ const mediaControls = {
         pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
         pipTimeSeekInput.title = timeSeekInput.title;
-        mediaControls.startTime = performance.now() - (mediaControls.currentTime * 1000);
+        mediaControls.startTime = performance.now() - mediaControls.currentTime;
         if (mediaControls.playing) Visualizer.startAll(mediaControls.currentTime);
         updateMediaSessionPosition();
     },
@@ -666,7 +666,8 @@ Visualizer.onUpdate = () => {
     pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
     updateMediaSessionPosition();
 };
-function getTime(s) {
+function getTime(t) {
+    const s = t / 1000;
     return `${Math.trunc(s / 60)}:${s % 60 < 10 ? '0' : ''}${Math.trunc(s) % 60}`;
 };
 setInterval(() => {
@@ -680,15 +681,15 @@ setInterval(() => {
                 mediaControls.setTime(0);
             }
         }
-        mediaControls.currentTime = (now - mediaControls.startTime) / 1000;
-        timeSeekInput.value = mediaControls.currentTime;
-        pipTimeSeekInput.value = mediaControls.currentTime;
+        mediaControls.currentTime = now - mediaControls.startTime;
+        timeSeekInput.value = mediaControls.currentTime / 1000;
+        pipTimeSeekInput.value = mediaControls.currentTime / 1000;
         timeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         pipTimeSeekThumb.style.setProperty('--progress', (mediaControls.currentTime / mediaControls.duration) || 0);
         timeSeekInput.title = `${getTime(mediaControls.currentTime)}/${getTime(mediaControls.duration)}`;
         pipTimeSeekInput.title = timeSeekInput.title;
     } else {
-        mediaControls.startTime = now - (mediaControls.currentTime * 1000);
+        mediaControls.startTime = now - mediaControls.currentTime;
     }
     updateMediaSessionPosition();
     timeDisplay.innerText = getTime(mediaControls.currentTime);
@@ -697,7 +698,8 @@ timeSeekInput.oninput = (e) => {
     mediaControls.setTime(timeSeekInput.value);
 };
 playButton.onclick = async (e) => {
-    if (mediaControls.currentTime >= mediaControls.duration) {
+    // setInterval may set currentTime slightly under duration so there is fudge value
+    if (!mediaControls.playing && mediaControls.currentTime >= mediaControls.duration - 30) {
         mediaControls.currentTime = 0;
         mediaControls.startTime = performance.now();
     }
@@ -799,8 +801,8 @@ function setMediaSession() {
 }
 function updateMediaSessionPosition() {
     navigator.mediaSession.setPositionState({
-        duration: mediaControls.duration,
-        position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime))
+        duration: mediaControls.duration / 1000,
+        position: Math.max(0, Math.min(mediaControls.duration, mediaControls.currentTime)) / 1000
     });
 }
 if (mediaSessionEnabled) {
@@ -811,13 +813,13 @@ if (mediaSessionEnabled) {
         mediaControls.stopPlayback();
     });
     navigator.mediaSession.setActionHandler('seekbackward', (e) => {
-        mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
+        mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5000));
     });
     navigator.mediaSession.setActionHandler('seekforward', (e) => {
-        mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
+        mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5000));
     });
     navigator.mediaSession.setActionHandler('seekto', (e) => {
-        mediaControls.setTime(mediaControls.duration * e.seekTime);
+        mediaControls.setTime(e.seekTime * 1000);
     });
     setMediaSession();
     audioContext.addEventListener('statechange', async () => {
@@ -831,7 +833,6 @@ if (mediaSessionEnabled) {
     });
     silenceAudioPromise.then((a) => setTimeout(() => {
         navigator.mediaSession.playbackState = 'paused';
-        console.log(a);
         a.pause();
     }, 100));
 }
@@ -1004,12 +1005,12 @@ document.addEventListener('keydown', (e) => {
         case 'arrowleft':
             if (e.ctrlKey) break;
             e.preventDefault();
-            mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5));
+            mediaControls.setTime(Math.max(0, mediaControls.currentTime - 5000));
             break;
         case 'arrowright':
             if (e.ctrlKey) break;
             e.preventDefault();
-            mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5));
+            mediaControls.setTime(Math.min(mediaControls.duration, mediaControls.currentTime + 5000));
             break;
         case ' ':
         case 'p':

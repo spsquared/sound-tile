@@ -350,7 +350,7 @@ class Visualizer {
         }
     }
     static startAll(time = 0) {
-        Visualizer.#list.forEach(visualizer => visualizer.start(time));
+        Visualizer.#list.forEach(visualizer => visualizer.start(time / 1000));
         audioContext.resume();
     }
     static stopAll() {
@@ -360,7 +360,7 @@ class Visualizer {
     static get duration() {
         let duration = 0;
         Visualizer.#list.forEach(visualizer => { if (visualizer.ready && visualizer.buffer.duration > duration) duration = visualizer.buffer.duration; });
-        return duration;
+        return duration * 1000;
     }
 
     static #onUpdate = () => { };
