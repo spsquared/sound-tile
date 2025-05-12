@@ -531,7 +531,6 @@ class VisualizerWorker {
                 let lastShift = Infinity;
                 for (let i = 0; i < samples; i++) {
                     const shift = Math.round(windowSize * i / (samples - 1));
-                    if (samples == 1) shift = Math.floor((data.length - windowSize) / 2);
                     if (shift == lastShift) continue;
                     lastShift = shift;
                     let error = 0;
