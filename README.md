@@ -1,6 +1,10 @@
 # Sound Tile
 An app that lets you visualize music (or other sounds) in tiles.
 
+**Sound Tile is being rewritten in TypeScript using [Tauri](https://v2.tauri.app) to offer a more features & a better experience!**
+
+**[Visit the new repository (sound-tile-typescript)](https://github.com/spsquared/sound-tile-typescript)**
+
 Like [corrscope](https://github.com/corrscope/corrscope) but different.
 
 Sound Tile runs in the browser (officially hosted at [soundtile.web.app](https://soundtile.web.app)), and features customizable spectrum analyzers (FFT) and waveform modes.
