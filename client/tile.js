@@ -1222,7 +1222,7 @@ function startDrag(e) {
 };
 function onDragMove(e) {
     if (drag.dragging) {
-        if (e instanceof TouchEvent) e = e.touches[0];
+        if ('touches' in e) e = e.touches[0];
         drag.scrollDir.x = 0;
         drag.scrollDir.y = 0;
         if (GroupTile.treeMode) {
