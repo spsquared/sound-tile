@@ -18,6 +18,8 @@ if (navigator.userActivation) {
     });
 }
 
+const useWorkers = 'Worker' in window && 'OffscreenCanvas' in window;
+
 class Visualizer {
     static #list = new Set();
     static #persistenceIdCounter = 0;
@@ -26,9 +28,9 @@ class Visualizer {
     rawBuffer = null;
     buffer = null;
     canvas = null;
-    workerCanvas = (Worker !== undefined) ? new (OffscreenCanvas !== undefined ? OffscreenCanvas : HTMLCanvasElement)(1, 1) : null;
+    workerCanvas = useWorkers ? new OffscreenCanvas(1, 1) : null;
     ctx = null;
-    worker = (Worker !== undefined && OffscreenCanvas !== undefined) ? new Worker('./visualizerWorker.js') : null;
+    worker = useWorkers ? new Worker('./visualizerWorker.js') : null;
     playingSource = null;
     analyzer = audioContext.createAnalyser();
     gain = audioContext.createGain();
