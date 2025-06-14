@@ -28,7 +28,6 @@ class Visualizer {
     rawBuffer = null;
     buffer = null;
     canvas = null;
-    workerCanvas = useWorkers ? new OffscreenCanvas(1, 1) : null;
     ctx = null;
     worker = useWorkers ? new Worker('./visualizerWorker.js') : null;
     playingSource = null;
@@ -80,7 +79,6 @@ class Visualizer {
                 this.worker.addEventListener('message', res);
                 this.worker.addEventListener('error', (err) => { throw err; });
             }
-            this.worker.postMessage([this.workerCanvas], [this.workerCanvas]);
             this.ctx = canvas.getContext('bitmaprenderer');
         } else {
             this.ctx = canvas.getContext('2d');

@@ -1,6 +1,6 @@
 // Copyright (C) 2025 Sampleprovider(sp)
 
-const isWorker = this.window === undefined;
+const isWorker = 'importScripts' in globalThis;
 
 class VisualizerWorker {
     static #persistentData = new Map(); // memory leak when web workers unavailable
@@ -736,8 +736,8 @@ class VisualizerWorker {
     }
 }
 
-onmessage = (e) => {
-    const canvas = e.data[0];
+if (isWorker) {
+    const canvas = new OffscreenCanvas(1, 1);
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false;
     ctx.webkitImageSmoothingEnabled = false;
@@ -764,4 +764,4 @@ onmessage = (e) => {
         }
     };
     postMessage([]);
-};
+}
