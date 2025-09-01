@@ -849,6 +849,8 @@ pipContainer.remove();
 pipIconLink.rel = 'icon';
 pipIconLink.href = './assets/icon-0.png';
 pipIconLink.type = 'image/png';
+const stylesheetRequest = fetch('./style.css');
+let stylesheetText = undefined; // reads response body when needed and caches it here
 if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e) => {
     if (documentPictureInPicture.window == null) {
         try {
@@ -867,10 +869,10 @@ if (window.documentPictureInPicture !== undefined) pipButton.onclick = async (e)
                     }
                 }, 10);
             });
-            const styleSheet = document.createElement('link');
-            styleSheet.href = './style.css';
-            styleSheet.rel = 'stylesheet';
-            pipTitle.innerText = 'Sound Tile'; // add media information later
+            const styleSheet = document.createElement('style');
+            if (stylesheetText === undefined) stylesheetText = await (await stylesheetRequest).text();
+            styleSheet.innerHTML = stylesheetText;
+            pipTitle.innerText = 'Sound Tile'; // add media information later (also this doesnt work anyway)
             pipWindow.document.head.appendChild(pipTitle);
             pipWindow.document.head.appendChild(styleSheet);
             pipWindow.document.head.appendChild(pipIconLink);

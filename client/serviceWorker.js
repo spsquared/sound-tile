@@ -17,6 +17,7 @@ self.addEventListener('install', (e) => {
             './visualizerWorker.js',
             // './export.js',
             './controls.js',
+            './assets/silence.mp3',
             './assets/logo.png',
             './assets/favicon.png',
             './assets/icon-0.png',
